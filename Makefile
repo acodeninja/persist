@@ -6,7 +6,7 @@ help:
 	@echo
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_/-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-commit/pre: lint
+commit/pre: lint test
 
 commit/message:
 	commitlint --edit $(MESSAGE)
@@ -16,3 +16,12 @@ lint: ## Codebase style checks
 
 lint/fix: ## Codebase style fix
 	npm run lint -- --fix
+
+test:
+	npm test
+
+test/watch:
+	npm run test:watch
+
+test/coverage:
+	npm run test:coverage
