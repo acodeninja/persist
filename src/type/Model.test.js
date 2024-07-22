@@ -1,6 +1,6 @@
 import test from 'ava';
-import Model from './Model.js';
 import Type from './index.js';
+import {ValidationError} from '../SchemaCompiler.js';
 
 /**
  * @class TestModel
@@ -20,7 +20,7 @@ import Type from './index.js';
  * @property {number[]} requiredArrayOfNumber
  * @property {boolean[]} requiredArrayOfBoolean
  */
-class TestModel extends Model {
+class TestModel extends Type.Model {
     static custom = Type.Custom.of({
         type: 'object',
         additionalProperties: false,
@@ -45,7 +45,7 @@ class TestModel extends Model {
     static requiredLink = () => TestModel.required;
 }
 
-const data = {
+const valid = {
     string: 'String',
     requiredString: 'Required String',
     number: 24.3,
@@ -62,44 +62,71 @@ const data = {
     requiredLink: new TestModel(),
 };
 
+const invalid = {
+    string: false,
+    requiredString: undefined,
+    number: 'test',
+    requiredNumber: undefined,
+    boolean: 13.4,
+    requiredBoolean: undefined,
+    arrayOfString: [true],
+    arrayOfNumber: ['string'],
+    arrayOfBoolean: [15.8],
+    requiredArrayOfString: [true],
+    requiredArrayOfNumber: ['string'],
+    requiredArrayOfBoolean: [15.8],
+    link: 'string',
+    requiredLink: undefined,
+};
+
 test('constructor() creates a model instance with an id', t => {
     const model = new TestModel();
 
     t.true(!!model.id.match(/TestModel\/[A-Z0-9]+/));
 });
 
-test('constructor(data) creates a model using the input data', t => {
-    const model = new TestModel(data);
+test('constructor(valid) creates a model using the input valid', t => {
+    const model = new TestModel(valid);
 
     t.true(!!model.id.match(/TestModel\/[A-Z0-9]+/));
 
     t.like(model.toData(), {
-        ...data,
+        ...valid,
         stringSlug: 'string',
         requiredStringSlug: 'required-string',
-        link: {id: data.link.id},
-        requiredLink: {id: data.requiredLink.id},
+        link: {id: valid.link.id},
+        requiredLink: {id: valid.requiredLink.id},
     });
 });
 
-test('toData() returns an object representation of the model', t => {
-    const model = new TestModel(data);
+test('model.toData() returns an object representation of the model', t => {
+    const model = new TestModel(valid);
 
     t.true(!!model.id.match(/TestModel\/[A-Z0-9]+/));
 
     t.like(model.toData(), {
-        ...data,
+        ...valid,
         stringSlug: 'string',
         requiredStringSlug: 'required-string',
-        link: {id: data.link.id},
-        requiredLink: {id: data.requiredLink.id},
+        link: {id: valid.link.id},
+        requiredLink: {id: valid.requiredLink.id},
     });
 });
 
-test('isModel(model) returns true', t => {
-    t.true(Model.isModel(new TestModel()));
+test('model.validate() returns true', t => {
+    const model = new TestModel(valid);
+    t.true(model.validate());
 });
 
-test('isModel(non-model) returns false', t => {
-    t.false(Model.isModel({}));
+test('invalidModel.validate() returns true', t => {
+    const model = new TestModel(invalid);
+    t.throws(() => model.validate(), {instanceOf: ValidationError});
+});
+
+test('Model.isModel(model) returns true', t => {
+    t.true(Type.Model.isModel(new TestModel()));
+});
+
+test('Model.isModel(non-model) returns false', t => {
+    t.false(Type.Model.isModel({}));
 });

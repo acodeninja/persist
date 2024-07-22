@@ -1,4 +1,5 @@
 import {monotonicFactory} from 'ulid';
+import SchemaCompiler from '../SchemaCompiler.js';
 
 const createID = monotonicFactory();
 
@@ -37,6 +38,10 @@ export default class Model {
             }
             return value;
         }));
+    }
+
+    validate() {
+        return SchemaCompiler.compile(this.constructor).validate(this);
     }
 
     static toString() {
