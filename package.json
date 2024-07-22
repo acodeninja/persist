@@ -6,7 +6,7 @@
   "scripts": {
     "test": "ava",
     "test:watch": "ava --watch",
-    "test:coverage": "c8 --experimental-monocart --reporter=v8 --lcov --reporter=console-details ava",
+    "test:coverage": "c8 --experimental-monocart --100 --reporter=console-details ava",
     "lint": "eslint ./",
     "prepare": "husky"
   },
@@ -20,6 +20,7 @@
     "eslint": "^9.6.0",
     "globals": "^15.8.0",
     "husky": "^9.1.1",
-    "monocart-coverage-reports": "^2.9.2"
+    "monocart-coverage-reports": "^2.9.2",
+    "semantic-release": "^24.0.0"
   }
 }

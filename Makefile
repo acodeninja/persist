@@ -11,6 +11,8 @@ commit/pre: lint test
 commit/message:
 	commitlint --edit $(MESSAGE)
 
+init: node_modules ## Initialise dependencies
+
 lint: ## Codebase style checks
 	npm run lint
 
@@ -25,3 +27,6 @@ test/watch:
 
 test/coverage:
 	npm run test:coverage
+
+node_modules:
+	@npm install

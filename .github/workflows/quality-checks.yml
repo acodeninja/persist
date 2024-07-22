@@ -1,0 +1,26 @@
+name: 🔬 quality checks
+
+run-name: 🔬 @${{ github.triggering_actor }} is checking quality on ${{ github.ref_name }}
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  lint:
+    name: 🧹 lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3
+      - run: make init
+      - run: make lint
+
+  test-with-coverage:
+    name: 🧪 test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3
+      - run: make init
+      - run: make test/coverage
