@@ -1,5 +1,5 @@
-import test from 'ava';
 import BooleanType from './BooleanType.js';
+import test from 'ava';
 
 test('BooleanType is Boolean', t => {
     t.is(BooleanType.toString(), 'Boolean');

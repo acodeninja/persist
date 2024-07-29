@@ -1,10 +1,11 @@
-import {monotonicFactory} from 'ulid';
 import SchemaCompiler from '../SchemaCompiler.js';
+import {monotonicFactory} from 'ulid';
 
 const createID = monotonicFactory();
 
 export default class Model {
     static id = String.required;
+    static _required = false;
 
     constructor(data = {}) {
         this.id = `${this.constructor.name}/${createID()}`;
@@ -13,9 +14,9 @@ export default class Model {
             if (data?.[key] !== undefined) {
                 this[key] = data[key];
             }
-            if (value._resolved) {
+            if (value?._resolved) {
                 Object.defineProperty(this, key, {
-                    get: function() {
+                    get: function () {
                         return value.resolve(this);
                     },
                 });
@@ -44,6 +45,16 @@ export default class Model {
         return SchemaCompiler.compile(this.constructor).validate(this);
     }
 
+    toIndexData() {
+        const indexData = {id: this.id};
+
+        for (const name of this.constructor.indexedProperties()) {
+            indexData[name] = this[name];
+        }
+
+        return indexData;
+    }
+
     static toString() {
         return this['name'];
     }
@@ -58,10 +69,32 @@ export default class Model {
         return Required;
     }
 
+    static indexedProperties() {
+        return [];
+    }
+
+    static fromData(data) {
+        const model = new this();
+
+        for (const [name, value] of Object.entries(data)) {
+            if (this[name]?._resolved) continue;
+            model[name] = value;
+        }
+
+        return model;
+    }
+
     static isModel(possibleModel) {
         return (
             possibleModel?.prototype instanceof Model ||
             possibleModel?.constructor?.prototype instanceof Model
+        );
+    }
+
+    static isDryModel(possibleDryModel) {
+        return (
+            Object.keys(possibleDryModel).includes('id') &&
+            !!possibleDryModel.id.match(/[A-Za-z]+\/[A-Z0-9]+/)
         );
     }
 }

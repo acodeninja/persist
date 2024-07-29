@@ -1,5 +1,5 @@
-import test from 'ava';
 import SlugType from './SlugType.js';
+import test from 'ava';
 
 test('SlugType is of type Slug', t => {
     t.is(SlugType.toString(), 'Slug');

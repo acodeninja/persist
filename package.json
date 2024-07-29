@@ -7,6 +7,7 @@
     "test": "ava",
     "test:watch": "ava --watch",
     "test:coverage": "c8 --experimental-monocart --100 --reporter=console-details ava",
+    "test:coverage:report": "c8 --experimental-monocart --100 --lcov --reporter=console-details --reporter=v8 ava",
     "lint": "eslint ./",
     "prepare": "husky"
   },
@@ -34,6 +35,7 @@
     "globals": "^15.8.0",
     "husky": "^9.1.1",
     "monocart-coverage-reports": "^2.9.2",
-    "semantic-release": "^24.0.0"
+    "semantic-release": "^24.0.0",
+    "sinon": "^18.0.0"
   }
 }

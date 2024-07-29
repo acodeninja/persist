@@ -1,5 +1,5 @@
-import test from 'ava';
 import NumberType from './NumberType.js';
+import test from 'ava';
 
 test('NumberType is Number', t => {
     t.is(NumberType.toString(), 'Number');

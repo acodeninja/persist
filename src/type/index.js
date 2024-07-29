@@ -1,10 +1,10 @@
-import StringType from './simple/StringType.js';
-import NumberType from './simple/NumberType.js';
-import BooleanType from './simple/BooleanType.js';
 import ArrayType from './complex/ArrayType.js';
-import SlugType from './resolved/SlugType.js';
-import Model from './Model.js';
+import BooleanType from './simple/BooleanType.js';
 import CustomType from './complex/CustomType.js';
+import Model from './Model.js';
+import NumberType from './simple/NumberType.js';
+import SlugType from './resolved/SlugType.js';
+import StringType from './simple/StringType.js';
 
 const Type = {};
 
