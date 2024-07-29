@@ -1,5 +1,5 @@
-import ajv from 'ajv';
 import Type from '../Type.js';
+import ajv from 'ajv';
 
 export default class CustomType {
     static of(schema) {

@@ -1,5 +1,5 @@
-import test from 'ava';
 import CustomType from './CustomType.js';
+import test from 'ava';
 
 const validSchema = {
     type: 'object',

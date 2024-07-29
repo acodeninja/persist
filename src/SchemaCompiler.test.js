@@ -1,50 +1,7 @@
-import test from 'ava';
-import Type from './type/index.js';
+import {MainModel, getTestModelInstance, invalid, valid} from '../test/fixtures/TestModel.js';
 import SchemaCompiler, {CompiledSchema, ValidationError} from './SchemaCompiler.js';
-
-/**
- * @class TestModel
- * @extends Type.Model
- * @property {object} custom
- * @property {string?} string
- * @property {string?} stringSlug
- * @property {string} requiredString
- * @property {string} requiredStringSlug
- * @property {number?} number
- * @property {number} requiredNumber
- * @property {boolean?} boolean
- * @property {boolean} requiredBoolean
- * @property {string[]?} arrayOfString
- * @property {number[]?} arrayOfNumber
- * @property {boolean[]?} arrayOfBoolean
- * @property {string[]} requiredArrayOfString
- * @property {number[]} requiredArrayOfNumber
- * @property {boolean[]} requiredArrayOfBoolean
- */
-class TestModel extends Type.Model {
-    static custom = Type.Custom.of({
-        type: 'object',
-        additionalProperties: false,
-        properties: {test: {type: 'string'}},
-        required: ['test'],
-    });
-    static string = Type.String;
-    static stringSlug = Type.Resolved.Slug.of('string');
-    static requiredString = Type.String.required;
-    static requiredStringSlug = Type.Resolved.Slug.of('requiredString');
-    static number = Type.Number;
-    static requiredNumber = Type.Number.required;
-    static boolean = Type.Boolean;
-    static requiredBoolean = Type.Boolean.required;
-    static arrayOfString = Type.Array.of(Type.String);
-    static arrayOfNumber = Type.Array.of(Type.Number);
-    static arrayOfBoolean = Type.Array.of(Type.Boolean);
-    static requiredArrayOfString = Type.Array.of(Type.String).required;
-    static requiredArrayOfNumber = Type.Array.of(Type.Number).required;
-    static requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
-    static link = () => TestModel;
-    static requiredLink = () => TestModel.required;
-}
+import Type from './type/index.js';
+import test from 'ava';
 
 const schema = {
     custom: Type.Custom.of({
@@ -67,42 +24,6 @@ const schema = {
     requiredArrayOfString: Type.Array.of(Type.String).required,
     requiredArrayOfNumber: Type.Array.of(Type.Number).required,
     requiredArrayOfBoolean: Type.Array.of(Type.Boolean).required,
-    link: TestModel,
-    requiredLink: TestModel.required,
-};
-
-const valid = {
-    string: 'string',
-    requiredString: 'required-string',
-    number: 24.3,
-    requiredNumber: 12.2,
-    boolean: false,
-    requiredBoolean: true,
-    arrayOfString: ['string'],
-    arrayOfNumber: [24.5],
-    arrayOfBoolean: [false],
-    requiredArrayOfString: ['string'],
-    requiredArrayOfNumber: [24.5],
-    requiredArrayOfBoolean: [false],
-    link: new TestModel(),
-    requiredLink: new TestModel(),
-};
-
-const invalid = {
-    string: false,
-    requiredString: undefined,
-    number: 'test',
-    requiredNumber: undefined,
-    boolean: 13.4,
-    requiredBoolean: undefined,
-    arrayOfString: [true],
-    arrayOfNumber: ['string'],
-    arrayOfBoolean: [15.8],
-    requiredArrayOfString: [true],
-    requiredArrayOfNumber: ['string'],
-    requiredArrayOfBoolean: [15.8],
-    link: 'string',
-    requiredLink: undefined,
 };
 
 const invalidDataErrors = [{
@@ -122,12 +43,6 @@ const invalidDataErrors = [{
     keyword: 'required',
     message: 'must have required property \'requiredBoolean\'',
     params: {missingProperty: 'requiredBoolean'},
-    schemaPath: '#/required',
-}, {
-    instancePath: '',
-    keyword: 'required',
-    message: 'must have required property \'requiredLink\'',
-    params: {missingProperty: 'requiredLink'},
     schemaPath: '#/required',
 }, {
     instancePath: '/string',
@@ -183,47 +98,7 @@ const invalidDataErrors = [{
     message: 'must be boolean',
     params: {type: 'boolean'},
     schemaPath: '#/properties/requiredArrayOfBoolean/items/type',
-}, {
-    instancePath: '/link',
-    keyword: 'type',
-    message: 'must be object',
-    params: {type: 'object'},
-    schemaPath: '#/properties/link/type',
 }];
-
-const validModel = new TestModel({
-    string: 'string',
-    requiredString: 'required-string',
-    number: 24.3,
-    requiredNumber: 12.2,
-    boolean: false,
-    requiredBoolean: true,
-    arrayOfString: ['string'],
-    arrayOfNumber: [24.5],
-    arrayOfBoolean: [false],
-    requiredArrayOfString: ['string'],
-    requiredArrayOfNumber: [24.5],
-    requiredArrayOfBoolean: [false],
-    link: new TestModel(),
-    requiredLink: new TestModel(),
-});
-
-const invalidModel = new TestModel({
-    string: false,
-    requiredString: undefined,
-    number: 'test',
-    requiredNumber: undefined,
-    boolean: 13.4,
-    requiredBoolean: undefined,
-    arrayOfString: [true],
-    arrayOfNumber: ['string'],
-    arrayOfBoolean: [15.8],
-    requiredArrayOfString: [true],
-    requiredArrayOfNumber: ['string'],
-    requiredArrayOfBoolean: [15.8],
-    link: 'string',
-    requiredLink: undefined,
-});
 
 test('.compile(schema) is an instance of CompiledSchema', t => {
     t.true(SchemaCompiler.compile(schema).prototype instanceof CompiledSchema);
@@ -240,7 +115,6 @@ test('.compile(schema) has the given schema associated with it', t => {
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
-            'requiredLink',
         ],
         properties: {
             custom: {
@@ -263,37 +137,19 @@ test('.compile(schema) has the given schema associated with it', t => {
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
-            link: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['id'],
-                properties: {
-                    id: {
-                        type: 'string',
-                        pattern: '^TestModel/[A-Z0-9]+$',
-                    },
-                },
-            },
-            requiredLink: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['id'],
-                properties: {
-                    id: {
-                        type: 'string',
-                        pattern: '^TestModel/[A-Z0-9]+$',
-                    },
-                },
-            },
         },
     });
 });
 
 test('.compile(schema).validate(valid) returns true', t => {
+    delete valid.id;
+
     t.true(SchemaCompiler.compile(schema).validate(valid));
 });
 
 test('.compile(schema).validate(invalid) throws a ValidationError', t => {
+    delete invalid.id;
+
     const error = t.throws(
         () => SchemaCompiler.compile(schema).validate(invalid),
         {instanceOf: ValidationError},
@@ -304,8 +160,8 @@ test('.compile(schema).validate(invalid) throws a ValidationError', t => {
     t.deepEqual(error.errors, invalidDataErrors);
 });
 
-test('.compile(TestModel) has the given schema associated with it', t => {
-    t.deepEqual(SchemaCompiler.compile(TestModel)._schema, {
+test('.compile(MainModel) has the given schema associated with it', t => {
+    t.deepEqual(SchemaCompiler.compile(MainModel)._schema, {
         type: 'object',
         additionalProperties: false,
         required: [
@@ -316,7 +172,7 @@ test('.compile(TestModel) has the given schema associated with it', t => {
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
-            'requiredLink',
+            'requiredLinked',
         ],
         properties: {
             id: {type: 'string'},
@@ -340,51 +196,113 @@ test('.compile(TestModel) has the given schema associated with it', t => {
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
-            link: {
+            requiredLinked: {
                 type: 'object',
                 additionalProperties: false,
                 required: ['id'],
                 properties: {
                     id: {
                         type: 'string',
-                        pattern: '^TestModel/[A-Z0-9]+$',
+                        pattern: '^LinkedModel/[A-Z0-9]+$',
                     },
                 },
             },
-            requiredLink: {
+            linked: {
                 type: 'object',
                 additionalProperties: false,
                 required: ['id'],
                 properties: {
                     id: {
                         type: 'string',
-                        pattern: '^TestModel/[A-Z0-9]+$',
+                        pattern: '^LinkedModel/[A-Z0-9]+$',
                     },
                 },
+            },
+            linkedMany: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['id'],
+                    properties: {
+                        id: {
+                            type: 'string',
+                            pattern: '^LinkedManyModel/[A-Z0-9]+$',
+                        },
+                    },
+                },
+            },
+            circular: {
+                additionalProperties: false,
+                properties: {
+                    id: {pattern: '^CircularModel/[A-Z0-9]+$', type: 'string'},
+                },
+                required: ['id'],
+                type: 'object',
+            },
+            circularMany: {
+                items: {
+                    additionalProperties: false,
+                    properties: {
+                        id: {pattern: '^CircularManyModel/[A-Z0-9]+$', type: 'string'},
+                    },
+                    required: ['id'],
+                    type: 'object',
+                },
+                type: 'array',
             },
         },
     });
 });
 
-test('.compile(TestModel).validate(validModel) returns true', t => {
-    t.true(SchemaCompiler.compile(TestModel).validate(validModel));
+test('.compile(MainModel).validate(validModel) returns true', t => {
+    t.true(SchemaCompiler.compile(MainModel).validate(getTestModelInstance(valid)));
 });
 
-test('.compile(TestModel).validate(invalidModel) throws a ValidationError', t => {
-    t.plan(Object.keys(invalidModel).length + 4);
+test('.compile(MainModel).validate(invalidModel) throws a ValidationError', t => {
+    const invalidModel = getTestModelInstance(invalid);
+
+    t.plan(Object.keys(invalidModel).length + 6);
 
     const error = t.throws(
-        () => SchemaCompiler.compile(TestModel).validate(invalidModel),
+        () => SchemaCompiler.compile(MainModel).validate(invalidModel),
         {instanceOf: ValidationError},
     );
 
     t.is(error.message, 'Validation failed');
 
-    t.true(!!error.data.id.match(/TestModel\/[A-Z0-9]+/));
+    t.true(!!error.data.id.match(/MainModel\/[A-Z0-9]+/));
 
-    for (const name of Object.keys(invalidModel)) {
-        t.is(error.data[name], invalidModel[name]);
+    for (const [name, value] of Object.entries(invalidModel.toData())) {
+        t.deepEqual(error.data[name], value);
     }
 
-    t.deepEqual(error.errors, invalidDataErrors);
+    t.deepEqual(error.errors, [
+        ...invalidDataErrors,
+        {
+            instancePath: '/circular/id',
+            keyword: 'pattern',
+            message: 'must match pattern "^CircularModel/[A-Z0-9]+$"',
+            params: {pattern: '^CircularModel/[A-Z0-9]+$'},
+            schemaPath: '#/properties/circular/properties/id/pattern',
+        }, {
+            instancePath: '/circularMany/0/id',
+            keyword: 'pattern',
+            message: 'must match pattern "^CircularManyModel/[A-Z0-9]+$"',
+            params: {pattern: '^CircularManyModel/[A-Z0-9]+$'},
+            schemaPath: '#/properties/circularMany/items/properties/id/pattern',
+        }, {
+            instancePath: '/linked/id',
+            keyword: 'pattern',
+            message: 'must match pattern "^LinkedModel/[A-Z0-9]+$"',
+            params: {pattern: '^LinkedModel/[A-Z0-9]+$'},
+            schemaPath: '#/properties/linked/properties/id/pattern',
+        }, {
+            instancePath: '/linkedMany/0/id',
+            keyword: 'pattern',
+            message: 'must match pattern "^LinkedManyModel/[A-Z0-9]+$"',
+            params: {pattern: '^LinkedManyModel/[A-Z0-9]+$'},
+            schemaPath: '#/properties/linkedMany/items/properties/id/pattern',
+        },
+    ]);
 });

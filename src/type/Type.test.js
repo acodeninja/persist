@@ -1,5 +1,5 @@
-import test from 'ava';
 import Type from './Type.js';
+import test from 'ava';
 
 test('Type has no type', t => {
     t.is(Type.toString(), '');

@@ -1,5 +1,5 @@
-import test from 'ava';
 import ResolvedType from './ResolvedType.js';
+import test from 'ava';
 
 class UnimplementedResolvedType extends ResolvedType {
 

@@ -1,5 +1,5 @@
-import test from 'ava';
 import StringType from './StringType.js';
+import test from 'ava';
 
 test('StringType is String', t => {
     t.is(StringType.toString(), 'String');

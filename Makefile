@@ -19,6 +19,7 @@ lint: ## Codebase style checks
 lint/fix: ## Codebase style fix
 	npm run lint -- --fix
 
+.PHONY: test
 test:
 	npm test
 
@@ -28,5 +29,8 @@ test/watch:
 test/coverage:
 	npm run test:coverage
 
+test/coverage/report:
+	npm run test:coverage:report
+
 node_modules:
-	@npm install
+	npm install

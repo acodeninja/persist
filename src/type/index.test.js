@@ -1,11 +1,11 @@
-import test from 'ava';
-import Type from './index.js';
-import BooleanType from './simple/BooleanType.js';
-import SlugType from './resolved/SlugType.js';
 import ArrayType from './complex/ArrayType.js';
-import NumberType from './simple/NumberType.js';
-import StringType from './simple/StringType.js';
+import BooleanType from './simple/BooleanType.js';
 import CustomType from './complex/CustomType.js';
+import NumberType from './simple/NumberType.js';
+import SlugType from './resolved/SlugType.js';
+import StringType from './simple/StringType.js';
+import Type from './index.js';
+import test from 'ava';
 
 test('exports Type.Boolean', t => {
     t.is(Type.Boolean, BooleanType);

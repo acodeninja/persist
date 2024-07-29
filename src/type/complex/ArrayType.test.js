@@ -1,8 +1,8 @@
-import test from 'ava';
 import ArrayType from './ArrayType.js';
-import StringType from '../simple/StringType.js';
-import NumberType from '../simple/NumberType.js';
 import BooleanType from '../simple/BooleanType.js';
+import NumberType from '../simple/NumberType.js';
+import StringType from '../simple/StringType.js';
+import test from 'ava';
 
 test('ArrayType.of(StringType) is ArrayOf(String)', t => {
     t.is(ArrayType.of(StringType).toString(), 'ArrayOf(String)');

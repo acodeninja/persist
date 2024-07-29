@@ -1,6 +1,6 @@
+import Type from './type/index.js';
 import ajv from 'ajv';
 import ajvErrors from 'ajv-errors';
-import Type from './type/index.js';
 
 /**
  * @class SchemaCompiler
@@ -29,9 +29,11 @@ export default class SchemaCompiler {
         }
 
         for (const [name, type] of Object.entries(rawSchema)) {
+            if (['indexedProperties'].includes(name)) continue;
+
             const property = type instanceof Function && !type.prototype ? type() : type;
 
-            if (property._required || property._items?._type?._required)
+            if (property?._required || property?._items?._type?._required)
                 schema.required.push(name);
 
             if (Type.Model.isModel(property)) {
@@ -42,22 +44,37 @@ export default class SchemaCompiler {
                     properties: {
                         id: {
                             type: 'string',
-                            pattern: `^${property.toString()}/[A-Z0-9]+$`
+                            pattern: `^${property.toString()}/[A-Z0-9]+$`,
                         },
                     },
                 };
                 continue;
             }
 
-            if (property._schema) {
+            if (property?._schema) {
                 schema.properties[name] = property._schema;
                 continue;
             }
 
-            schema.properties[name] = {type: property._type};
+            schema.properties[name] = {type: property?._type};
 
-            if (property._type === 'array')
-                schema.properties[name].items = {type: property._items._type};
+            if (property?._type === 'array') {
+                schema.properties[name].items = {type: property?._items._type};
+
+                if (Type.Model.isModel(property?._items)) {
+                    schema.properties[name].items = {
+                        type: 'object',
+                        additionalProperties: false,
+                        required: ['id'],
+                        properties: {
+                            id: {
+                                type: 'string',
+                                pattern: `^${property?._items.toString()}/[A-Z0-9]+$`,
+                            },
+                        },
+                    };
+                }
+            }
         }
 
         class Schema extends CompiledSchema {
@@ -85,10 +102,14 @@ export class CompiledSchema {
      * @throws {ValidationError}
      */
     static validate(data) {
-        const valid = this._validator?.(data);
+        let inputData = data;
+        if (Type.Model.isModel(data)) {
+            inputData = data.toData();
+        }
+        const valid = this._validator?.(inputData);
         if (valid) return valid;
 
-        throw new ValidationError(data, this._validator.errors);
+        throw new ValidationError(inputData, this._validator.errors);
     }
 }
 
