@@ -7,17 +7,18 @@ export default [
     pluginJs.configs.recommended,
     {
         rules: {
-            'no-unused-vars': [
-                'error',
-                {
-                    argsIgnorePattern: '^_',
-                    caughtErrorsIgnorePattern: '^_',
-                    destructuredArrayIgnorePattern: '^_',
-                    varsIgnorePattern: '^_',
-                },
-            ],
+            'comma-dangle': ['error', 'always-multiline'],
+            'default-param-last': ['error'],
+            'eol-last': ['error', 'always'],
+            'no-unused-vars': ['error', {
+                argsIgnorePattern: '^_',
+                caughtErrorsIgnorePattern: '^_',
+                destructuredArrayIgnorePattern: '^_',
+                varsIgnorePattern: '^_',
+            }],
             'quote-props': ['error', 'as-needed'],
-            quotes: ['error', 'single']
-        }
-    }
+            'sort-imports': ['error', {}],
+            quotes: ['error', 'single'],
+        },
+    },
 ];
