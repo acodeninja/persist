@@ -13,7 +13,7 @@
   },
   "exports": {
     ".": "./exports/default.js",
-    "./store/*": "./exports/store/*.js"
+    "./engine/*": "./exports/engine/*.js"
   },
   "dependencies": {
     "ajv": "^8.16.0",

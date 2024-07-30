@@ -30,7 +30,7 @@ export default class Persist {
      * @static
      * @param {string} group - Name of the group containing the engine
      * @param {Engine} engine - The engine class you wish to configure and add to the group
-     * @param {map?} configuration - The configuration to use with the engine
+     * @param {object?} configuration - The configuration to use with the engine
      */
     static addEngine(group, engine, configuration) {
         if (!this._engine[group]) this._engine[group] = {};
