@@ -1,10 +1,11 @@
 import SchemaCompiler from '../SchemaCompiler.js';
+import StringType from './simple/StringType.js';
 import {monotonicFactory} from 'ulid';
 
 const createID = monotonicFactory();
 
 export default class Model {
-    static id = String.required;
+    static id = StringType.required;
     static _required = false;
 
     constructor(data = {}) {
