@@ -2,7 +2,7 @@ import {inspect} from 'node:util';
 
 function parseArgument(arg) {
     try {
-        return JSON.parse(arg);
+        return JSON.parse(JSON.stringify(arg));
     } catch (_) {
         return arg;
     }
@@ -17,8 +17,9 @@ export function calledWith(t, spy, ...args) {
         const calledArguments = call.args.map(parseArgument);
         const expectedArguments = args.map(parseArgument);
 
-        if (calledArguments[0] === expectedArguments[0]) {
+        if (JSON.stringify(expectedArguments) === JSON.stringify(calledArguments)) {
             t.like(calledArguments, expectedArguments);
+            return;
         }
     }
 

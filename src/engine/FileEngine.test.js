@@ -35,8 +35,7 @@ test('FileEngine.get(MainModel, id) when id exists', async t => {
 });
 
 test('FileEngine.get(MainModel, id) when id does not exist', async t => {
-    const filesystem = stubFs();
-    filesystem.readFile.rejects(new Error);
+    const filesystem = stubFs({});
 
     await t.throwsAsync(
         () => FileEngine.configure({
@@ -51,7 +50,7 @@ test('FileEngine.get(MainModel, id) when id does not exist', async t => {
 });
 
 test('FileEngine.put(model)', async t => {
-    const filesystem = stubFs();
+    const filesystem = stubFs({});
 
     const model = getTestModelInstance(valid);
     await t.notThrowsAsync(() => FileEngine.configure({

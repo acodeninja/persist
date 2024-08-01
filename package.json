@@ -34,6 +34,7 @@
     "eslint": "^9.6.0",
     "globals": "^15.8.0",
     "husky": "^9.1.1",
+    "lodash": "^4.17.21",
     "monocart-coverage-reports": "^2.9.2",
     "semantic-release": "^24.0.0",
     "sinon": "^18.0.0"

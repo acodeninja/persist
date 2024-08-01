@@ -141,7 +141,7 @@ export default class Engine {
     }
 
     static toString() {
-        return 'Engine';
+        return this.name;
     }
 };
 
