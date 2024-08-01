@@ -6,7 +6,7 @@ help:
 	@echo
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_/-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-commit/pre: lint test
+commit/pre: lint test/coverage
 
 commit/message:
 	commitlint --edit $(MESSAGE)
