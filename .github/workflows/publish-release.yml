@@ -1,14 +1,20 @@
-name: 📋 draft release
+name: 📋 publish release
 
-run-name: 📋 @${{ github.triggering_actor }} is drafting a release
+run-name: 📋 @${{ github.triggering_actor }} is publishing a release
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows:
+      - "🔬 quality checks"
+    branches:
+      - main
+    types:
+      - completed
 
 jobs:
   draft-release:
-    name: 📋 draft release
+    name: 📋 publish release
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
