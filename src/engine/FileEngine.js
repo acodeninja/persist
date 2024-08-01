@@ -58,8 +58,4 @@ export default class FileEngine extends Engine {
 
         await processIndex('', Object.values(index).flat());
     }
-
-    static toString() {
-        return 'FileEngine';
-    }
 }
