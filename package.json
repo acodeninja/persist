@@ -15,6 +15,9 @@
     ".": "./exports/default.js",
     "./engine/*": "./exports/engine/*.js"
   },
+  "repository": {
+    "url": "https://github.com/acodeninja/persist"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
