@@ -56,6 +56,16 @@ export default class Model {
         return indexData;
     }
 
+    toSearchData() {
+        const indexData = {id: this.id};
+
+        for (const name of this.constructor.searchProperties()) {
+            indexData[name] = this[name];
+        }
+
+        return indexData;
+    }
+
     static toString() {
         return this['name'];
     }
@@ -71,6 +81,10 @@ export default class Model {
     }
 
     static indexedProperties() {
+        return [];
+    }
+
+    static searchProperties() {
         return [];
     }
 

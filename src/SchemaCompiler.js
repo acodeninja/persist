@@ -29,7 +29,7 @@ export default class SchemaCompiler {
         }
 
         for (const [name, type] of Object.entries(rawSchema)) {
-            if (['indexedProperties'].includes(name)) continue;
+            if (['indexedProperties', 'searchProperties'].includes(name)) continue;
 
             const property = type instanceof Function && !type.prototype ? type() : type;
 

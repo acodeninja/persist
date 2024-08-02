@@ -53,6 +53,21 @@ test('testModel.toIndexData() returns an object with the indexed properties', t 
     });
 });
 
+test('model.toSearchData() returns an object with the searchable properties', t => {
+    const searchData = new Type.Model(valid).toSearchData();
+
+    t.assert(searchData.id.match(/Model\/[A-Z0-9]+/));
+});
+
+test('testModel.toSearchData() returns an object with the searchable properties', t => {
+    const searchData = getTestModelInstance(valid).toSearchData();
+
+    t.deepEqual(searchData, {
+        id: 'MainModel/000000000000',
+        string: 'String',
+    });
+});
+
 test('TestModel.fromData(data) produces a model', t => {
     const model = MainModel.fromData(valid);
 

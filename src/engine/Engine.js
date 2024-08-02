@@ -1,4 +1,5 @@
 import Type from '../type/index.js';
+import lunr from 'lunr';
 
 /**
  * @class Engine
@@ -18,8 +19,45 @@ export default class Engine {
         throw new NotImplementedError(`${this.name} does not implement .putIndex()`);
     }
 
+    static async getSearchIndexCompiled(_model) {
+        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexCompiled()`);
+    }
+
+    static async getSearchIndexRaw(_model) {
+        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexRaw()`);
+    }
+
+    static async putSearchIndexCompiled(_model, _compiledIndex) {
+        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexCompiled()`);
+    }
+
+    static async putSearchIndexRaw(_model, _rawIndex) {
+        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`);
+    }
+
     static async findByValue(_model, _parameters) {
         throw new NotImplementedError(`${this.name} does not implement .findByValue()`);
+    }
+
+    static async search(model, query) {
+        const index = await this.getSearchIndexCompiled(model);
+
+        try {
+            const searchIndex = lunr.Index.load(index);
+
+            const results = searchIndex.search(query);
+            const output = [];
+            for (const result of results) {
+                output.push({
+                    ...result,
+                    model: await this.get(model, result.ref),
+                });
+            }
+
+            return output;
+        } catch (_) {
+            throw new NotImplementedError(`The model ${model.name} does not have a search index available.`);
+        }
     }
 
     static async find(model, parameters) {
@@ -40,6 +78,28 @@ export default class Engine {
 
             await this.putModel(model);
             indexUpdates[model.constructor.name] = (indexUpdates[model.constructor.name] ?? []).concat([model]);
+
+            if (model.constructor.searchProperties().length > 0) {
+                const rawSearchIndex = {
+                    ...await this.getSearchIndexRaw(model.constructor),
+                    [model.id]: model.toSearchData(),
+                };
+                await this.putSearchIndexRaw(model.constructor, rawSearchIndex);
+
+                const compiledIndex = lunr(function () {
+                    this.ref('id')
+
+                    for (const field of model.constructor.searchProperties()) {
+                        this.field(field);
+                    }
+
+                    Object.values(rawSearchIndex).forEach(function (doc) {
+                        this.add(doc);
+                    }, this)
+                });
+
+                await this.putSearchIndexCompiled(model.constructor, compiledIndex);
+            }
 
             for (const [_, property] of Object.entries(model)) {
                 if (Type.Model.isModel(property)) {

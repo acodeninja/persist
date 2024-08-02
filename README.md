@@ -122,7 +122,34 @@ export class ModelB extends Persist.Type.Model {
 ```
 </details>
 
+## Find and Search
 
+Models may expose a `searchProperties()` and `indexProperties()` static method to indicate which 
+fields should be indexed for storage engine `find()` and `search()` methods.
+
+Use `find()` for a low usage exact string match on any indexed attribute of a model.
+
+Use `search()` for a medium usage fuzzy string match on any search indexed attribute of a model.
+
+```javascript
+import Persist from "@acodeninja/persist";
+import FileEngine from "@acodeninja/persist/engine/file";
+
+export class Tag extends Persist.Type.Model {
+    static tag = Persist.Type.String.required;
+    static description = Persist.Type.String;
+    static searchProperties = () => ['tag', 'description'];
+    static indexProperties = () => ['tag'];
+}
+
+const tag = new Tag({tag: 'documentation', description: 'How to use the persist library'});
+
+FileEngine.find(Tag, {tag: 'documentation'});
+// [Tag {tag: 'documentation', description: 'How to use the persist library'}]
+
+FileEngine.search(Tag, 'how to');
+// [Tag {tag: 'documentation', description: 'How to use the persist library'}]
+```
 
 ## Storage
 

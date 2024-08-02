@@ -1,7 +1,6 @@
 import Engine, {NotFoundEngineError, NotImplementedError} from './Engine.js';
 import {MainModel} from '../../test/fixtures/TestModel.js';
 import Type from '../type/index.js';
-import stubFs from '../../test/mocks/fs.js';
 import test from 'ava';
 
 class UnimplementedEngine extends Engine {
@@ -48,6 +47,38 @@ test('UnimplementedEngine.find(Model, {param: value}) raises a findByValue not i
     t.is(error.message, 'UnimplementedEngine does not implement .findByValue()');
 });
 
+test('UnimplementedEngine.getSearchIndexCompiled(Model, {param: value}) raises a getSearchIndexCompiled not implemented error', async t => {
+    const error = await t.throwsAsync(() =>
+            UnimplementedEngine.getSearchIndexCompiled(Type.Model, {param: 'value'}),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'UnimplementedEngine does not implement .getSearchIndexCompiled()');
+});
+
+test('UnimplementedEngine.getSearchIndexRaw(Model, {param: value}) raises a getSearchIndexRaw not implemented error', async t => {
+    const error = await t.throwsAsync(() =>
+            UnimplementedEngine.getSearchIndexRaw(Type.Model, {param: 'value'}),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'UnimplementedEngine does not implement .getSearchIndexRaw()');
+});
+
+test('UnimplementedEngine.putSearchIndexCompiled(Model, {param: value}) raises a putSearchIndexCompiled not implemented error', async t => {
+    const error = await t.throwsAsync(() =>
+            UnimplementedEngine.putSearchIndexCompiled(Type.Model, {param: 'value'}),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'UnimplementedEngine does not implement .putSearchIndexCompiled()');
+});
+
+test('UnimplementedEngine.putSearchIndexRaw(Model, {param: value}) raises a putSearchIndexRaw not implemented error', async t => {
+    const error = await t.throwsAsync(() =>
+            UnimplementedEngine.putSearchIndexRaw(Type.Model, {param: 'value'}),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'UnimplementedEngine does not implement .putSearchIndexRaw()');
+});
+
 class ImplementedEngine extends Engine {
     static getById(_model, _id) {
         return null;
@@ -55,9 +86,6 @@ class ImplementedEngine extends Engine {
 }
 
 test('ImplementedEngine.get(MainModel, id) when id does not exist', async t => {
-    const filesystem = stubFs();
-    filesystem.readFile.rejects(new Error);
-
     await t.throwsAsync(
         () => ImplementedEngine.get(MainModel, 'MainModel/000000000000'),
         {
