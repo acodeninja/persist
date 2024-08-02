@@ -1,0 +1,12 @@
+*.test.js
+test/
+.github/
+.husky/
+coverage/
+.idea/
+ava.config.js
+commitlint.config.js
+release.config.js
+eslint.config.js
+Makefile
+.tool-versions
