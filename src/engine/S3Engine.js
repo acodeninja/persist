@@ -1,5 +1,4 @@
 import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
-
 import Engine from './Engine.js';
 
 export default class S3Engine extends Engine {
@@ -73,5 +72,53 @@ export default class S3Engine extends Engine {
         }
 
         await processIndex(null, Object.values(index).flat());
+    }
+
+    static async getSearchIndexCompiled(model) {
+        try {
+            const data = await this._configuration.client.send(new GetObjectCommand({
+                Key: [this._configuration.prefix].concat([model.name]).concat(['_search_index.json']).join('/'),
+                Bucket: this._configuration.bucket,
+            }));
+
+            return JSON.parse(await data.Body.transformToString());
+        } catch (_error) {
+            return {};
+        }
+    }
+
+    static async getSearchIndexRaw(model) {
+        try {
+            const data = await this._configuration.client.send(new GetObjectCommand({
+                Key: [this._configuration.prefix].concat([model.name]).concat(['_search_index_raw.json']).join('/'),
+                Bucket: this._configuration.bucket,
+            }));
+
+            return JSON.parse(await data.Body.transformToString());
+        } catch (_error) {
+            return {};
+        }
+    }
+
+    static async putSearchIndexCompiled(model, compiledIndex) {
+        const Key = [this._configuration.prefix, model.name, '_search_index.json'].join('/');
+
+        await this._configuration.client.send(new PutObjectCommand({
+            Key,
+            Body: JSON.stringify(compiledIndex),
+            Bucket: this._configuration.bucket,
+            ContentType: 'application/json',
+        }));
+    }
+
+    static async putSearchIndexRaw(model, rawIndex) {
+        const Key = [this._configuration.prefix, model.name, '_search_index_raw.json'].join('/');
+
+        await this._configuration.client.send(new PutObjectCommand({
+            Key,
+            Body: JSON.stringify(rawIndex),
+            Bucket: this._configuration.bucket,
+            ContentType: 'application/json',
+        }));
     }
 }

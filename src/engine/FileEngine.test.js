@@ -1,6 +1,6 @@
 import {MainModel, getTestModelInstance, valid} from '../../test/fixtures/TestModel.js';
+import {NotFoundEngineError, NotImplementedError} from './Engine.js';
 import FileEngine from './FileEngine.js';
-import {NotFoundEngineError} from './Engine.js';
 import assertions from '../../test/assertions.js';
 import fs from 'node:fs/promises';
 import stubFs from '../../test/mocks/fs.js';
@@ -67,6 +67,21 @@ test('FileEngine.put(model)', async t => {
         },
     }));
 
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_search_index_raw.json');
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index_raw.json', JSON.stringify({
+        'MainModel/000000000000': {
+            id: 'MainModel/000000000000',
+            string: 'String',
+        },
+    }));
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index.json', JSON.stringify({
+        version: '2.3.9',
+        fields: ['string'],
+        fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+        invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+        pipeline: ['stemmer'],
+    }));
+
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/LinkedModel/000000000000.json', JSON.stringify(model.linked.toData()));
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/LinkedModel/111111111111.json', JSON.stringify(model.requiredLinked.toData()));
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/LinkedModel/_index.json', JSON.stringify({
@@ -100,6 +115,45 @@ test('FileEngine.put(model)', async t => {
         'LinkedModel/111111111111': {id: 'LinkedModel/111111111111'},
         'CircularManyModel/000000000000': {id: 'CircularManyModel/000000000000'},
         'LinkedManyModel/000000000000': {id: 'LinkedManyModel/000000000000'},
+    }));
+});
+
+test('FileEngine.put(model) updates existing search indexes', async t => {
+    const filesystem = stubFs({
+        'MainModel/_search_index_raw.json': {
+            'MainModel/111111111111': {
+                id: 'MainModel/111111111111',
+                string: 'String',
+            },
+        },
+    });
+
+    const model = getTestModelInstance(valid);
+    await t.notThrowsAsync(() => FileEngine.configure({
+        path: '/tmp/fileEngine',
+        filesystem,
+    }).put(model));
+
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_search_index_raw.json');
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index_raw.json', JSON.stringify({
+        'MainModel/111111111111': {
+            id: 'MainModel/111111111111',
+            string: 'String',
+        },
+        'MainModel/000000000000': {
+            id: 'MainModel/000000000000',
+            string: 'String',
+        },
+    }));
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index.json', JSON.stringify({
+        version: '2.3.9',
+        fields: ['string'],
+        fieldVectors: [['string/MainModel/111111111111', [0, 0.182]], ['string/MainModel/000000000000', [0, 0.182]]],
+        invertedIndex: [['string', {
+            _index: 0,
+            string: {'MainModel/111111111111': {}, 'MainModel/000000000000': {}},
+        }]],
+        pipeline: ['stemmer'],
     }));
 });
 
@@ -194,7 +248,7 @@ test('FileEngine.find(MainModel, {string: "test"}) when a matching model does no
 });
 
 test('FileEngine.find(MainModel, {string: "test"}) when no index exists', async t => {
-    const filesystem = stubFs();
+    const filesystem = stubFs({}, []);
 
     const models = await FileEngine.configure({
         path: '/tmp/fileEngine',
@@ -202,6 +256,70 @@ test('FileEngine.find(MainModel, {string: "test"}) when no index exists', async 
     }).find(MainModel, {string: 'String'});
 
     t.deepEqual(models, []);
+});
+
+test('FileEngine.search(MainModel, "String") when a matching model exists', async t => {
+    const filesystem = stubFs({}, [
+        getTestModelInstance(valid),
+        getTestModelInstance({
+            id: 'MainModel/1111111111111',
+            string: 'another string',
+        }),
+    ]);
+
+    const configuration = {
+        path: '/tmp/fileEngine',
+        filesystem,
+    };
+
+    const model0 = await FileEngine.configure(configuration).get(MainModel, 'MainModel/000000000000');
+
+    const model1 = await FileEngine.configure(configuration).get(MainModel, 'MainModel/1111111111111');
+
+    const models = await FileEngine.configure(configuration).search(MainModel, 'String');
+
+    t.like(models, [{
+        ref: 'MainModel/000000000000',
+        score: 0.211,
+        model: model0,
+    }, {
+        ref: 'MainModel/1111111111111',
+        score: 0.16,
+        model: model1,
+    }]);
+});
+
+test('FileEngine.search(MainModel, "not-even-close-to-a-match") when a matching model exists', async t => {
+    const filesystem = stubFs({}, [
+        getTestModelInstance(valid),
+        getTestModelInstance({
+            id: 'MainModel/1111111111111',
+            string: 'another string',
+        }),
+    ]);
+
+    const configuration = {
+        path: '/tmp/fileEngine',
+        filesystem,
+    };
+
+    const models = await FileEngine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
+
+    t.deepEqual(models, []);
+});
+
+test('FileEngine.search(MainModel, "String") when no index exists for the model', async t => {
+    const filesystem = stubFs({}, []);
+
+    const configuration = {
+        path: '/tmp/fileEngine',
+        filesystem,
+    };
+
+    await t.throwsAsync(async () => await FileEngine.configure(configuration).search(MainModel, 'String'), {
+        instanceOf: NotImplementedError,
+        message: 'The model MainModel does not have a search index available.',
+    });
 });
 
 test('FileEngine.hydrate(model)', async t => {

@@ -58,4 +58,22 @@ export default class FileEngine extends Engine {
 
         await processIndex('', Object.values(index).flat());
     }
+
+    static async getSearchIndexCompiled(model) {
+        return JSON.parse((await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_search_index.json')).catch(() => '{}')).toString());
+    }
+
+    static async getSearchIndexRaw(model) {
+        return JSON.parse((await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_search_index_raw.json')).catch(() => '{}')).toString());
+    }
+
+    static async putSearchIndexCompiled(model, compiledIndex) {
+        const filePath = join(this._configuration.path, model.name, '_search_index.json');
+        await this._configuration.filesystem.writeFile(filePath, JSON.stringify(compiledIndex));
+    }
+
+    static async putSearchIndexRaw(model, rawIndex) {
+        const filePath = join(this._configuration.path, model.name, '_search_index_raw.json');
+        await this._configuration.filesystem.writeFile(filePath, JSON.stringify(rawIndex));
+    }
 }

@@ -121,7 +121,11 @@ export class CircularManyModel extends Type.Model {
 
 export function getTestModelInstance(data = {}) {
     const model = new MainModel(data);
-    if (!data.id) model.id = model.id.replace(/[a-zA-Z0-9]+$/, '000000000000');
+    if (!data.id) {
+        model.id = model.id.replace(/[a-zA-Z0-9]+$/, '000000000000');
+    } else {
+        model.id = data.id;
+    }
 
     const circular = new CircularModel({linked: model});
     circular.id = circular.id.replace(/[a-zA-Z0-9]+$/, '000000000000');

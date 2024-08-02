@@ -1,4 +1,5 @@
 import Model from '../../src/type/Model.js';
+import lunr from 'lunr';
 import sinon from 'sinon';
 
 function S3ObjectWrapper(data) {
@@ -25,6 +26,16 @@ function stubS3Client(filesystem = {}, models = {}) {
             };
             modelsAddedToFilesystem.push(model.id);
 
+            const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
+
+            if (model.constructor.searchProperties().length > 0) {
+                const searchIndex = initialFilesystem[searchIndexRawPath] || {};
+                initialFilesystem[searchIndexRawPath] = {
+                    ...searchIndex,
+                    [model.id]: model.toSearchData(),
+                };
+            }
+
             for (const [_, value] of Object.entries(model)) {
                 if (Model.isModel(value) && !modelsAddedToFilesystem.includes(value.id)) {
                     initialFilesystem = bucketFilesFromModels(initialFilesystem, value);
@@ -45,9 +56,33 @@ function stubS3Client(filesystem = {}, models = {}) {
     const resolvedBuckets = filesystem;
 
     for (const [bucket, modelList] of Object.entries(models)) {
+        const resolvedFiles = bucketFilesFromModels(resolvedBuckets[bucket], ...modelList);
+
+        const searchIndexes = Object.entries(resolvedFiles)
+            .filter(([name, _]) => name.endsWith('_search_index_raw.json'));
+
+        if (searchIndexes.length > 0) {
+            for (const [name, index] of searchIndexes) {
+                const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
+                const compiledIndex = lunr(function () {
+                    this.ref('id')
+
+                    for (const field of fields) {
+                        this.field(field);
+                    }
+
+                    Object.values(index).forEach(function (doc) {
+                        this.add(doc);
+                    }, this)
+                });
+
+                resolvedFiles[name.replace('_raw', '')] = compiledIndex;
+            }
+        }
+
         resolvedBuckets[bucket] = {
             ...(resolvedBuckets[bucket] || {}),
-            ...bucketFilesFromModels(resolvedBuckets[bucket], ...modelList),
+            ...resolvedFiles,
         }
     }
 

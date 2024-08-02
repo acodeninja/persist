@@ -1,9 +1,8 @@
 import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 import {MainModel, getTestModelInstance, valid} from '../../test/fixtures/TestModel.js';
-import {NotFoundEngineError} from './Engine.js';
+import {NotFoundEngineError, NotImplementedError} from './Engine.js';
 import S3Engine from './S3Engine.js';
 import assertions from '../../test/assertions.js';
-import stubFs from '../../test/mocks/fs.js';
 import stubS3Client from '../../test/mocks/s3.js';
 import test from 'ava';
 
@@ -97,6 +96,36 @@ test('S3Engine.put(model)', async t => {
                 stringSlug: 'string',
             },
         }),
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index.json',
+        Body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+            invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+            pipeline: ['stemmer'],
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
     }));
 
     assertions.calledWith(t, client.send, new PutObjectCommand({
@@ -212,6 +241,63 @@ test('S3Engine.put(model)', async t => {
             'CircularManyModel/000000000000': {id: 'CircularManyModel/000000000000'},
             'LinkedManyModel/000000000000': {id: 'LinkedManyModel/000000000000'},
         }),
+    }));
+});
+
+test('S3Engine.put(model) updates existing search indexes', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_search_index_raw.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+
+    const model = getTestModelInstance(valid);
+    await t.notThrowsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/111111111111': {
+                id: 'MainModel/111111111111',
+                string: 'String',
+            },
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index.json',
+        Body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/111111111111', [0, 0.182]], ['string/MainModel/000000000000', [0, 0.182]]],
+            invertedIndex: [['string', {
+                _index: 0,
+                string: {'MainModel/111111111111': {}, 'MainModel/000000000000': {}},
+            }]],
+            pipeline: ['stemmer'],
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
     }));
 });
 
@@ -376,14 +462,86 @@ test('S3Engine.find(MainModel, {string: "test"}) when a matching model does not 
 });
 
 test('S3Engine.find(MainModel, {string: "test"}) when no index exists', async t => {
-    const filesystem = stubFs();
+    const client = stubS3Client();
 
     const models = await S3Engine.configure({
-        path: '/tmp/fileEngine',
-        filesystem,
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
     }).find(MainModel, {string: 'String'});
 
     t.deepEqual(models, []);
+});
+
+test('S3Engine.search(MainModel, "String") when a matching model exists', async t => {
+    const client = stubS3Client({}, {
+        'test-bucket': [
+            getTestModelInstance(valid),
+            getTestModelInstance({
+                id: 'MainModel/1111111111111',
+                string: 'another string',
+            }),
+        ],
+    });
+
+    const configuration = {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    };
+
+    const model0 = await S3Engine.configure(configuration).get(MainModel, 'MainModel/000000000000');
+
+    const model1 = await S3Engine.configure(configuration).get(MainModel, 'MainModel/1111111111111');
+
+    const models = await S3Engine.configure(configuration).search(MainModel, 'String');
+
+    t.like(models, [{
+        ref: 'MainModel/000000000000',
+        score: 0.211,
+        model: model0,
+    }, {
+        ref: 'MainModel/1111111111111',
+        score: 0.16,
+        model: model1,
+    }]);
+});
+
+test('S3Engine.search(MainModel, "not-even-close-to-a-match") when a matching model exists', async t => {
+    const client = stubS3Client({}, {
+        'test-bucket': [
+            getTestModelInstance(valid),
+            getTestModelInstance({
+                id: 'MainModel/1111111111111',
+                string: 'another string',
+            }),
+        ],
+    });
+
+    const configuration = {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    };
+
+    const models = await S3Engine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
+
+    t.deepEqual(models, []);
+});
+
+test('S3Engine.search(MainModel, "String") when no index exists for the model', async t => {
+    const client = stubS3Client({}, {});
+
+    const configuration = {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    };
+
+    await t.throwsAsync(async () => await S3Engine.configure(configuration).search(MainModel, 'String'), {
+        instanceOf: NotImplementedError,
+        message: 'The model MainModel does not have a search index available.',
+    });
 });
 
 test('S3Engine.hydrate(model)', async t => {
