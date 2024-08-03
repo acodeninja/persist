@@ -40,6 +40,7 @@ export default class Engine {
     }
 
     static async search(model, query) {
+        this._checkConfiguration?.();
         const index = await this.getSearchIndexCompiled(model);
 
         try {
@@ -61,12 +62,14 @@ export default class Engine {
     }
 
     static async find(model, parameters) {
+        this._checkConfiguration?.();
         const response = await this.findByValue(model, parameters);
 
         return response.map(m => model.fromData(m));
     }
 
     static async put(model) {
+        this._checkConfiguration?.();
         const uploadedModels = [];
         const indexUpdates = {};
 
@@ -118,6 +121,7 @@ export default class Engine {
     }
 
     static async get(model, id) {
+        this._checkConfiguration?.();
         const found = await this.getById(id);
 
         try {
@@ -128,6 +132,7 @@ export default class Engine {
     }
 
     static async hydrate(model) {
+        this._checkConfiguration?.();
         const hydratedModels = {};
 
         const hydrateModel = async (modelToProcess) => {
@@ -212,4 +217,13 @@ export class NotFoundEngineError extends EngineError {
 }
 
 export class NotImplementedError extends EngineError {
+}
+
+export class MissConfiguredError extends EngineError {
+    configuration;
+
+    constructor(configuration) {
+        super('Engine is miss-configured');
+        this.configuration = configuration;
+    }
 }
