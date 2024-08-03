@@ -4,7 +4,7 @@ import slugify from 'slugify';
 export default class SlugType extends ResolvedType {
     static of(property) {
         class SlugOf extends ResolvedType {
-            static _type = 'string'
+            static _type = 'string';
 
             static toString() {
                 return `SlugOf(${property})`;

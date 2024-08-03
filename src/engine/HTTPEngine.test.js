@@ -453,7 +453,7 @@ test('HTTPEngine.put(model) when the initial model put fails', async t => {
         host: 'https://example.com',
         prefix: 'test',
         fetch,
-    }).put(model)
+    }).put(model);
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {
         headers: {

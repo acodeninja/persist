@@ -53,7 +53,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}) {
         for (const [name, index] of searchIndexes) {
             const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
             const compiledIndex = lunr(function () {
-                this.ref('id')
+                this.ref('id');
 
                 for (const field of fields) {
                     this.field(field);
@@ -61,7 +61,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}) {
 
                 Object.values(index).forEach(function (doc) {
                     this.add(doc);
-                }, this)
+                }, this);
             });
 
             resolvedFiles[name.replace('_raw', '')] = JSON.parse(JSON.stringify(compiledIndex));
@@ -72,7 +72,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}) {
         for (const [path, value] of Object.entries(errors)) {
             if ((url.pathname ?? url).endsWith(path)) {
                 if (value) return value;
-                return {status: 404, json: async () => {throw new Error()}};
+                return {status: 404, json: async () => {throw new Error();}};
             }
         }
 
@@ -82,7 +82,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}) {
             }
         }
 
-        return {status: 404, json: async () => {throw new Error()}};
+        return {status: 404, json: async () => {throw new Error();}};
     });
 }
 

@@ -53,7 +53,7 @@ function stubFs(filesystem, models = []) {
         for (const [name, index] of searchIndexes) {
             const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
             const compiledIndex = lunr(function () {
-                this.ref('id')
+                this.ref('id');
 
                 for (const field of fields) {
                     this.field(field);
@@ -61,7 +61,7 @@ function stubFs(filesystem, models = []) {
 
                 Object.values(index).forEach(function (doc) {
                     this.add(doc);
-                }, this)
+                }, this);
             });
 
             resolvedFiles[name.replace('_raw', '')] = compiledIndex;
@@ -78,9 +78,9 @@ function stubFs(filesystem, models = []) {
             }
         }
 
-        const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`)
-        err.code = 'EPIPE'
-        err.errno = -3
+        const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+        err.code = 'EPIPE';
+        err.errno = -3;
         throw err;
     });
 
