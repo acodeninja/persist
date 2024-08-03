@@ -75,7 +75,7 @@ export default class Model {
             static _required = true;
         }
 
-        Object.defineProperty(Required, 'name', {value: `${this.toString()}`})
+        Object.defineProperty(Required, 'name', {value: `${this.toString()}`});
 
         return Required;
     }

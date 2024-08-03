@@ -40,6 +40,7 @@ export default class Engine {
     }
 
     static async search(model, query) {
+        this._checkConfiguration?.();
         const index = await this.getSearchIndexCompiled(model);
 
         try {
@@ -61,12 +62,14 @@ export default class Engine {
     }
 
     static async find(model, parameters) {
+        this._checkConfiguration?.();
         const response = await this.findByValue(model, parameters);
 
         return response.map(m => model.fromData(m));
     }
 
     static async put(model) {
+        this._checkConfiguration?.();
         const uploadedModels = [];
         const indexUpdates = {};
 
@@ -87,7 +90,7 @@ export default class Engine {
                 await this.putSearchIndexRaw(model.constructor, rawSearchIndex);
 
                 const compiledIndex = lunr(function () {
-                    this.ref('id')
+                    this.ref('id');
 
                     for (const field of model.constructor.searchProperties()) {
                         this.field(field);
@@ -95,7 +98,7 @@ export default class Engine {
 
                     Object.values(rawSearchIndex).forEach(function (doc) {
                         this.add(doc);
-                    }, this)
+                    }, this);
                 });
 
                 await this.putSearchIndexCompiled(model.constructor, compiledIndex);
@@ -118,6 +121,7 @@ export default class Engine {
     }
 
     static async get(model, id) {
+        this._checkConfiguration?.();
         const found = await this.getById(id);
 
         try {
@@ -128,6 +132,7 @@ export default class Engine {
     }
 
     static async hydrate(model) {
+        this._checkConfiguration?.();
         const hydratedModels = {};
 
         const hydrateModel = async (modelToProcess) => {
@@ -142,7 +147,7 @@ export default class Engine {
             }
 
             return modelToProcess;
-        }
+        };
 
         const hydrateSubModel = async (property, modelToProcess, name) => {
             if (hydratedModels[property.id]) {
@@ -155,7 +160,7 @@ export default class Engine {
             const hydratedSubModel = await hydrateModel(subModel);
             hydratedModels[property.id] = hydratedSubModel;
             return hydratedSubModel;
-        }
+        };
 
         const hydrateModelList = async (property, modelToProcess, name) => {
             const subModelClass = getSubModelClass(modelToProcess, name, true);
@@ -177,7 +182,7 @@ export default class Engine {
                 hydratedModels[hydratedSubModel.id] = hydratedSubModel;
                 return hydratedSubModel;
             }));
-        }
+        };
 
         function getSubModelClass(modelToProcess, name, isArray = false) {
             const constructorField = modelToProcess.constructor[name];
@@ -195,7 +200,7 @@ export default class Engine {
             static _configuration = configuration;
         }
 
-        Object.defineProperty(ConfiguredStore, 'name', {value: `${this.toString()}`})
+        Object.defineProperty(ConfiguredStore, 'name', {value: `${this.toString()}`});
 
         return ConfiguredStore;
     }
@@ -212,4 +217,13 @@ export class NotFoundEngineError extends EngineError {
 }
 
 export class NotImplementedError extends EngineError {
+}
+
+export class MissConfiguredError extends EngineError {
+    configuration;
+
+    constructor(configuration) {
+        super('Engine is miss-configured');
+        this.configuration = configuration;
+    }
 }

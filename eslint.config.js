@@ -17,6 +17,7 @@ export default [
                 varsIgnorePattern: '^_',
             }],
             'quote-props': ['error', 'as-needed'],
+            semi: ['error', 'always'],
             'sort-imports': ['error', {}],
             quotes: ['error', 'single'],
         },

@@ -2,7 +2,7 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
-function stubFs(filesystem, models = []) {
+function stubFetch(filesystem = {}, models = [], errors = {}) {
     const modelsAddedToFilesystem = [];
 
     function fileSystemFromModels(initialFilesystem = {}, ...models) {
@@ -64,35 +64,26 @@ function stubFs(filesystem, models = []) {
                 }, this);
             });
 
-            resolvedFiles[name.replace('_raw', '')] = compiledIndex;
+            resolvedFiles[name.replace('_raw', '')] = JSON.parse(JSON.stringify(compiledIndex));
         }
     }
 
-    const readFile = sinon.stub().callsFake(async (filePath) => {
-        for (const [filename, value] of Object.entries(resolvedFiles)) {
-            if (filePath.endsWith(filename)) {
-                if (typeof value === 'string') {
-                    return Buffer.from(value);
-                }
-                return Buffer.from(JSON.stringify(value));
+    return sinon.stub().callsFake(async (url, _opts) => {
+        for (const [path, value] of Object.entries(errors)) {
+            if ((url.pathname ?? url).endsWith(path)) {
+                if (value) return value;
+                return {status: 404, json: async () => {throw new Error();}};
             }
         }
 
-        const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
-        err.code = 'EPIPE';
-        err.errno = -3;
-        throw err;
+        for (const [filename, value] of Object.entries(resolvedFiles)) {
+            if ((url.pathname ?? url).endsWith(filename)) {
+                return {status: 200, json: async () => value};
+            }
+        }
+
+        return {status: 404, json: async () => {throw new Error();}};
     });
-
-    const writeFile = sinon.stub().callsFake(async () => {
-
-    });
-
-    const mkdir = sinon.stub().callsFake(async () => {
-
-    });
-
-    return {readFile, writeFile, mkdir};
 }
 
-export default stubFs;
+export default stubFetch;

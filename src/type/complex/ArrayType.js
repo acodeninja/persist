@@ -3,7 +3,7 @@ import Type from '../Type.js';
 export default class ArrayType {
     static of(type) {
         class ArrayOf extends Type {
-            static _type = 'array'
+            static _type = 'array';
             static _items = type;
 
             static toString() {
@@ -19,7 +19,7 @@ export default class ArrayType {
                     }
                 }
 
-                Object.defineProperty(Required, 'name', {value: `Required${this.toString()}Type`})
+                Object.defineProperty(Required, 'name', {value: `Required${this.toString()}Type`});
 
                 return Required;
             }

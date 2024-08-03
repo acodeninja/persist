@@ -9,10 +9,6 @@ function parseArgument(arg) {
 }
 
 export function calledWith(t, spy, ...args) {
-    const wasCalled = spy.calledWith(...args);
-
-    if (wasCalled) return t.assert(wasCalled);
-
     for (const call of spy.getCalls()) {
         const calledArguments = call.args.map(parseArgument);
         const expectedArguments = args.map(parseArgument);
