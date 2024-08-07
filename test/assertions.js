@@ -8,6 +8,12 @@ function parseArgument(arg) {
     }
 }
 
+export const not = {
+    calledWith: (t, spy, ...args) => {
+        t.throws(() => calledWith(t, spy, ...args));
+    },
+};
+
 export function calledWith(t, spy, ...args) {
     for (const call of spy.getCalls()) {
         const calledArguments = call.args.map(parseArgument);
@@ -25,4 +31,4 @@ export function calledWith(t, spy, ...args) {
     throw error;
 }
 
-export default {calledWith};
+export default {calledWith, not};
