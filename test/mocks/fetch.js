@@ -2,16 +2,16 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
-function stubFetch(filesystem = {}, models = [], errors = {}) {
+function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
     const modelsAddedToFilesystem = [];
 
     function fileSystemFromModels(initialFilesystem = {}, ...models) {
         for (const model of models) {
-            const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
-            const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
+            const modelIndexPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_index.json')].filter(i => !!i).join('/');
+            const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json')].filter(i => !!i).join('/');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[model.id + '.json'] = model.toData();
+            initialFilesystem[[prefix, model.id + '.json'].filter(i => !!i).join('/')] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),
@@ -68,21 +68,36 @@ function stubFetch(filesystem = {}, models = [], errors = {}) {
         }
     }
 
-    return sinon.stub().callsFake(async (url, _opts) => {
+    return sinon.stub().callsFake(async (url, opts) => {
+        if (opts.method === 'PUT') {
+            resolvedFiles[url.pathname ?? url] = JSON.parse(opts.body);
+            return {ok: true, status: 200, json: async () => ({})};
+        }
+
         for (const [path, value] of Object.entries(errors)) {
             if ((url.pathname ?? url).endsWith(path)) {
                 if (value) return value;
-                return {status: 404, json: async () => {throw new Error();}};
+                return {
+                    ok: false,
+                    status: 404,
+                    json: async () => {
+                        throw new Error();
+                    },
+                };
             }
         }
 
         for (const [filename, value] of Object.entries(resolvedFiles)) {
             if ((url.pathname ?? url).endsWith(filename)) {
-                return {status: 200, json: async () => value};
+                return {ok: true, status: 200, json: async () => value};
             }
         }
 
-        return {status: 404, json: async () => {throw new Error();}};
+        return {
+            ok: false, status: 404, json: async () => {
+                throw new Error();
+            },
+        };
     });
 }
 

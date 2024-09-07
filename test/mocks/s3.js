@@ -1,4 +1,5 @@
 import Model from '../../src/type/Model.js';
+import {NoSuchKey} from '@aws-sdk/client-s3';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
@@ -99,7 +100,7 @@ function stubS3Client(filesystem = {}, models = {}) {
                         }
                     }
                 }
-                break;
+                throw new NoSuchKey({});
             case 'PutObjectCommand':
                 break;
         }
