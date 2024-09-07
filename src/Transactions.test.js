@@ -1,5 +1,6 @@
 import enableTransactions, {TransactionCommittedError} from './Transactions.js';
 import {getTestModelInstance, valid} from '../test/fixtures/TestModel.js';
+import {EngineError} from './engine/Engine.js';
 import {getTestEngine} from '../test/mocks/engine.js';
 import test from 'ava';
 
@@ -48,4 +49,27 @@ test('transaction.commit() throws an exception if the transaction was successful
         instanceOf: TransactionCommittedError,
         message: 'Transaction was already committed.',
     });
+});
+
+test('transaction.commit() throws an exception if the transaction fails', async t => {
+    const model = getTestModelInstance(valid);
+    const testEngine = getTestEngine();
+
+    testEngine.putModel.callsFake(async () => {
+        throw new EngineError('Failed to put model');
+    });
+
+    const transactionalEngine = enableTransactions(testEngine);
+
+    const transaction = transactionalEngine.start();
+
+    await transaction.put(model);
+
+    await t.throwsAsync(
+        async () => await transaction.commit(),
+        {
+            instanceOf: EngineError,
+            message: 'Failed to put model',
+        },
+    );
 });
