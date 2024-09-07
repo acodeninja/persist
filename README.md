@@ -172,6 +172,25 @@ export class Tag extends Persist.Type.Model {
 Persist.getEngine('local', FileEngine).put(new Tag({tag: 'documentation'}));
 ```
 
+### HTTP Storage Engine
+
+To store models using an S3 Bucket, use the `S3` storage engine.
+
+```javascript
+import Persist from "@acodeninja/persist";
+import HTTPEngine from "@acodeninja/persist/engine/http";
+
+Persist.addEngine('remote', HTTPEngine, {
+  host: 'https://api.example.com',
+});
+
+export class Tag extends Persist.Type.Model {
+  static tag = Persist.Type.String.required;
+}
+
+Persist.getEngine('remote', HTTPEngine).put(new Tag({tag: 'documentation'}));
+```
+
 ### S3 Storage Engine
 
 To store models using an S3 Bucket, use the `S3` storage engine.
