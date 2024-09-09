@@ -1,4 +1,5 @@
 import Type from '../src/type/index.js';
+import enableTransactions from './Transactions.js';
 
 /**
  * @class Persist
@@ -35,6 +36,9 @@ export default class Persist {
     static addEngine(group, engine, configuration) {
         if (!this._engine[group]) this._engine[group] = {};
 
-        this._engine[group][engine.name] = engine.configure(configuration);
+        this._engine[group][engine.name] =
+            configuration.transactions ?
+                enableTransactions(engine.configure(configuration)) :
+                engine.configure(configuration);
     }
 }

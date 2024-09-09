@@ -1,4 +1,17 @@
-import Engine, {MissConfiguredError} from './Engine.js';
+import Engine, {EngineError, MissConfiguredError} from './Engine.js';
+
+export class HTTPEngineError extends EngineError {
+}
+
+export class HTTPRequestFailedError extends HTTPEngineError {
+    constructor(url, options, response) {
+        const method = options.method?.toLowerCase() || 'get';
+        super(`Failed to ${method} ${url}`);
+        this.response = response;
+        this.url = url;
+        this.options = options;
+    }
+}
 
 export default class HTTPEngine extends Engine {
     static configure(configuration = {}) {
@@ -13,7 +26,7 @@ export default class HTTPEngine extends Engine {
         return super.configure(configuration);
     }
 
-    static _checkConfiguration() {
+    static checkConfiguration() {
         if (
             !this._configuration?.host
         ) throw new MissConfiguredError(this._configuration);
@@ -34,19 +47,32 @@ export default class HTTPEngine extends Engine {
         };
     }
 
+    static async _processFetch(url, options, defaultValue = undefined) {
+        return this._configuration.fetch(url, options)
+            .then(response => {
+                if (!response.ok) {
+                    if (defaultValue !== undefined) {
+                        return {json: () => Promise.resolve(defaultValue)};
+                    }
+
+                    throw new HTTPRequestFailedError(url, options, response);
+                }
+
+                return response;
+            })
+            .then(r => r.json());
+    }
+
     static async getById(id) {
-        this._checkConfiguration();
+        this.checkConfiguration();
+
         const url = new URL([
             this._configuration.host,
             this._configuration.prefix,
             `${id}.json`,
         ].filter(e => !!e).join('/'));
 
-        try {
-            return await this._configuration.fetch(url, this._getReadOptions()).then(r => r.json());
-        } catch (_error) {
-            return undefined;
-        }
+        return await this._processFetch(url, this._getReadOptions());
     }
 
     static async findByValue(model, parameters) {
@@ -65,14 +91,10 @@ export default class HTTPEngine extends Engine {
             `${model.id}.json`,
         ].filter(e => !!e).join('/'));
 
-        try {
-            return await this._configuration.fetch(url, {
-                ...this._getWriteOptions(),
-                body: JSON.stringify(model.toData()),
-            }).then(r => r.json());
-        } catch (_error) {
-            return undefined;
-        }
+        return await this._processFetch(url, {
+            ...this._getWriteOptions(),
+            body: JSON.stringify(model.toData()),
+        });
     }
 
     static async putIndex(index) {
@@ -85,19 +107,13 @@ export default class HTTPEngine extends Engine {
                 '_index.json',
             ].filter(e => !!e).join('/'));
 
-            const currentIndex = await this.getIndex(location);
-
-            try {
-                return await this._configuration.fetch(url, {
-                    ...this._getWriteOptions(),
-                    body: JSON.stringify({
-                        ...currentIndex,
-                        ...modelIndex,
-                    }),
-                }).then(r => r.json());
-            } catch (_error) {
-                return undefined;
-            }
+            return await this._processFetch(url, {
+                ...this._getWriteOptions(),
+                body: JSON.stringify({
+                    ...await this.getIndex(location),
+                    ...modelIndex,
+                }),
+            });
         };
 
         for (const [location, models] of Object.entries(index)) {
@@ -108,33 +124,31 @@ export default class HTTPEngine extends Engine {
     }
 
     static async getIndex(location) {
-        const url = new URL(this._configuration.host + '/' + [this._configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'));
+        const url = new URL([this._configuration.host, this._configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'));
 
-        try {
-            return await this._configuration.fetch(url, this._getReadOptions()).then(r => r.json());
-        } catch (_error) {
-            return {};
-        }
+        return await this._processFetch(url, this._getReadOptions(), {});
     }
 
     static async getSearchIndexCompiled(model) {
-        const url = new URL(this._configuration.host + '/' + [this._configuration.prefix].concat([model.name]).concat(['_search_index.json']).join('/'));
+        const url = new URL([
+            this._configuration.host,
+            this._configuration.prefix,
+            model.toString(),
+            '_search_index.json',
+        ].join('/'));
 
-        try {
-            return await this._configuration.fetch(url, this._getReadOptions()).then(r => r.json());
-        } catch (_error) {
-            return {};
-        }
+        return await this._processFetch(url, this._getReadOptions());
     }
 
     static async getSearchIndexRaw(model) {
-        const url = new URL(this._configuration.host + '/' + [this._configuration.prefix].concat([model.name]).concat(['_search_index_raw.json']).join('/'));
+        const url = new URL([
+            this._configuration.host,
+            this._configuration.prefix,
+            model.toString(),
+            '_search_index_raw.json',
+        ].join('/'));
 
-        try {
-            return await this._configuration.fetch(url, this._getReadOptions()).then(r => r.json());
-        } catch (_error) {
-            return {};
-        }
+        return await this._processFetch(url, this._getReadOptions()).catch(() => ({}));
     }
 
     static async putSearchIndexCompiled(model, compiledIndex) {
@@ -145,14 +159,10 @@ export default class HTTPEngine extends Engine {
             '_search_index.json',
         ].filter(e => !!e).join('/'));
 
-        try {
-            return await this._configuration.fetch(url, {
-                ...this._getWriteOptions(),
-                body: JSON.stringify(compiledIndex),
-            }).then(r => r.json());
-        } catch (_error) {
-            return undefined;
-        }
+        return this._processFetch(url, {
+            ...this._getWriteOptions(),
+            body: JSON.stringify(compiledIndex),
+        });
     }
 
     static async putSearchIndexRaw(model, rawIndex) {
@@ -163,13 +173,9 @@ export default class HTTPEngine extends Engine {
             '_search_index_raw.json',
         ].filter(e => !!e).join('/'));
 
-        try {
-            return await this._configuration.fetch(url, {
-                ...this._getWriteOptions(),
-                body: JSON.stringify(rawIndex),
-            }).then(r => r.json());
-        } catch (_error) {
-            return undefined;
-        }
+        return await this._processFetch(url, {
+            ...this._getWriteOptions(),
+            body: JSON.stringify(rawIndex),
+        });
     }
 }

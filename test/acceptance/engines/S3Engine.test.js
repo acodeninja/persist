@@ -3,21 +3,41 @@ import S3Engine from '@acodeninja/persist/engine/s3';
 import test from 'ava';
 
 test('Persist allows adding the S3Engine', t => {
-    Persist.addEngine('files', S3Engine, {
-        path: '/tmp/fileEngine',
+    Persist.addEngine('s3', S3Engine, {
+        bucket: 'test-bucket',
+        prefix: 'test',
     });
 
-    t.like(Persist._engine.files.S3Engine._configuration, {
-        path: '/tmp/fileEngine',
+    t.like(Persist._engine.s3.S3Engine._configuration, {
+        bucket: 'test-bucket',
+        prefix: 'test',
     });
 });
 
-test('Persist allows retrieving a S3Engine', t => {
-    Persist.addEngine('files', S3Engine, {
-        path: '/tmp/fileEngine',
+test('Persist allows adding the S3Engine with transactions', t => {
+    Persist.addEngine('s3', S3Engine, {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        transactions: true,
     });
 
-    t.like(Persist.getEngine('files', S3Engine)._configuration, {
-        path: '/tmp/fileEngine',
+    t.like(Persist._engine.s3.S3Engine._configuration, {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        transactions: true,
+    });
+
+    t.is(typeof Persist._engine.s3.S3Engine.start, 'function');
+});
+
+test('Persist allows retrieving a S3Engine', t => {
+    Persist.addEngine('s3', S3Engine, {
+        bucket: 'test-bucket',
+        prefix: 'test',
+    });
+
+    t.like(Persist.getEngine('s3', S3Engine)._configuration, {
+        bucket: 'test-bucket',
+        prefix: 'test',
     });
 });
