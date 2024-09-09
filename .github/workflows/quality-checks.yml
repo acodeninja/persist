@@ -25,3 +25,22 @@ jobs:
       - uses: asdf-vm/actions/install@v3
       - run: make init
       - run: make test/coverage
+
+  dry-run-release:
+    name: 📋 dry run release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: asdf-vm/actions/install@v3
+      - run: npm clean-install
+      - run: npx semantic-release --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
