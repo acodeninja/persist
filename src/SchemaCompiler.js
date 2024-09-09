@@ -1,6 +1,7 @@
 import Type from './type/index.js';
 import ajv from 'ajv';
 import ajvErrors from 'ajv-errors';
+import ajvFormats from 'ajv-formats';
 
 /**
  * @class SchemaCompiler
@@ -15,6 +16,7 @@ export default class SchemaCompiler {
         const validation = new ajv({allErrors: true});
 
         ajvErrors(validation);
+        ajvFormats(validation);
 
         const schema = {
             type: 'object',
@@ -57,6 +59,10 @@ export default class SchemaCompiler {
             }
 
             schema.properties[name] = {type: property?._type};
+
+            if (property?._format) {
+                schema.properties[name].format = property._format;
+            }
 
             if (property?._type === 'array') {
                 schema.properties[name].items = {type: property?._items._type};

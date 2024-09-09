@@ -13,6 +13,10 @@ test('Persist contains the Boolean Type', t => {
     t.is(Persist.Type.Boolean.name, 'BooleanType');
 });
 
+test('Persist contains the Date Type', t => {
+    t.is(Persist.Type.Date.name, 'DateType');
+});
+
 test('Persist contains the Resolved Slug Type', t => {
     t.is(Persist.Type.Resolved.Slug.name, 'SlugType');
 });

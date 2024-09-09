@@ -17,6 +17,7 @@ export class SimpleModel extends Persist.Type.Model {
     static boolean = Persist.Type.Boolean;
     static string = Persist.Type.String;
     static number = Persist.Type.Number;
+    static date = Persist.Type.Date;
 }
 ```
 
@@ -29,6 +30,7 @@ export class SimpleModel extends Persist.Type.Model {
     static requiredBoolean = Persist.Type.Boolean.required;
     static requiredString = Persist.Type.String.required;
     static requiredNumber = Persist.Type.Number.required;
+    static requiredDate = Persist.Type.Date.required;
 }
 ```
 

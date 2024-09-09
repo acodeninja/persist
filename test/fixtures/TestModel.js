@@ -7,6 +7,8 @@ export const valid = {
     requiredNumber: 12.2,
     boolean: false,
     requiredBoolean: true,
+    date: new Date().toISOString(),
+    requiredDate: new Date().toISOString(),
     arrayOfString: ['String'],
     arrayOfNumber: [24.5],
     arrayOfBoolean: [false],
@@ -22,6 +24,8 @@ export const invalid = {
     requiredNumber: undefined,
     boolean: 13.4,
     requiredBoolean: undefined,
+    date: 'not-a-date',
+    requiredDate: undefined,
     arrayOfString: [true],
     arrayOfNumber: ['string'],
     arrayOfBoolean: [15.8],
@@ -86,6 +90,8 @@ export class MainModel extends Type.Model {
     static requiredNumber = Type.Number.required;
     static boolean = Type.Boolean;
     static requiredBoolean = Type.Boolean.required;
+    static date = Type.Date;
+    static requiredDate = Type.Date.required;
     static arrayOfString = Type.Array.of(Type.String);
     static arrayOfNumber = Type.Array.of(Type.Number);
     static arrayOfBoolean = Type.Array.of(Type.Boolean);
