@@ -1,7 +1,11 @@
+import Model from '../src/type/Model.js';
 import {inspect} from 'node:util';
 
 function parseArgument(arg) {
     try {
+        if (Model.isModel(arg)) {
+            return JSON.parse(JSON.stringify(arg.toData()));
+        }
         return JSON.parse(JSON.stringify(arg));
     } catch (_) {
         return arg;

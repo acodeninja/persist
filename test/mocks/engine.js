@@ -7,7 +7,7 @@ export function getTestEngine(models = []) {
     const _searchIndexRaw = {};
     const _searchIndexCompiled = {};
 
-    for (const [model] of models) {
+    for (const model of models) {
         _models[model.id] = model;
     }
 
@@ -17,7 +17,7 @@ export function getTestEngine(models = []) {
     TestEngine.getById = sinon.stub().callsFake(async (id) => {
         if (_models[id]) return _models[id];
 
-        throw new Error();
+        throw new Error(`Model ${id} not found.`);
     });
 
     TestEngine.putModel = sinon.stub().callsFake(async (model) => {

@@ -15,35 +15,11 @@ export default function enableTransactions(engine) {
             static committed = false;
             static failed = false;
 
-            static async putModel(...args) {
+            static async put(model) {
                 this.transactions.push({
                     hasRun: false,
-                    method: 'putModel',
-                    args,
-                });
-            }
-
-            static async putIndex(...args) {
-                this.transactions.push({
-                    hasRun: false,
-                    method: 'putIndex',
-                    args,
-                });
-            }
-
-            static async putSearchIndexCompiled(...args) {
-                this.transactions.push({
-                    hasRun: false,
-                    method: 'putSearchIndexCompiled',
-                    args,
-                });
-            }
-
-            static async putSearchIndexRaw(...args) {
-                this.transactions.push({
-                    hasRun: false,
-                    method: 'putSearchIndexCompiled',
-                    args,
+                    hasRolledBack: false,
+                    model,
                 });
             }
 
@@ -54,9 +30,27 @@ export default function enableTransactions(engine) {
             static async commit() {
                 this._checkCommitted();
 
-                for (const [index, {method, args}] of this.transactions.entries()) {
-                    await engine[method](...args);
-                    this.transactions[index].hasRun = true;
+                try {
+                    for (const [index, {model}] of this.transactions.entries()) {
+                        try {
+                            this.transactions[index].original = await engine.get(model.constructor, model.id);
+                        } catch (_) {
+                            this.transactions[index].original = null;
+                        }
+
+                        await engine.put(model);
+                        this.transactions[index].hasRun = true;
+                    }
+                } catch (e) {
+                    this.committed = true;
+                    this.failed = true;
+                    for (const [index, {original}] of this.transactions.entries()) {
+                        if (original) {
+                            await engine.put(this.transactions[index].original);
+                        }
+                        this.transactions[index].hasRolledBack = true;
+                    }
+                    throw e;
                 }
 
                 this.committed = true;
