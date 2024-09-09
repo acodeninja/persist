@@ -1,5 +1,5 @@
+import {EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import {MainModel, getTestModelInstance, valid} from '../../test/fixtures/TestModel.js';
-import {MissConfiguredError, NotFoundEngineError, NotImplementedError} from './Engine.js';
 import HTTPEngine from './HTTPEngine.js';
 import assertions from '../../test/assertions.js';
 import stubFetch from '../../test/mocks/fetch.js';
@@ -36,10 +36,17 @@ test('HTTPEngine.configure(configuration) with additional headers returns a new 
 
     t.is(originalStore._configuration, undefined);
     t.like(configuredStore._getReadOptions(), {
-        headers: {Authorization: 'Bearer some-bearer-token-for-authentication'},
+        headers: {
+            Authorization: 'Bearer some-bearer-token-for-authentication',
+            Accept: 'application/json',
+        },
     });
     t.like(configuredStore._getWriteOptions(), {
-        headers: {Authorization: 'Bearer some-bearer-token-for-authentication'},
+        headers: {
+            Authorization: 'Bearer some-bearer-token-for-authentication',
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
     });
 });
 
@@ -76,6 +83,7 @@ test('HTTPEngine.get(MainModel, id) when id exists', async t => {
 
 test('HTTPEngine.get(MainModel, id) when id does not exist', async t => {
     const fetch = stubFetch({}, [getTestModelInstance(valid)]);
+
     await t.throwsAsync(
         () =>
             HTTPEngine.configure({
@@ -88,6 +96,7 @@ test('HTTPEngine.get(MainModel, id) when id does not exist', async t => {
             message: 'HTTPEngine.get(MainModel/999999999999) model not found',
         },
     );
+
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/999999999999.json'), {headers: {Accept: 'application/json'}});
 });
 
@@ -95,6 +104,7 @@ test('HTTPEngine.put(model)', async t => {
     const fetch = stubFetch({}, [getTestModelInstance(valid)]);
 
     const model = getTestModelInstance(valid);
+
     await HTTPEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
@@ -279,17 +289,40 @@ test('HTTPEngine.put(model)', async t => {
     });
 });
 
-test('HTTPEngine.put(model) when getting and putting a search index fails', async t => {
-    const fetch = stubFetch({}, [getTestModelInstance(valid)], {
-        'MainModel/_search_index.json': undefined,
+test('HTTPEngine.put(model) when the engine fails to put a compiled search index', async t => {
+    const fetch = stubFetch({}, [getTestModelInstance(valid)]);
+
+    fetch.callsFake((url) => {
+        if (url.pathname.endsWith('/_search_index.json')) {
+            return Promise.resolve({
+                ok: false,
+                status: 500,
+                json: async () => {
+                    throw new Error();
+                },
+            });
+        }
+
+        return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => {
+            },
+        });
     });
 
     const model = getTestModelInstance(valid);
-    await HTTPEngine.configure({
+
+    await t.throwsAsync(() => HTTPEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
-    }).put(model);
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put https://example.com/test/MainModel/_search_index.json',
+    });
+
+    t.is(fetch.getCalls().length, 4);
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {
         headers: {
@@ -298,23 +331,6 @@ test('HTTPEngine.put(model) when getting and putting a search index fails', asyn
         },
         method: 'PUT',
         body: JSON.stringify(model.toData()),
-    });
-
-    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_index.json'), {headers: {Accept: 'application/json'}});
-
-    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_index.json'), {
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        method: 'PUT',
-        body: JSON.stringify({
-            'MainModel/000000000000': {
-                id: 'MainModel/000000000000',
-                string: 'String',
-                stringSlug: 'string',
-            },
-        }),
     });
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index_raw.json'), {headers: {Accept: 'application/json'}});
@@ -349,7 +365,7 @@ test('HTTPEngine.put(model) when getting and putting a search index fails', asyn
     });
 });
 
-test('HTTPEngine.put(model) when getting and putting a raw search index fails', async t => {
+test('HTTPEngine.put(model) when the engine fails to put a raw search index', async t => {
     const fetch = stubFetch({}, [getTestModelInstance(valid)], {
         'MainModel/_search_index_raw.json': undefined,
     });
@@ -404,7 +420,7 @@ test('HTTPEngine.put(model) when getting and putting a raw search index fails', 
     });
 });
 
-test('HTTPEngine.put(model) when getting and putting an index fails', async t => {
+test('HTTPEngine.put(model) when putting an index fails', async t => {
     const fetch = stubFetch({}, [getTestModelInstance(valid)], {
         'MainModel/_index.json': undefined,
     });
@@ -444,16 +460,38 @@ test('HTTPEngine.put(model) when getting and putting an index fails', async t =>
 });
 
 test('HTTPEngine.put(model) when the initial model put fails', async t => {
-    const fetch = stubFetch({}, [getTestModelInstance(valid)], {
-        'MainModel/000000000000.json': undefined,
+    const fetch = stubFetch({}, [getTestModelInstance(valid)]);
+
+    fetch.callsFake((url) => {
+        if (url.pathname.endsWith('MainModel/000000000000.json')) {
+            return Promise.resolve({
+                ok: false,
+                status: 500,
+                json: async () => {
+                    throw new Error();
+                },
+            });
+        }
+
+        return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => {
+            },
+        });
     });
 
     const model = getTestModelInstance(valid);
-    await HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
-    }).put(model);
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put https://example.com/test/MainModel/000000000000.json',
+    });
+
+    t.is(fetch.getCalls().length, 1);
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {
         headers: {
@@ -462,6 +500,100 @@ test('HTTPEngine.put(model) when the initial model put fails', async t => {
         },
         method: 'PUT',
         body: JSON.stringify(model.toData()),
+    });
+});
+
+test('HTTPEngine.put(model) when the engine fails to put a linked model', async t => {
+    const fetch = stubFetch({}, [getTestModelInstance(valid)]);
+
+    fetch.callsFake((url) => {
+        if (url.pathname.endsWith('LinkedModel/000000000000.json')) {
+            return Promise.resolve({
+                ok: false,
+                status: 500,
+                json: async () => {
+                    throw new Error();
+                },
+            });
+        }
+
+        return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => {
+            },
+        });
+    });
+
+    const model = getTestModelInstance(valid);
+
+    await t.throwsAsync(() => HTTPEngine.configure({
+        host: 'https://example.com',
+        prefix: 'test',
+        fetch,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put https://example.com/test/LinkedModel/000000000000.json',
+    });
+
+    t.is(fetch.getCalls().length, 6);
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify(model.toData()),
+    });
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index_raw.json'), {headers: {Accept: 'application/json'}});
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index_raw.json'), {
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+    });
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index.json'), {
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+            invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+            pipeline: ['stemmer'],
+        }),
+    });
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000000.json'), {
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify(model.linked.toData()),
+    });
+
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularModel/000000000000.json'), {
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify(model.circular.toData()),
     });
 });
 
@@ -677,7 +809,7 @@ test('HTTPEngine.find(MainModel, {string: "test"}) when no index exists', async 
     t.deepEqual(models, []);
 });
 
-test('HTTPEngine.search(MainModel, "String") when a matching model exists', async t => {
+test('HTTPEngine.search(MainModel, "Str") when a matching model exists', async t => {
     const model0 = getTestModelInstance(valid);
     const model1 = getTestModelInstance({
         id: 'MainModel/111111111111',
@@ -689,7 +821,7 @@ test('HTTPEngine.search(MainModel, "String") when a matching model exists', asyn
         host: 'https://example.com',
         prefix: 'test',
         fetch,
-    }).search(MainModel, 'String');
+    }).search(MainModel, 'Str');
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}});
@@ -706,7 +838,7 @@ test('HTTPEngine.search(MainModel, "String") when a matching model exists', asyn
     }]);
 });
 
-test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when a matching model exists', async t => {
+test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
     const fetch = stubFetch({}, [
         getTestModelInstance(valid),
         getTestModelInstance({
@@ -726,15 +858,15 @@ test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when a matching 
     t.deepEqual(models, []);
 });
 
-test('HTTPEngine.search(MainModel, "String") when no index exists for the model', async t => {
+test('HTTPEngine.search(MainModel, "Str") when no index exists for the model', async t => {
     const fetch = stubFetch({}, []);
 
     await t.throwsAsync(async () => await HTTPEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
-    }).search(MainModel, 'String'), {
-        instanceOf: NotImplementedError,
+    }).search(MainModel, 'Str'), {
+        instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });
 

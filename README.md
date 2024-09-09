@@ -144,10 +144,10 @@ export class Tag extends Persist.Type.Model {
 
 const tag = new Tag({tag: 'documentation', description: 'How to use the persist library'});
 
-FileEngine.find(Tag, {tag: 'documentation'});
+await FileEngine.find(Tag, {tag: 'documentation'});
 // [Tag {tag: 'documentation', description: 'How to use the persist library'}]
 
-FileEngine.search(Tag, 'how to');
+await FileEngine.search(Tag, 'how to');
 // [Tag {tag: 'documentation', description: 'How to use the persist library'}]
 ```
 
@@ -169,7 +169,26 @@ export class Tag extends Persist.Type.Model {
   static tag = Persist.Type.String.required;
 }
 
-Persist.getEngine('local', FileEngine).put(new Tag({tag: 'documentation'}));
+await Persist.getEngine('local', FileEngine).put(new Tag({tag: 'documentation'}));
+```
+
+### HTTP Storage Engine
+
+To store models using an S3 Bucket, use the `S3` storage engine.
+
+```javascript
+import Persist from "@acodeninja/persist";
+import HTTPEngine from "@acodeninja/persist/engine/http";
+
+Persist.addEngine('remote', HTTPEngine, {
+  host: 'https://api.example.com',
+});
+
+export class Tag extends Persist.Type.Model {
+  static tag = Persist.Type.String.required;
+}
+
+await Persist.getEngine('remote', HTTPEngine).put(new Tag({tag: 'documentation'}));
 ```
 
 ### S3 Storage Engine
@@ -189,5 +208,29 @@ export class Tag extends Persist.Type.Model {
   static tag = Persist.Type.String.required;
 }
 
-Persist.getEngine('remote', S3Engine).put(new Tag({tag: 'documentation'}));
+await Persist.getEngine('remote', S3Engine).put(new Tag({tag: 'documentation'}));
+```
+
+## Transactions
+
+Create transactions to automatically roll back on failure to update.
+
+```javascript
+import Persist from "@acodeninja/persist";
+import S3Engine from "@acodeninja/persist/engine/s3";
+
+Persist.addEngine('remote', S3Engine, {
+  bucket: 'test-bucket',
+  client: new S3Client(),
+  transactions: true,
+});
+
+export class Tag extends Persist.Type.Model {
+  static tag = Persist.Type.String.required;
+}
+
+const transaction = Persist.getEngine('remote', S3Engine).start();
+
+await transaction.put(new Tag({tag: 'documentation'}));
+await transaction.commit();
 ```

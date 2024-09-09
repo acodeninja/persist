@@ -1,12 +1,12 @@
+import {EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 import {MainModel, getTestModelInstance, valid} from '../../test/fixtures/TestModel.js';
-import {NotFoundEngineError, NotImplementedError} from './Engine.js';
 import S3Engine from './S3Engine.js';
 import assertions from '../../test/assertions.js';
 import stubS3Client from '../../test/mocks/s3.js';
 import test from 'ava';
 
-test('S3Engine.configure returns a new engine without altering the exising one', t => {
+test('S3Engine.configure(configuration) returns a new engine without altering the exising one', t => {
     const originalStore = S3Engine;
     const configuredStore = originalStore.configure({
         bucket: 'test-bucket',
@@ -19,6 +19,17 @@ test('S3Engine.configure returns a new engine without altering the exising one',
         bucket: 'test-bucket',
         prefix: 'test',
     });
+});
+
+test('S3Engine.get(MainModel, id) when engine is not configured', async t => {
+    const error = await t.throwsAsync(
+        async () => await S3Engine.get(MainModel, 'MainModel/000000000000'),
+        {
+            instanceOf: MissConfiguredError,
+        },
+    );
+
+    t.is(error.message, 'Engine is miss-configured');
 });
 
 test('S3Engine.get(MainModel, id) when id exists', async t => {
@@ -424,6 +435,373 @@ test('S3Engine.put(model) updates existing indexes', async t => {
     }));
 });
 
+test('S3Engine.put(model) when the engine fails to put a compiled search index', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_index.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+
+    client.send.callsFake(async command => {
+        if (command.input.Key.endsWith('_search_index.json')) {
+            throw new Error();
+        }
+    });
+
+    const model = getTestModelInstance(valid);
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put s3://test-bucket/test/MainModel/_search_index.json',
+    });
+
+    t.is(client.send.getCalls().length, 4);
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/000000000000.json',
+        Body: JSON.stringify(model.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index.json',
+        Body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+            invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+            pipeline: ['stemmer'],
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+});
+
+test('S3Engine.put(model) when the engine fails to put a raw search index', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_index.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+
+    client.send.callsFake(async command => {
+        if (command.input.Key.endsWith('_search_index_raw.json')) {
+            throw new Error();
+        }
+    });
+
+    const model = getTestModelInstance(valid);
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put s3://test-bucket/test/MainModel/_search_index_raw.json',
+    });
+
+    t.is(client.send.getCalls().length, 3);
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/000000000000.json',
+        Body: JSON.stringify(model.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+});
+
+test('S3Engine.put(model) when putting an index fails', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_index.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+
+    client.send.callsFake(async command => {
+        if (command.input.Key.endsWith('/_index.json')) {
+            throw new Error();
+        }
+    });
+
+    const model = getTestModelInstance(valid);
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put s3://test-bucket/test/MainModel/_index.json',
+    });
+
+    t.is(client.send.getCalls().length, 11);
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/000000000000.json',
+        Body: JSON.stringify(model.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_index.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_index.json',
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+                stringSlug: 'string',
+            },
+        }),
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index.json',
+        Body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+            invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+            pipeline: ['stemmer'],
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/LinkedModel/000000000000.json',
+        Body: JSON.stringify(model.linked.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/LinkedModel/111111111111.json',
+        Body: JSON.stringify(model.requiredLinked.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/LinkedManyModel/000000000000.json',
+        Body: JSON.stringify(model.linkedMany[0].toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/CircularModel/000000000000.json',
+        Body: JSON.stringify(model.circular.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/CircularManyModel/000000000000.json',
+        Body: JSON.stringify(model.circularMany[0].toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+});
+
+test('S3Engine.put(model) when the initial model put fails', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_index.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+    const model = getTestModelInstance(valid);
+
+    client.send.callsFake(async command => {
+        if (command.input.Key.endsWith('MainModel/000000000000.json')) {
+            throw new Error();
+        }
+    });
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put s3://test-bucket/test/MainModel/000000000000.json',
+    });
+
+    t.is(client.send.getCalls().length, 1);
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/000000000000.json',
+        Body: JSON.stringify(model.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+});
+
+test('S3Engine.put(model) when the engine fails to put a linked model', async t => {
+    const client = stubS3Client({
+        'test-bucket': {
+            'MainModel/_index.json': {
+                'MainModel/111111111111': {
+                    id: 'MainModel/111111111111',
+                    string: 'String',
+                },
+            },
+        },
+    });
+    const model = getTestModelInstance(valid);
+
+    client.send.callsFake(async command => {
+        if (command.input.Key.endsWith('LinkedModel/000000000000.json')) {
+            throw new Error();
+        }
+    });
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).put(model), {
+        instanceOf: EngineError,
+        message: 'Failed to put s3://test-bucket/test/LinkedModel/000000000000.json',
+    });
+
+    t.is(client.send.getCalls().length, 6);
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/000000000000.json',
+        Body: JSON.stringify(model.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Bucket: 'test-bucket',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index_raw.json',
+        Body: JSON.stringify({
+            'MainModel/000000000000': {
+                id: 'MainModel/000000000000',
+                string: 'String',
+            },
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/MainModel/_search_index.json',
+        Body: JSON.stringify({
+            version: '2.3.9',
+            fields: ['string'],
+            fieldVectors: [['string/MainModel/000000000000', [0, 0.288]]],
+            invertedIndex: [['string', {_index: 0, string: {'MainModel/000000000000': {}}}]],
+            pipeline: ['stemmer'],
+        }),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/LinkedModel/000000000000.json',
+        Body: JSON.stringify(model.linked.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/CircularModel/000000000000.json',
+        Body: JSON.stringify(model.circular.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+});
+
 test('S3Engine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
     const client = stubS3Client({}, {
         'test-bucket': [
@@ -473,7 +851,7 @@ test('S3Engine.find(MainModel, {string: "test"}) when no index exists', async t 
     t.deepEqual(models, []);
 });
 
-test('S3Engine.search(MainModel, "String") when a matching model exists', async t => {
+test('S3Engine.search(MainModel, "Str") when a matching model exists', async t => {
     const client = stubS3Client({}, {
         'test-bucket': [
             getTestModelInstance(valid),
@@ -494,7 +872,7 @@ test('S3Engine.search(MainModel, "String") when a matching model exists', async 
 
     const model1 = await S3Engine.configure(configuration).get(MainModel, 'MainModel/1111111111111');
 
-    const models = await S3Engine.configure(configuration).search(MainModel, 'String');
+    const models = await S3Engine.configure(configuration).search(MainModel, 'Str');
 
     t.like(models, [{
         ref: 'MainModel/000000000000',
@@ -507,7 +885,7 @@ test('S3Engine.search(MainModel, "String") when a matching model exists', async 
     }]);
 });
 
-test('S3Engine.search(MainModel, "not-even-close-to-a-match") when a matching model exists', async t => {
+test('S3Engine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
     const client = stubS3Client({}, {
         'test-bucket': [
             getTestModelInstance(valid),
@@ -529,7 +907,7 @@ test('S3Engine.search(MainModel, "not-even-close-to-a-match") when a matching mo
     t.deepEqual(models, []);
 });
 
-test('S3Engine.search(MainModel, "String") when no index exists for the model', async t => {
+test('S3Engine.search(MainModel, "Str") when no index exists for the model', async t => {
     const client = stubS3Client({}, {});
 
     const configuration = {
@@ -538,8 +916,8 @@ test('S3Engine.search(MainModel, "String") when no index exists for the model', 
         client,
     };
 
-    await t.throwsAsync(async () => await S3Engine.configure(configuration).search(MainModel, 'String'), {
-        instanceOf: NotImplementedError,
+    await t.throwsAsync(async () => await S3Engine.configure(configuration).search(MainModel, 'Str'), {
+        instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });
 });

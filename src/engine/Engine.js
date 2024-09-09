@@ -40,36 +40,35 @@ export default class Engine {
     }
 
     static async search(model, query) {
-        this._checkConfiguration?.();
-        const index = await this.getSearchIndexCompiled(model);
+        this.checkConfiguration();
 
-        try {
-            const searchIndex = lunr.Index.load(index);
+        const index = await this.getSearchIndexCompiled(model).catch(() => {
+            throw new EngineError(`The model ${model.toString()} does not have a search index available.`);
+        });
 
-            const results = searchIndex.search(query);
-            const output = [];
-            for (const result of results) {
-                output.push({
-                    ...result,
-                    model: await this.get(model, result.ref),
-                });
-            }
+        const searchIndex = lunr.Index.load(index);
 
-            return output;
-        } catch (_) {
-            throw new NotImplementedError(`The model ${model.name} does not have a search index available.`);
+        const results = searchIndex.search(`*${query}*`);
+
+        const output = [];
+        for (const result of results) {
+            output.push({
+                ...result,
+                model: await this.get(model, result.ref),
+            });
         }
+
+        return output;
     }
 
     static async find(model, parameters) {
-        this._checkConfiguration?.();
+        this.checkConfiguration();
         const response = await this.findByValue(model, parameters);
-
         return response.map(m => model.fromData(m));
     }
 
     static async put(model) {
-        this._checkConfiguration?.();
+        this.checkConfiguration();
         const uploadedModels = [];
         const indexUpdates = {};
 
@@ -77,9 +76,9 @@ export default class Engine {
             if (uploadedModels.includes(model.id)) return false;
             model.validate();
 
-            uploadedModels.push(model.id);
-
             await this.putModel(model);
+
+            uploadedModels.push(model.id);
             indexUpdates[model.constructor.name] = (indexUpdates[model.constructor.name] ?? []).concat([model]);
 
             if (model.constructor.searchProperties().length > 0) {
@@ -87,6 +86,7 @@ export default class Engine {
                     ...await this.getSearchIndexRaw(model.constructor),
                     [model.id]: model.toSearchData(),
                 };
+
                 await this.putSearchIndexRaw(model.constructor, rawSearchIndex);
 
                 const compiledIndex = lunr(function () {
@@ -121,18 +121,19 @@ export default class Engine {
     }
 
     static async get(model, id) {
-        this._checkConfiguration?.();
-        const found = await this.getById(id);
+        this.checkConfiguration();
 
         try {
+            const found = await this.getById(id);
             return model.fromData(found);
-        } catch (_error) {
-            throw new NotFoundEngineError(`${this.name}.get(${id}) model not found`);
+        } catch (error) {
+            if (error.constructor === NotImplementedError) throw error;
+            throw new NotFoundEngineError(`${this.name}.get(${id}) model not found`, error);
         }
     }
 
     static async hydrate(model) {
-        this._checkConfiguration?.();
+        this.checkConfiguration();
         const hydratedModels = {};
 
         const hydrateModel = async (modelToProcess) => {
@@ -205,12 +206,21 @@ export default class Engine {
         return ConfiguredStore;
     }
 
+    static checkConfiguration() {
+
+    }
+
     static toString() {
         return this.name;
     }
 };
 
 export class EngineError extends Error {
+    underlyingError;
+    constructor(message, error = undefined) {
+        super(message);
+        this.underlyingError = error;
+    }
 }
 
 export class NotFoundEngineError extends EngineError {
