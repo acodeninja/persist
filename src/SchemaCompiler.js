@@ -67,6 +67,10 @@ export default class SchemaCompiler {
             if (property?._type === 'array') {
                 schema.properties[name].items = {type: property?._items._type};
 
+                if (property?._items?._format) {
+                    schema.properties[name].items.format = property?._items._format;
+                }
+
                 if (Type.Model.isModel(property?._items)) {
                     schema.properties[name].items = {
                         type: 'object',

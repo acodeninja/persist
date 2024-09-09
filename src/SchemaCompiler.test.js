@@ -23,9 +23,11 @@ const schema = {
     arrayOfString: Type.Array.of(Type.String),
     arrayOfNumber: Type.Array.of(Type.Number),
     arrayOfBoolean: Type.Array.of(Type.Boolean),
+    arrayOfDate: Type.Array.of(Type.Date),
     requiredArrayOfString: Type.Array.of(Type.String).required,
     requiredArrayOfNumber: Type.Array.of(Type.Number).required,
     requiredArrayOfBoolean: Type.Array.of(Type.Boolean).required,
+    requiredArrayOfDate: Type.Array.of(Type.Date).required,
 };
 
 const invalidDataErrors = [{
@@ -95,6 +97,12 @@ const invalidDataErrors = [{
     params: {type: 'boolean'},
     schemaPath: '#/properties/arrayOfBoolean/items/type',
 }, {
+    instancePath: '/arrayOfDate/0',
+    keyword: 'format',
+    message: 'must match format "iso-date-time"',
+    params: {format: 'iso-date-time'},
+    schemaPath: '#/properties/arrayOfDate/items/format',
+}, {
     instancePath: '/requiredArrayOfString/0',
     keyword: 'type',
     message: 'must be string',
@@ -112,6 +120,12 @@ const invalidDataErrors = [{
     message: 'must be boolean',
     params: {type: 'boolean'},
     schemaPath: '#/properties/requiredArrayOfBoolean/items/type',
+}, {
+    instancePath: '/requiredArrayOfDate/0',
+    keyword: 'format',
+    message: 'must match format "iso-date-time"',
+    params: {format: 'iso-date-time'},
+    schemaPath: '#/properties/requiredArrayOfDate/items/format',
 }];
 
 test('.compile(schema) is an instance of CompiledSchema', t => {
@@ -130,6 +144,7 @@ test('.compile(schema) has the given schema associated with it', t => {
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
+            'requiredArrayOfDate',
         ],
         properties: {
             custom: {
@@ -151,9 +166,11 @@ test('.compile(schema) has the given schema associated with it', t => {
             arrayOfString: {type: 'array', items: {type: 'string'}},
             arrayOfNumber: {type: 'array', items: {type: 'number'}},
             arrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            arrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            requiredArrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
         },
     });
 });
@@ -190,6 +207,7 @@ test('.compile(MainModel) has the given schema associated with it', t => {
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
+            'requiredArrayOfDate',
             'requiredLinked',
         ],
         properties: {
@@ -213,9 +231,11 @@ test('.compile(MainModel) has the given schema associated with it', t => {
             arrayOfString: {type: 'array', items: {type: 'string'}},
             arrayOfNumber: {type: 'array', items: {type: 'number'}},
             arrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            arrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            requiredArrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredLinked: {
                 type: 'object',
                 additionalProperties: false,

@@ -12,9 +12,11 @@ export const valid = {
     arrayOfString: ['String'],
     arrayOfNumber: [24.5],
     arrayOfBoolean: [false],
+    arrayOfDate: [new Date().toISOString()],
     requiredArrayOfString: ['String'],
     requiredArrayOfNumber: [24.5],
     requiredArrayOfBoolean: [false],
+    requiredArrayOfDate: [new Date().toISOString()],
 };
 
 export const invalid = {
@@ -29,9 +31,11 @@ export const invalid = {
     arrayOfString: [true],
     arrayOfNumber: ['string'],
     arrayOfBoolean: [15.8],
+    arrayOfDate: ['not-a-date'],
     requiredArrayOfString: [true],
     requiredArrayOfNumber: ['string'],
     requiredArrayOfBoolean: [15.8],
+    requiredArrayOfDate: ['not-a-date'],
 };
 
 /**
@@ -95,9 +99,11 @@ export class MainModel extends Type.Model {
     static arrayOfString = Type.Array.of(Type.String);
     static arrayOfNumber = Type.Array.of(Type.Number);
     static arrayOfBoolean = Type.Array.of(Type.Boolean);
+    static arrayOfDate = Type.Array.of(Type.Date);
     static requiredArrayOfString = Type.Array.of(Type.String).required;
     static requiredArrayOfNumber = Type.Array.of(Type.Number).required;
     static requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
+    static requiredArrayOfDate = Type.Array.of(Type.Date).required;
     static circular = () => CircularModel;
     static circularMany = () => Type.Array.of(CircularManyModel);
     static linked = LinkedModel;
