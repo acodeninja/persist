@@ -14,6 +14,22 @@ test('Persist allows adding the HTTPEngine', t => {
     });
 });
 
+test('Persist allows adding the HTTPEngine with transactions', t => {
+    Persist.addEngine('http', HTTPEngine, {
+        host: 'https://example.com',
+        prefix: 'test',
+        transactions: true,
+    });
+
+    t.like(Persist._engine.http.HTTPEngine._configuration, {
+        host: 'https://example.com',
+        prefix: 'test',
+        transactions: true,
+    });
+
+    t.is(typeof Persist._engine.http.HTTPEngine.start, 'function');
+});
+
 test('Persist allows retrieving a HTTPEngine', t => {
     Persist.addEngine('http', HTTPEngine, {
         host: 'https://example.com',

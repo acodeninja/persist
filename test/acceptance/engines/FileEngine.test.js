@@ -14,6 +14,21 @@ test('Persist allows adding the FileEngine', t => {
     });
 });
 
+test('Persist allows adding the FileEngine with transactions', t => {
+    Persist.addEngine('files', FileEngine, {
+        path: '/tmp/fileEngine',
+        transactions: true,
+    });
+
+    t.like(Persist._engine.files.FileEngine._configuration, {
+        path: '/tmp/fileEngine',
+        filesystem: fs,
+        transactions: true,
+    });
+
+    t.is(typeof Persist._engine.files.FileEngine.start, 'function');
+});
+
 test('Persist allows retrieving a FileEngine', t => {
     Persist.addEngine('files', FileEngine, {
         path: '/tmp/fileEngine',

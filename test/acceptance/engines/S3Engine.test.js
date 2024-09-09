@@ -14,6 +14,22 @@ test('Persist allows adding the S3Engine', t => {
     });
 });
 
+test('Persist allows adding the S3Engine with transactions', t => {
+    Persist.addEngine('s3', S3Engine, {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        transactions: true,
+    });
+
+    t.like(Persist._engine.s3.S3Engine._configuration, {
+        bucket: 'test-bucket',
+        prefix: 'test',
+        transactions: true,
+    });
+
+    t.is(typeof Persist._engine.s3.S3Engine.start, 'function');
+});
+
 test('Persist allows retrieving a S3Engine', t => {
     Persist.addEngine('s3', S3Engine, {
         bucket: 'test-bucket',
