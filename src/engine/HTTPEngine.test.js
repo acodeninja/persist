@@ -885,13 +885,7 @@ test('HTTPEngine.hydrate(model)', async t => {
     const dryModel = new MainModel();
     dryModel.id = 'MainModel/000000000000';
 
-    const fetch = stubFetch({}, [
-        getTestModelInstance(valid),
-        getTestModelInstance({
-            id: 'MainModel/111111111111',
-            string: 'another string',
-        }),
-    ]);
+    const fetch = stubFetch({}, [getTestModelInstance(valid)]);
 
     const hydratedModel = await HTTPEngine.configure({
         host: 'https://example.com',
@@ -905,6 +899,8 @@ test('HTTPEngine.hydrate(model)', async t => {
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/111111111111.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
+
+    t.is(fetch.getCalls().length, 6);
 
     t.deepEqual(hydratedModel, model);
 });

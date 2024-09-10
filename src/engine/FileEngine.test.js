@@ -532,5 +532,13 @@ test('FileEngine.hydrate(model)', async t => {
         filesystem,
     }).hydrate(dryModel);
 
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/111111111111.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000000.json');
+
+    t.is(filesystem.readFile.getCalls().length, 6);
     t.deepEqual(hydratedModel, model);
 });

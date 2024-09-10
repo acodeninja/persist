@@ -118,9 +118,13 @@ export default class Model {
     }
 
     static isDryModel(possibleDryModel) {
-        return (
-            Object.keys(possibleDryModel).includes('id') &&
-            !!possibleDryModel.id.match(/[A-Za-z]+\/[A-Z0-9]+/)
-        );
+        try {
+            return (
+                Object.keys(possibleDryModel).includes('id') &&
+                !!possibleDryModel.id.match(/[A-Za-z]+\/[A-Z0-9]+/)
+            );
+        } catch (_) {
+            return false;
+        }
     }
 }
