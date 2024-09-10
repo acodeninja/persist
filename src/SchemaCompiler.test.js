@@ -190,7 +190,7 @@ test('.compile(schema).validate(invalid) throws a ValidationError', t => {
     );
 
     t.is(error.message, 'Validation failed');
-    t.is(error.data, invalid);
+    t.deepEqual(error.data, invalid);
     t.deepEqual(error.errors, invalidDataErrors);
 });
 

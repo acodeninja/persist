@@ -93,6 +93,17 @@ export default class Model {
 
         for (const [name, value] of Object.entries(data)) {
             if (this[name]?._resolved) continue;
+
+            if (this[name].name.endsWith('DateType')) {
+                model[name] = new Date(value);
+                continue;
+            }
+
+            if (this[name].name.endsWith('ArrayOf(Date)Type')) {
+                model[name] = data[name].map(d => new Date(d));
+                continue;
+            }
+
             model[name] = value;
         }
 

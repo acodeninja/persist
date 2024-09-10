@@ -112,11 +112,14 @@ export class CompiledSchema {
      * @throws {ValidationError}
      */
     static validate(data) {
-        let inputData = data;
+        let inputData = Object.assign({}, data);
+
         if (Type.Model.isModel(data)) {
             inputData = data.toData();
         }
+
         const valid = this._validator?.(inputData);
+
         if (valid) return valid;
 
         throw new ValidationError(inputData, this._validator.errors);

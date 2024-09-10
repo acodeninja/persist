@@ -1,3 +1,4 @@
+import DateType from '../../src/type/simple/DateType.js';
 import Type from '../../src/type/index.js';
 
 export const valid = {
@@ -138,6 +139,11 @@ export function getTestModelInstance(data = {}) {
     } else {
         model.id = data.id;
     }
+
+    if (DateType.isDate(data.date)) model.date = new Date(data.date);
+    if (DateType.isDate(data.requiredDate)) model.requiredDate = new Date(data.requiredDate);
+    if (data.arrayOfDate) model.arrayOfDate = data.arrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
+    if (data.requiredArrayOfDate) model.requiredArrayOfDate = data.requiredArrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
 
     const circular = new CircularModel({linked: model});
     circular.id = circular.id.replace(/[a-zA-Z0-9]+$/, '000000000000');

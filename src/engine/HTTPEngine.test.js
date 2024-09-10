@@ -830,7 +830,13 @@ test('HTTPEngine.search(MainModel, "Str") when a matching model exists', async t
     t.like(models, [{
         ref: 'MainModel/000000000000',
         score: 0.211,
-        model: model0.toData(),
+        model: {
+            ...model0.toData(),
+            date: new Date(model0.date),
+            requiredDate: new Date(model0.requiredDate),
+            arrayOfDate: model0.arrayOfDate[0] ? [new Date(model0.arrayOfDate[0])] : [],
+            requiredArrayOfDate: [new Date(model0.requiredArrayOfDate[0])],
+        },
     }, {
         ref: 'MainModel/111111111111',
         score: 0.16,
