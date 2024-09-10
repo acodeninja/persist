@@ -7,6 +7,17 @@ import NumberType from './simple/NumberType.js';
 import SlugType from './resolved/SlugType.js';
 import StringType from './simple/StringType.js';
 
+/**
+ * @class Type
+ * @property {StringType} String
+ * @property {NumberType} Number
+ * @property {BooleanType} Boolean
+ * @property {DateType} Date
+ * @property {ArrayType} Array
+ * @property {CustomType} Custom
+ * @property {ResolvedType} Resolved
+ * @property {Model} Model
+ */
 const Type = {};
 
 Type.String = StringType;
@@ -15,6 +26,11 @@ Type.Boolean = BooleanType;
 Type.Date = DateType;
 Type.Array = ArrayType;
 Type.Custom = CustomType;
+
+/**
+ * @class ResolvedType
+ * @property {SlugType} Slug
+ */
 Type.Resolved = {Slug: SlugType};
 Type.Model = Model;
 
