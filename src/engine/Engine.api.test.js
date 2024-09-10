@@ -75,8 +75,13 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
         const got = await store.get(MainModel, 'MainModel/000000000000');
 
-
-        t.like(got, getTestModelInstance(valid).toData());
+        t.like(got, {
+            ...getTestModelInstance(valid).toData(),
+            date: new Date(valid.date),
+            requiredDate: new Date(valid.requiredDate),
+            arrayOfDate: [new Date(valid.arrayOfDate[0])],
+            requiredArrayOfDate: [new Date(valid.requiredArrayOfDate[0])],
+        });
     });
 
     test(`${engine.toString()}.get(MainModel, id) throws NotFoundEngineError when no model exists`, async t => {

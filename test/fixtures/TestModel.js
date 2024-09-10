@@ -1,3 +1,4 @@
+import DateType from '../../src/type/simple/DateType.js';
 import Type from '../../src/type/index.js';
 
 export const valid = {
@@ -7,12 +8,16 @@ export const valid = {
     requiredNumber: 12.2,
     boolean: false,
     requiredBoolean: true,
+    date: new Date().toISOString(),
+    requiredDate: new Date().toISOString(),
     arrayOfString: ['String'],
     arrayOfNumber: [24.5],
     arrayOfBoolean: [false],
+    arrayOfDate: [new Date().toISOString()],
     requiredArrayOfString: ['String'],
     requiredArrayOfNumber: [24.5],
     requiredArrayOfBoolean: [false],
+    requiredArrayOfDate: [new Date().toISOString()],
 };
 
 export const invalid = {
@@ -22,12 +27,16 @@ export const invalid = {
     requiredNumber: undefined,
     boolean: 13.4,
     requiredBoolean: undefined,
+    date: 'not-a-date',
+    requiredDate: undefined,
     arrayOfString: [true],
     arrayOfNumber: ['string'],
     arrayOfBoolean: [15.8],
+    arrayOfDate: ['not-a-date'],
     requiredArrayOfString: [true],
     requiredArrayOfNumber: ['string'],
     requiredArrayOfBoolean: [15.8],
+    requiredArrayOfDate: ['not-a-date'],
 };
 
 /**
@@ -86,12 +95,16 @@ export class MainModel extends Type.Model {
     static requiredNumber = Type.Number.required;
     static boolean = Type.Boolean;
     static requiredBoolean = Type.Boolean.required;
+    static date = Type.Date;
+    static requiredDate = Type.Date.required;
     static arrayOfString = Type.Array.of(Type.String);
     static arrayOfNumber = Type.Array.of(Type.Number);
     static arrayOfBoolean = Type.Array.of(Type.Boolean);
+    static arrayOfDate = Type.Array.of(Type.Date);
     static requiredArrayOfString = Type.Array.of(Type.String).required;
     static requiredArrayOfNumber = Type.Array.of(Type.Number).required;
     static requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
+    static requiredArrayOfDate = Type.Array.of(Type.Date).required;
     static circular = () => CircularModel;
     static circularMany = () => Type.Array.of(CircularManyModel);
     static linked = LinkedModel;
@@ -126,6 +139,11 @@ export function getTestModelInstance(data = {}) {
     } else {
         model.id = data.id;
     }
+
+    if (DateType.isDate(data.date)) model.date = new Date(data.date);
+    if (DateType.isDate(data.requiredDate)) model.requiredDate = new Date(data.requiredDate);
+    if (data.arrayOfDate) model.arrayOfDate = data.arrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
+    if (data.requiredArrayOfDate) model.requiredArrayOfDate = data.requiredArrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
 
     const circular = new CircularModel({linked: model});
     circular.id = circular.id.replace(/[a-zA-Z0-9]+$/, '000000000000');

@@ -18,12 +18,16 @@ const schema = {
     requiredNumber: Type.Number.required,
     boolean: Type.Boolean,
     requiredBoolean: Type.Boolean.required,
+    date: Type.Date,
+    requiredDate: Type.Date.required,
     arrayOfString: Type.Array.of(Type.String),
     arrayOfNumber: Type.Array.of(Type.Number),
     arrayOfBoolean: Type.Array.of(Type.Boolean),
+    arrayOfDate: Type.Array.of(Type.Date),
     requiredArrayOfString: Type.Array.of(Type.String).required,
     requiredArrayOfNumber: Type.Array.of(Type.Number).required,
     requiredArrayOfBoolean: Type.Array.of(Type.Boolean).required,
+    requiredArrayOfDate: Type.Array.of(Type.Date).required,
 };
 
 const invalidDataErrors = [{
@@ -45,6 +49,12 @@ const invalidDataErrors = [{
     params: {missingProperty: 'requiredBoolean'},
     schemaPath: '#/required',
 }, {
+    instancePath: '',
+    keyword: 'required',
+    message: 'must have required property \'requiredDate\'',
+    params: {missingProperty: 'requiredDate'},
+    schemaPath: '#/required',
+}, {
     instancePath: '/string',
     keyword: 'type',
     message: 'must be string',
@@ -62,6 +72,12 @@ const invalidDataErrors = [{
     message: 'must be boolean',
     params: {type: 'boolean'},
     schemaPath: '#/properties/boolean/type',
+}, {
+    instancePath: '/date',
+    keyword: 'format',
+    message: 'must match format "iso-date-time"',
+    params: {format: 'iso-date-time'},
+    schemaPath: '#/properties/date/format',
 }, {
     instancePath: '/arrayOfString/0',
     keyword: 'type',
@@ -81,6 +97,12 @@ const invalidDataErrors = [{
     params: {type: 'boolean'},
     schemaPath: '#/properties/arrayOfBoolean/items/type',
 }, {
+    instancePath: '/arrayOfDate/0',
+    keyword: 'format',
+    message: 'must match format "iso-date-time"',
+    params: {format: 'iso-date-time'},
+    schemaPath: '#/properties/arrayOfDate/items/format',
+}, {
     instancePath: '/requiredArrayOfString/0',
     keyword: 'type',
     message: 'must be string',
@@ -98,6 +120,12 @@ const invalidDataErrors = [{
     message: 'must be boolean',
     params: {type: 'boolean'},
     schemaPath: '#/properties/requiredArrayOfBoolean/items/type',
+}, {
+    instancePath: '/requiredArrayOfDate/0',
+    keyword: 'format',
+    message: 'must match format "iso-date-time"',
+    params: {format: 'iso-date-time'},
+    schemaPath: '#/properties/requiredArrayOfDate/items/format',
 }];
 
 test('.compile(schema) is an instance of CompiledSchema', t => {
@@ -112,9 +140,11 @@ test('.compile(schema) has the given schema associated with it', t => {
             'requiredString',
             'requiredNumber',
             'requiredBoolean',
+            'requiredDate',
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
+            'requiredArrayOfDate',
         ],
         properties: {
             custom: {
@@ -131,12 +161,16 @@ test('.compile(schema) has the given schema associated with it', t => {
             requiredNumber: {type: 'number'},
             boolean: {type: 'boolean'},
             requiredBoolean: {type: 'boolean'},
+            date: {type: 'string', format: 'iso-date-time'},
+            requiredDate: {type: 'string', format: 'iso-date-time'},
             arrayOfString: {type: 'array', items: {type: 'string'}},
             arrayOfNumber: {type: 'array', items: {type: 'number'}},
             arrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            arrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            requiredArrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
         },
     });
 });
@@ -156,7 +190,7 @@ test('.compile(schema).validate(invalid) throws a ValidationError', t => {
     );
 
     t.is(error.message, 'Validation failed');
-    t.is(error.data, invalid);
+    t.deepEqual(error.data, invalid);
     t.deepEqual(error.errors, invalidDataErrors);
 });
 
@@ -169,9 +203,11 @@ test('.compile(MainModel) has the given schema associated with it', t => {
             'requiredString',
             'requiredNumber',
             'requiredBoolean',
+            'requiredDate',
             'requiredArrayOfString',
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
+            'requiredArrayOfDate',
             'requiredLinked',
         ],
         properties: {
@@ -190,12 +226,16 @@ test('.compile(MainModel) has the given schema associated with it', t => {
             requiredNumber: {type: 'number'},
             boolean: {type: 'boolean'},
             requiredBoolean: {type: 'boolean'},
+            date: {type: 'string', format: 'iso-date-time'},
+            requiredDate: {type: 'string', format: 'iso-date-time'},
             arrayOfString: {type: 'array', items: {type: 'string'}},
             arrayOfNumber: {type: 'array', items: {type: 'number'}},
             arrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            arrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredArrayOfString: {type: 'array', items: {type: 'string'}},
             requiredArrayOfNumber: {type: 'array', items: {type: 'number'}},
             requiredArrayOfBoolean: {type: 'array', items: {type: 'boolean'}},
+            requiredArrayOfDate: {type: 'array', items: {type: 'string', format: 'iso-date-time'}},
             requiredLinked: {
                 type: 'object',
                 additionalProperties: false,

@@ -7,7 +7,7 @@ export default class ArrayType {
             static _items = type;
 
             static toString() {
-                return `ArrayOf(${type})`;
+                return `ArrayOf(${type.toString()})`;
             }
 
             static get required() {
@@ -24,6 +24,8 @@ export default class ArrayType {
                 return Required;
             }
         }
+
+        Object.defineProperty(ArrayOf, 'name', {value: `${ArrayOf.toString()}Type`});
 
         return ArrayOf;
     }

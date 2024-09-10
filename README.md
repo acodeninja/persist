@@ -17,6 +17,7 @@ export class SimpleModel extends Persist.Type.Model {
     static boolean = Persist.Type.Boolean;
     static string = Persist.Type.String;
     static number = Persist.Type.Number;
+    static date = Persist.Type.Date;
 }
 ```
 
@@ -29,6 +30,7 @@ export class SimpleModel extends Persist.Type.Model {
     static requiredBoolean = Persist.Type.Boolean.required;
     static requiredString = Persist.Type.String.required;
     static requiredNumber = Persist.Type.Number.required;
+    static requiredDate = Persist.Type.Date.required;
 }
 ```
 
@@ -41,6 +43,11 @@ export class SimpleModel extends Persist.Type.Model {
     static arrayOfBooleans = Persist.Type.Array.of(Type.Boolean);
     static arrayOfStrings = Persist.Type.Array.of(Type.String);
     static arrayOfNumbers = Persist.Type.Array.of(Type.Number);
+    static arrayOfDates = Persist.Type.Array.of(Type.Date);
+    static requiredArrayOfBooleans = Persist.Type.Array.of(Type.Boolean).required;
+    static requiredArrayOfStrings = Persist.Type.Array.of(Type.String).required;
+    static requiredArrayOfNumbers = Persist.Type.Array.of(Type.Number).required;
+    static requiredArrayOfDates = Persist.Type.Array.of(Type.Date).required;
 }
 ```
 

@@ -1,6 +1,7 @@
 import Type from './type/index.js';
 import ajv from 'ajv';
 import ajvErrors from 'ajv-errors';
+import ajvFormats from 'ajv-formats';
 
 /**
  * @class SchemaCompiler
@@ -15,6 +16,7 @@ export default class SchemaCompiler {
         const validation = new ajv({allErrors: true});
 
         ajvErrors(validation);
+        ajvFormats(validation);
 
         const schema = {
             type: 'object',
@@ -58,8 +60,16 @@ export default class SchemaCompiler {
 
             schema.properties[name] = {type: property?._type};
 
+            if (property?._format) {
+                schema.properties[name].format = property._format;
+            }
+
             if (property?._type === 'array') {
                 schema.properties[name].items = {type: property?._items._type};
+
+                if (property?._items?._format) {
+                    schema.properties[name].items.format = property?._items._format;
+                }
 
                 if (Type.Model.isModel(property?._items)) {
                     schema.properties[name].items = {
@@ -102,11 +112,14 @@ export class CompiledSchema {
      * @throws {ValidationError}
      */
     static validate(data) {
-        let inputData = data;
+        let inputData = Object.assign({}, data);
+
         if (Type.Model.isModel(data)) {
             inputData = data.toData();
         }
+
         const valid = this._validator?.(inputData);
+
         if (valid) return valid;
 
         throw new ValidationError(inputData, this._validator.errors);
