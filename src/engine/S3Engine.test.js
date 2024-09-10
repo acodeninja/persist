@@ -936,5 +936,31 @@ test('S3Engine.hydrate(model)', async t => {
         client,
     }).hydrate(dryModel);
 
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/MainModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/111111111111.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedManyModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularManyModel/000000000000.json',
+    }));
+
+    t.is(client.send.getCalls().length, 6);
     t.deepEqual(hydratedModel, model);
 });

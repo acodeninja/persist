@@ -33,6 +33,7 @@ test('model.toData() returns an object representation of the model', t => {
         requiredLinked: {id: 'LinkedModel/111111111111'},
         circular: {id: 'CircularModel/000000000000'},
         linkedMany: [{id: 'LinkedManyModel/000000000000'}],
+        emptyArrayOfModels: [],
         circularMany: [{id: 'CircularManyModel/000000000000'}],
     });
 });

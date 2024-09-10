@@ -10,6 +10,10 @@ export const valid = {
     requiredBoolean: true,
     date: new Date().toISOString(),
     requiredDate: new Date().toISOString(),
+    emptyArrayOfStrings: [],
+    emptyArrayOfNumbers: [],
+    emptyArrayOfBooleans: [],
+    emptyArrayOfDates: [],
     arrayOfString: ['String'],
     arrayOfNumber: [24.5],
     arrayOfBoolean: [false],
@@ -29,6 +33,10 @@ export const invalid = {
     requiredBoolean: undefined,
     date: 'not-a-date',
     requiredDate: undefined,
+    emptyArrayOfStrings: 'not-a-list',
+    emptyArrayOfNumbers: 'not-a-list',
+    emptyArrayOfBooleans: 'not-a-list',
+    emptyArrayOfDates: 'not-a-list',
     arrayOfString: [true],
     arrayOfNumber: ['string'],
     arrayOfBoolean: [15.8],
@@ -97,6 +105,11 @@ export class MainModel extends Type.Model {
     static requiredBoolean = Type.Boolean.required;
     static date = Type.Date;
     static requiredDate = Type.Date.required;
+    static emptyArrayOfStrings = Type.Array.of(Type.String);
+    static emptyArrayOfNumbers = Type.Array.of(Type.Number);
+    static emptyArrayOfBooleans = Type.Array.of(Type.Boolean);
+    static emptyArrayOfDates = Type.Array.of(Type.Date);
+    static emptyArrayOfModels = () => Type.Array.of(LinkedManyModel);
     static arrayOfString = Type.Array.of(Type.String);
     static arrayOfNumber = Type.Array.of(Type.Number);
     static arrayOfBoolean = Type.Array.of(Type.Boolean);
@@ -144,6 +157,12 @@ export function getTestModelInstance(data = {}) {
     if (DateType.isDate(data.requiredDate)) model.requiredDate = new Date(data.requiredDate);
     if (data.arrayOfDate) model.arrayOfDate = data.arrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
     if (data.requiredArrayOfDate) model.requiredArrayOfDate = data.requiredArrayOfDate.map(d => DateType.isDate(d) ? new Date(d) : d);
+
+    if (!model.emptyArrayOfStrings) model.emptyArrayOfStrings = [];
+    if (!model.emptyArrayOfNumbers) model.emptyArrayOfNumbers = [];
+    if (!model.emptyArrayOfBooleans) model.emptyArrayOfBooleans = [];
+    if (!model.emptyArrayOfDates) model.emptyArrayOfDates = [];
+    if (!model.emptyArrayOfModels) model.emptyArrayOfModels = [];
 
     const circular = new CircularModel({linked: model});
     circular.id = circular.id.replace(/[a-zA-Z0-9]+$/, '000000000000');
