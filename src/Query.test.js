@@ -20,3 +20,15 @@ test('Query.execute(index) finds exact matches', t => {
         }),
     ]);
 });
+
+test('Query.execute(index) finds exact matches using expanded queries', t => {
+    const query = new Query({string: {$is: 'test'}});
+    const results = query.execute(MainModel, TestIndex);
+
+    t.deepEqual(results, [
+        MainModel.fromData({
+            id: 'MainModel/000000000000',
+            string: 'test',
+        }),
+    ]);
+});

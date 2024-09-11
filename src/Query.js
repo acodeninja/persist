@@ -22,15 +22,20 @@ class Query {
     /**
      * Using the input query, find records in an index that match
      *
-     * @param {Model} model
+     * @param {typeof Model} model
      * @param {object} index
      */
     execute(model, index) {
+        const matchesQuery = (model, inputQuery = undefined) => {
+            for (const [name, query] of Object.entries(inputQuery || this.query)) {
+                if (model[name] === query) return true;
+                if (query.$is && matchesQuery(model, {[name]: query.$is})) return true;
+            }
+        };
+
         return Object.values(index)
-            .filter((model) =>
-                Object.entries(this.query)
-                    .some(([name, value]) => model[name] === value),
-            ).map(m => model.fromData(m));
+            .filter(m => matchesQuery(m))
+            .map(m => model.fromData(m));
     }
 }
 
