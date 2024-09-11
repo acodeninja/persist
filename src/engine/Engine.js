@@ -1,3 +1,4 @@
+import Query from '../Query.js';
 import Type from '../type/index.js';
 import lunr from 'lunr';
 
@@ -61,15 +62,11 @@ export default class Engine {
         return output;
     }
 
-    static async find(model, parameters) {
+    static async find(model, query) {
         this.checkConfiguration();
         const index = await this.getIndex(model);
 
-        return Object.values(index)
-            .filter((model) =>
-                Object.entries(parameters)
-                    .some(([name, value]) => model[name] === value),
-            ).map(m => model.fromData(m));
+        return new Query(query).execute(model, index);
     }
 
     static async put(model) {
