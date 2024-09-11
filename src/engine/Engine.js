@@ -15,6 +15,10 @@ export default class Engine {
         throw new NotImplementedError(`${this.name} must implement .putModel()`);
     }
 
+    static async getIndex(_model) {
+        throw new NotImplementedError(`${this.name} does not implement .getIndex()`);
+    }
+
     static async putIndex(_index) {
         throw new NotImplementedError(`${this.name} does not implement .putIndex()`);
     }
@@ -33,10 +37,6 @@ export default class Engine {
 
     static async putSearchIndexRaw(_model, _rawIndex) {
         throw new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`);
-    }
-
-    static async findByValue(_model, _parameters) {
-        throw new NotImplementedError(`${this.name} does not implement .findByValue()`);
     }
 
     static async search(model, query) {
@@ -63,8 +63,13 @@ export default class Engine {
 
     static async find(model, parameters) {
         this.checkConfiguration();
-        const response = await this.findByValue(model, parameters);
-        return response.map(m => model.fromData(m));
+        const index = await this.getIndex(model);
+
+        return Object.values(index)
+            .filter((model) =>
+                Object.entries(parameters)
+                    .some(([name, value]) => model[name] === value),
+            ).map(m => model.fromData(m));
     }
 
     static async put(model) {

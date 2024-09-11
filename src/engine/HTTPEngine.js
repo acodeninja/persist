@@ -75,15 +75,6 @@ export default class HTTPEngine extends Engine {
         return await this._processFetch(url, this._getReadOptions());
     }
 
-    static async findByValue(model, parameters) {
-        const index = await this.getIndex(model.name);
-        return Object.values(index)
-            .filter((model) =>
-                Object.entries(parameters)
-                    .some(([name, value]) => model[name] === value),
-            );
-    }
-
     static async putModel(model) {
         const url = new URL([
             this._configuration.host,
