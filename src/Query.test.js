@@ -17,6 +17,7 @@ test('Query.execute(index) finds exact matches', t => {
         MainModel.fromData({
             id: 'MainModel/000000000000',
             string: 'test',
+            arrayOfString: ['test'],
         }),
     ]);
 });
@@ -29,6 +30,38 @@ test('Query.execute(index) finds exact matches using expanded queries', t => {
         MainModel.fromData({
             id: 'MainModel/000000000000',
             string: 'test',
+            arrayOfString: ['test'],
+        }),
+    ]);
+});
+
+test('Query.execute(index) finds matches containing for strings', t => {
+    const query = new Query({string: {$contains: 'est'}});
+    const results = query.execute(MainModel, TestIndex);
+
+    t.deepEqual(results, [
+        MainModel.fromData({
+            id: 'MainModel/000000000000',
+            string: 'test',
+            arrayOfString: ['test'],
+        }),
+        MainModel.fromData({
+            id: 'MainModel/111111111111',
+            string: 'testing',
+            arrayOfString: ['testing'],
+        }),
+    ]);
+});
+
+test('Query.execute(index) finds matches containing for arrays', t => {
+    const query = new Query({arrayOfString: {$contains: 'test'}});
+    const results = query.execute(MainModel, TestIndex);
+
+    t.deepEqual(results, [
+        MainModel.fromData({
+            id: 'MainModel/000000000000',
+            string: 'test',
+            arrayOfString: ['test'],
         }),
     ]);
 });

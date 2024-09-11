@@ -26,10 +26,12 @@ class Query {
      * @param {object} index
      */
     execute(model, index) {
-        const matchesQuery = (model, inputQuery = undefined) => {
+        const matchesQuery = (subject, inputQuery = undefined) => {
             for (const [name, query] of Object.entries(inputQuery || this.query)) {
-                if (model[name] === query) return true;
-                if (query.$is && matchesQuery(model, {[name]: query.$is})) return true;
+                if (subject[name] === query) return true;
+                if (query.$is && matchesQuery(subject, {[name]: query.$is})) return true;
+                if (query.$contains)
+                    if (subject[name].includes(query.$contains)) return true;
             }
         };
 
