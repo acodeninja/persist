@@ -50,6 +50,7 @@ test('testModel.toIndexData() returns an object with the indexed properties', t 
     t.deepEqual(index, {
         id: 'MainModel/000000000000',
         string: 'String',
+        linked: {string: 'test'},
         stringSlug: 'string',
     });
 });

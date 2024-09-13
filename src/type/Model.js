@@ -1,5 +1,6 @@
 import SchemaCompiler from '../SchemaCompiler.js';
 import StringType from './simple/StringType.js';
+import _ from 'lodash';
 import {monotonicFactory} from 'ulid';
 
 const createID = monotonicFactory();
@@ -50,6 +51,10 @@ export default class Model {
         const indexData = {id: this.id};
 
         for (const name of this.constructor.indexedProperties()) {
+            if (name.includes('.')) {
+                _.set(indexData, name, _.get(this, name));
+                continue;
+            }
             indexData[name] = this[name];
         }
 
