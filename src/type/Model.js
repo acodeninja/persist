@@ -48,30 +48,31 @@ export default class Model {
     }
 
     toIndexData() {
-        const indexData = { id: this.id };
-        const indexedProperties = this.constructor.indexedProperties();
+        const output = { id: this.id };
+        const index = this.constructor.indexedProperties();
 
-        for (const name of indexedProperties) {
-            if (name.includes('.')) {
-                const value = _.get(this, name);
+        for (const key of index) {
+            if (_.has(this, key)) {
+                _.set(output, key, _.get(this, key));
+            }
 
-                if (value) {
-                    _.set(indexData, name, value);
-                } else {
-                    const segments = name.split('.');
-                    const root = segments[0];
-                    const path = segments.slice(1).join('.');
+            if (key.includes('[*]')) {
+                const segments = key.split('.');
 
-                    indexData[root] = this[root]?.map?.(item => {
-                        return { [path]: _.get(item, path) };
-                    });
-                }
-            } else {
-                indexData[name] = this[name];
+                const preWildcard = segments.slice(0, segments.indexOf('[*]'));
+                const postWildcard = segments.slice(segments.indexOf('[*]') + 1);
+
+                _.set(
+                    output,
+                    preWildcard,
+                    _.get(this, preWildcard, [])
+                        .map((e, i) =>
+                            _.set(_.get(output, preWildcard, [])[i] ?? {}, postWildcard, _.get(e, postWildcard))),
+                );
             }
         }
 
-        return indexData;
+        return output;
     }
 
     toSearchData() {
