@@ -1,3 +1,4 @@
+import Query from '../Query.js';
 import Type from '../type/index.js';
 import lunr from 'lunr';
 
@@ -13,6 +14,10 @@ export default class Engine {
 
     static async putModel(_data) {
         throw new NotImplementedError(`${this.name} must implement .putModel()`);
+    }
+
+    static async getIndex(_model) {
+        throw new NotImplementedError(`${this.name} does not implement .getIndex()`);
     }
 
     static async putIndex(_index) {
@@ -33,10 +38,6 @@ export default class Engine {
 
     static async putSearchIndexRaw(_model, _rawIndex) {
         throw new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`);
-    }
-
-    static async findByValue(_model, _parameters) {
-        throw new NotImplementedError(`${this.name} does not implement .findByValue()`);
     }
 
     static async search(model, query) {
@@ -61,10 +62,11 @@ export default class Engine {
         return output;
     }
 
-    static async find(model, parameters) {
+    static async find(model, query) {
         this.checkConfiguration();
-        const response = await this.findByValue(model, parameters);
-        return response.map(m => model.fromData(m));
+        const index = await this.getIndex(model);
+
+        return new Query(query).execute(model, index);
     }
 
     static async put(model) {

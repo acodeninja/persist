@@ -1,5 +1,6 @@
 import SchemaCompiler from '../SchemaCompiler.js';
 import StringType from './simple/StringType.js';
+import _ from 'lodash';
 import {monotonicFactory} from 'ulid';
 
 const createID = monotonicFactory();
@@ -47,13 +48,31 @@ export default class Model {
     }
 
     toIndexData() {
-        const indexData = {id: this.id};
+        const output = { id: this.id };
+        const index = this.constructor.indexedProperties();
 
-        for (const name of this.constructor.indexedProperties()) {
-            indexData[name] = this[name];
+        for (const key of index) {
+            if (_.has(this, key)) {
+                _.set(output, key, _.get(this, key));
+            }
+
+            if (key.includes('[*]')) {
+                const segments = key.split('.');
+
+                const preWildcard = segments.slice(0, segments.indexOf('[*]'));
+                const postWildcard = segments.slice(segments.indexOf('[*]') + 1);
+
+                _.set(
+                    output,
+                    preWildcard,
+                    _.get(this, preWildcard, [])
+                        .map((e, i) =>
+                            _.set(_.get(output, preWildcard, [])[i] ?? {}, postWildcard, _.get(e, postWildcard))),
+                );
+            }
         }
 
-        return indexData;
+        return output;
     }
 
     toSearchData() {

@@ -24,16 +24,6 @@ export default class S3Engine extends Engine {
         return JSON.parse(await data.Body.transformToString());
     }
 
-    static async findByValue(model, parameters) {
-        const index = await this.getIndex(model.name);
-
-        return Object.values(index)
-            .filter((model) =>
-                Object.entries(parameters)
-                    .some(([name, value]) => model[name] === value),
-            );
-    }
-
     static async putModel(model) {
         const Key = [this._configuration.prefix, `${model.id}.json`].join('/');
 

@@ -39,12 +39,12 @@ test('UnimplementedEngine.putIndex(model) raises a putIndex not implemented erro
     t.is(error.message, 'UnimplementedEngine does not implement .putIndex()');
 });
 
-test('UnimplementedEngine.find(Model, {param: value}) raises a findByValue not implemented error', async t => {
+test('UnimplementedEngine.find(Model, {param: value}) raises a getIndex not implemented error', async t => {
     const error = await t.throwsAsync(() =>
             UnimplementedEngine.find(Type.Model, {param: 'value'}),
         {instanceOf: NotImplementedError},
     );
-    t.is(error.message, 'UnimplementedEngine does not implement .findByValue()');
+    t.is(error.message, 'UnimplementedEngine does not implement .getIndex()');
 });
 
 test('UnimplementedEngine.getSearchIndexCompiled(Model, {param: value}) raises a getSearchIndexCompiled not implemented error', async t => {

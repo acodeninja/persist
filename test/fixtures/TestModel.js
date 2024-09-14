@@ -123,7 +123,7 @@ export class MainModel extends Type.Model {
     static linked = LinkedModel;
     static requiredLinked = LinkedModel.required;
     static linkedMany = Type.Array.of(LinkedManyModel);
-    static indexedProperties = () => ['string', 'stringSlug'];
+    static indexedProperties = () => ['string', 'stringSlug', 'linked.string', 'linkedMany.[*].string'];
     static searchProperties = () => ['string'];
 }
 

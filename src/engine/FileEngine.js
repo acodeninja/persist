@@ -31,14 +31,8 @@ export default class FileEngine extends Engine {
         return JSON.parse(await this._configuration.filesystem.readFile(filePath).then(f => f.toString()));
     }
 
-    static async findByValue(model, parameters) {
-        const index = JSON.parse((await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_index.json')).catch(() => '{}')).toString());
-
-        return Object.values(index)
-            .filter((model) =>
-                Object.entries(parameters)
-                    .some(([name, value]) => model[name] === value),
-            );
+    static async getIndex(model) {
+        return JSON.parse((await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_index.json')).catch(() => '{}')).toString());
     }
 
     static async putModel(model) {
