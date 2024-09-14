@@ -134,6 +134,7 @@ test('HTTPEngine.put(model)', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     });
@@ -281,6 +282,7 @@ test('HTTPEngine.put(model)', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
             'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
             'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},
@@ -402,6 +404,7 @@ test('HTTPEngine.put(model) when the engine fails to put a raw search index', as
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     });
@@ -458,6 +461,7 @@ test('HTTPEngine.put(model) when putting an index fails', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     });
@@ -692,6 +696,7 @@ test('HTTPEngine.put(model) updates existing indexes', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     });
@@ -763,6 +768,7 @@ test('HTTPEngine.put(model) updates existing indexes', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
             'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
             'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},

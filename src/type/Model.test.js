@@ -51,6 +51,7 @@ test('testModel.toIndexData() returns an object with the indexed properties', t 
         id: 'MainModel/000000000000',
         string: 'String',
         linked: {string: 'test'},
+        linkedMany: [{string: 'many'}],
         stringSlug: 'string',
     });
 });

@@ -48,14 +48,27 @@ export default class Model {
     }
 
     toIndexData() {
-        const indexData = {id: this.id};
+        const indexData = { id: this.id };
+        const indexedProperties = this.constructor.indexedProperties();
 
-        for (const name of this.constructor.indexedProperties()) {
+        for (const name of indexedProperties) {
             if (name.includes('.')) {
-                _.set(indexData, name, _.get(this, name));
-                continue;
+                const value = _.get(this, name);
+
+                if (value) {
+                    _.set(indexData, name, value);
+                } else {
+                    const segments = name.split('.');
+                    const root = segments[0];
+                    const path = segments.slice(1).join('.');
+
+                    indexData[root] = this[root]?.map?.(item => {
+                        return { [path]: _.get(item, path) };
+                    });
+                }
+            } else {
+                indexData[name] = this[name];
             }
-            indexData[name] = this[name];
         }
 
         return indexData;

@@ -76,6 +76,7 @@ test('FileEngine.put(model)', async t => {
             string: 'String',
             stringSlug: 'string',
             linked: {string: 'test'},
+            linkedMany: [{string: 'many'}],
         },
     }));
 
@@ -122,6 +123,7 @@ test('FileEngine.put(model)', async t => {
             string: 'String',
             stringSlug: 'string',
             linked: {string: 'test'},
+            linkedMany: [{string: 'many'}],
         },
         'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
         'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},
@@ -197,6 +199,7 @@ test('FileEngine.put(model) updates existing indexes', async t => {
             string: 'String',
             stringSlug: 'string',
             linked: {string: 'test'},
+            linkedMany: [{string: 'many'}],
         },
     }));
 
@@ -223,6 +226,7 @@ test('FileEngine.put(model) updates existing indexes', async t => {
             string: 'String',
             stringSlug: 'string',
             linked: {string: 'test'},
+            linkedMany: [{string: 'many'}],
         },
         'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
         'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},
@@ -271,6 +275,7 @@ test('FileEngine.put(model) when putting an index fails', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         },
     ));

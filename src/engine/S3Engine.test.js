@@ -106,6 +106,7 @@ test('S3Engine.put(model)', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     }));
@@ -247,6 +248,7 @@ test('S3Engine.put(model)', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
             'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
             'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},
@@ -353,6 +355,7 @@ test('S3Engine.put(model) updates existing indexes', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     }));
@@ -429,6 +432,7 @@ test('S3Engine.put(model) updates existing indexes', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
             'CircularModel/000000000000': {id: 'CircularModel/000000000000'},
             'LinkedModel/000000000000': {id: 'LinkedModel/000000000000'},
@@ -617,6 +621,7 @@ test('S3Engine.put(model) when putting an index fails', async t => {
                 string: 'String',
                 stringSlug: 'string',
                 linked: {string: 'test'},
+                linkedMany: [{string: 'many'}],
             },
         }),
     }));
