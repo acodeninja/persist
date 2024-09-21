@@ -14,12 +14,12 @@ test('HTTPEngine.configure(configuration) returns a new engine without altering 
         fetch,
     });
 
-    t.is(originalStore._configuration, undefined);
-    t.like(configuredStore._configuration, {
+    t.like(configuredStore.configuration, {
         host: 'https://example.com',
         prefix: 'test',
         fetch,
     });
+    t.assert(originalStore.configuration === undefined);
 });
 
 test('HTTPEngine.configure(configuration) with additional headers returns a new engine with the headers', t => {
@@ -34,7 +34,7 @@ test('HTTPEngine.configure(configuration) with additional headers returns a new 
         fetch,
     });
 
-    t.is(originalStore._configuration, undefined);
+    t.assert(originalStore.configuration === undefined);
     t.like(configuredStore._getReadOptions(), {
         headers: {
             Authorization: 'Bearer some-bearer-token-for-authentication',

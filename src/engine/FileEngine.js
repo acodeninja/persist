@@ -20,27 +20,27 @@ export default class FileEngine extends Engine {
 
     static checkConfiguration() {
         if (
-            !this._configuration?.path ||
-            !this._configuration?.filesystem
-        ) throw new MissConfiguredError(this._configuration);
+            !this.configuration?.path ||
+            !this.configuration?.filesystem
+        ) throw new MissConfiguredError(this.configuration);
     }
 
     static async getById(id) {
-        const filePath = join(this._configuration.path, `${id}.json`);
+        const filePath = join(this.configuration.path, `${id}.json`);
 
-        return JSON.parse(await this._configuration.filesystem.readFile(filePath).then(f => f.toString()));
+        return JSON.parse(await this.configuration.filesystem.readFile(filePath).then(f => f.toString()));
     }
 
     static async getIndex(model) {
-        return JSON.parse((await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_index.json')).catch(() => '{}')).toString());
+        return JSON.parse((await this.configuration.filesystem.readFile(join(this.configuration.path, model.name, '_index.json')).catch(() => '{}')).toString());
     }
 
     static async putModel(model) {
-        const filePath = join(this._configuration.path, `${model.id}.json`);
+        const filePath = join(this.configuration.path, `${model.id}.json`);
 
         try {
-            await this._configuration.filesystem.mkdir(dirname(filePath), {recursive: true});
-            await this._configuration.filesystem.writeFile(filePath, JSON.stringify(model.toData()));
+            await this.configuration.filesystem.mkdir(dirname(filePath), {recursive: true});
+            await this.configuration.filesystem.writeFile(filePath, JSON.stringify(model.toData()));
         } catch (error) {
             throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
         }
@@ -49,11 +49,11 @@ export default class FileEngine extends Engine {
     static async putIndex(index) {
         const processIndex = async (location, models) => {
             const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
-            const filePath = join(this._configuration.path, location, '_index.json');
-            const currentIndex = JSON.parse((await this._configuration.filesystem.readFile(filePath).catch(() => '{}')).toString());
+            const filePath = join(this.configuration.path, location, '_index.json');
+            const currentIndex = JSON.parse((await this.configuration.filesystem.readFile(filePath).catch(() => '{}')).toString());
 
             try {
-                await this._configuration.filesystem.writeFile(filePath, JSON.stringify({
+                await this.configuration.filesystem.writeFile(filePath, JSON.stringify({
                     ...currentIndex,
                     ...modelIndex,
                 }));
@@ -70,32 +70,32 @@ export default class FileEngine extends Engine {
     }
 
     static async getSearchIndexCompiled(model) {
-        return await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_search_index.json'))
+        return await this.configuration.filesystem.readFile(join(this.configuration.path, model.name, '_search_index.json'))
             .then(b => b.toString())
             .then(JSON.parse);
     }
 
     static async getSearchIndexRaw(model) {
-        return await this._configuration.filesystem.readFile(join(this._configuration.path, model.name, '_search_index_raw.json'))
+        return await this.configuration.filesystem.readFile(join(this.configuration.path, model.name, '_search_index_raw.json'))
             .then(b => b.toString())
             .then(JSON.parse)
             .catch(() => ({}));
     }
 
     static async putSearchIndexCompiled(model, compiledIndex) {
-        const filePath = join(this._configuration.path, model.name, '_search_index.json');
+        const filePath = join(this.configuration.path, model.name, '_search_index.json');
 
         try {
-            await this._configuration.filesystem.writeFile(filePath, JSON.stringify(compiledIndex));
+            await this.configuration.filesystem.writeFile(filePath, JSON.stringify(compiledIndex));
         } catch (error) {
             throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
         }
     }
 
     static async putSearchIndexRaw(model, rawIndex) {
-        const filePath = join(this._configuration.path, model.name, '_search_index_raw.json');
+        const filePath = join(this.configuration.path, model.name, '_search_index_raw.json');
         try {
-            await this._configuration.filesystem.writeFile(filePath, JSON.stringify(rawIndex));
+            await this.configuration.filesystem.writeFile(filePath, JSON.stringify(rawIndex));
         } catch (error) {
             throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
         }

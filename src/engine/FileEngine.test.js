@@ -10,8 +10,8 @@ test('FileEngine.configure(configuration) returns a new engine without altering 
     const originalStore = FileEngine;
     const configuredStore = originalStore.configure({path: '/tmp/fileEngine'});
 
-    t.deepEqual(configuredStore._configuration, {path: '/tmp/fileEngine', filesystem: fs});
-    t.is(originalStore._configuration, undefined);
+    t.deepEqual(configuredStore.configuration, {path: '/tmp/fileEngine', filesystem: fs});
+    t.assert(originalStore.configuration === undefined);
 });
 
 test('FileEngine.get(MainModel, id) when engine is not configured', async t => {

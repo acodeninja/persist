@@ -28,12 +28,12 @@ export default class HTTPEngine extends Engine {
 
     static checkConfiguration() {
         if (
-            !this._configuration?.host
-        ) throw new MissConfiguredError(this._configuration);
+            !this.configuration?.host
+        ) throw new MissConfiguredError(this.configuration);
     }
 
     static _getReadOptions() {
-        return this._configuration.fetchOptions;
+        return this.configuration.fetchOptions;
     }
 
     static _getWriteOptions() {
@@ -48,7 +48,7 @@ export default class HTTPEngine extends Engine {
     }
 
     static async _processFetch(url, options, defaultValue = undefined) {
-        return this._configuration.fetch(url, options)
+        return this.configuration.fetch(url, options)
             .then(response => {
                 if (!response.ok) {
                     if (defaultValue !== undefined) {
@@ -67,8 +67,8 @@ export default class HTTPEngine extends Engine {
         this.checkConfiguration();
 
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             `${id}.json`,
         ].filter(e => !!e).join('/'));
 
@@ -77,8 +77,8 @@ export default class HTTPEngine extends Engine {
 
     static async putModel(model) {
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             `${model.id}.json`,
         ].filter(e => !!e).join('/'));
 
@@ -92,8 +92,8 @@ export default class HTTPEngine extends Engine {
         const processIndex = async (location, models) => {
             const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
             const url = new URL([
-                this._configuration.host,
-                this._configuration.prefix,
+                this.configuration.host,
+                this.configuration.prefix,
                 location,
                 '_index.json',
             ].filter(e => !!e).join('/'));
@@ -115,15 +115,15 @@ export default class HTTPEngine extends Engine {
     }
 
     static async getIndex(location) {
-        const url = new URL([this._configuration.host, this._configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'));
+        const url = new URL([this.configuration.host, this.configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'));
 
         return await this._processFetch(url, this._getReadOptions(), {});
     }
 
     static async getSearchIndexCompiled(model) {
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             model.toString(),
             '_search_index.json',
         ].join('/'));
@@ -133,8 +133,8 @@ export default class HTTPEngine extends Engine {
 
     static async getSearchIndexRaw(model) {
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             model.toString(),
             '_search_index_raw.json',
         ].join('/'));
@@ -144,8 +144,8 @@ export default class HTTPEngine extends Engine {
 
     static async putSearchIndexCompiled(model, compiledIndex) {
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             model.name,
             '_search_index.json',
         ].filter(e => !!e).join('/'));
@@ -158,8 +158,8 @@ export default class HTTPEngine extends Engine {
 
     static async putSearchIndexRaw(model, rawIndex) {
         const url = new URL([
-            this._configuration.host,
-            this._configuration.prefix,
+            this.configuration.host,
+            this.configuration.prefix,
             model.name,
             '_search_index_raw.json',
         ].filter(e => !!e).join('/'));

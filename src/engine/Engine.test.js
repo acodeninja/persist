@@ -11,8 +11,8 @@ test('Engine.configure returns a new store without altering the exising one', t 
     const originalStore = Engine;
     const configuredStore = Engine.configure({});
 
-    t.deepEqual(configuredStore._configuration, {});
-    t.is(originalStore._configuration, undefined);
+    t.deepEqual(configuredStore.configuration, {});
+    t.assert(originalStore.configuration === undefined);
 });
 
 test('UnimplementedEngine.get(Model, id) raises a getById not implemented error', async t => {

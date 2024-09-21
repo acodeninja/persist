@@ -55,8 +55,8 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             }
         }
 
-        t.like(configuredStore._configuration, checkConfiguration);
-        t.is(originalStore._configuration, undefined);
+        t.like(configuredStore.configuration, checkConfiguration);
+        t.assert(originalStore.configuration === undefined);
     });
 
     test(`${engine.toString()}.get(MainModel, id) throws MissConfiguredError when engine is not configured`, async t => {

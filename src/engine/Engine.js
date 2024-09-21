@@ -6,7 +6,7 @@ import lunr from 'lunr';
  * @class Engine
  */
 export default class Engine {
-    static _configuration = undefined;
+    static configuration = undefined;
 
     static async getById(_id) {
         throw new NotImplementedError(`${this.name} must implement .getById()`);
@@ -200,7 +200,7 @@ export default class Engine {
 
     static configure(configuration) {
         class ConfiguredStore extends this {
-            static _configuration = configuration;
+            static configuration = configuration;
         }
 
         Object.defineProperty(ConfiguredStore, 'name', {value: `${this.toString()}`});

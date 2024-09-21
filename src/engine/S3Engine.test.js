@@ -14,11 +14,11 @@ test('S3Engine.configure(configuration) returns a new engine without altering th
         client: stubS3Client(),
     });
 
-    t.is(originalStore._configuration, undefined);
-    t.like(configuredStore._configuration, {
+    t.like(configuredStore.configuration, {
         bucket: 'test-bucket',
         prefix: 'test',
     });
+    t.assert(originalStore.configuration === undefined);
 });
 
 test('S3Engine.get(MainModel, id) when engine is not configured', async t => {
