@@ -46,7 +46,7 @@ test('FileEngine.get(MainModel, id) when id exists', async t => {
 });
 
 test('FileEngine.get(MainModel, id) when id does not exist', async t => {
-    const filesystem = stubFs({});
+    const filesystem = stubFs();
 
     await t.throwsAsync(
         () => FileEngine.configure({
@@ -61,7 +61,7 @@ test('FileEngine.get(MainModel, id) when id does not exist', async t => {
 });
 
 test('FileEngine.put(model)', async t => {
-    const filesystem = stubFs({});
+    const filesystem = stubFs();
 
     const model = getTestModelInstance(valid);
     await t.notThrowsAsync(() => FileEngine.configure({
@@ -282,14 +282,7 @@ test('FileEngine.put(model) when putting an index fails', async t => {
 });
 
 test('FileEngine.put(model) when the engine fails to put a compiled search index', async t => {
-    const filesystem = stubFs({
-        'MainModel/_index.json': {
-            'MainModel/111111111111': {
-                id: 'MainModel/111111111111',
-                string: 'String',
-            },
-        },
-    });
+    const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
         if (path.endsWith('/_search_index.json')) {
@@ -320,14 +313,7 @@ test('FileEngine.put(model) when the engine fails to put a compiled search index
 });
 
 test('FileEngine.put(model) when the engine fails to put a raw search index', async t => {
-    const filesystem = stubFs({
-        'MainModel/_index.json': {
-            'MainModel/111111111111': {
-                id: 'MainModel/111111111111',
-                string: 'String',
-            },
-        },
-    });
+    const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
         if (path.endsWith('_search_index_raw.json')) {
@@ -357,7 +343,7 @@ test('FileEngine.put(model) when the engine fails to put a raw search index', as
 });
 
 test('FileEngine.put(model) when the initial model put fails', async t => {
-    const filesystem = stubFs({});
+    const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
         if (path.endsWith('MainModel/000000000000.json')) {
@@ -381,7 +367,7 @@ test('FileEngine.put(model) when the initial model put fails', async t => {
 });
 
 test('FileEngine.put(model) when the engine fails to put a linked model', async t => {
-    const filesystem = stubFs({});
+    const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
         if (path.endsWith('LinkedModel/000000000000.json')) {

@@ -2,7 +2,7 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
-function stubFs(filesystem, models = []) {
+function stubFs(filesystem = {}, models = []) {
     const modelsAddedToFilesystem = [];
 
     function fileSystemFromModels(initialFilesystem = {}, ...models) {
