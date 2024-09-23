@@ -62,14 +62,14 @@ export class Models {
         });
     }
 
-    getNumericId(modelInstance) {
+    static getNumericId(modelInstance) {
         return parseInt(modelInstance.id.replace(`${modelInstance.constructor.name}/`, ''));
     }
 
     getNextModelId(modelInstance) {
         const lastId = Object.values(this.models)
             .filter(m => m.id.startsWith(`${modelInstance.constructor.name}/`))
-            .map(m => this.getNumericId(m))
+            .map(m => Models.getNumericId(m))
             .toSorted((a, b) => a - b)
             .pop();
 
