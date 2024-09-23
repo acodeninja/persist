@@ -145,44 +145,45 @@ class Engine {
         const indexUpdates = {};
 
         const processModel = async (m) => {
-            if (uploadedModels.includes(m.id)) return false;
-            m.validate();
+            if (!uploadedModels.includes(m.id)) {
+                m.validate();
 
-            await this.putModel(m);
+                await this.putModel(m);
 
-            uploadedModels.push(m.id);
-            indexUpdates[m.constructor.name] = (indexUpdates[m.constructor.name] ?? []).concat([m]);
+                uploadedModels.push(m.id);
+                indexUpdates[m.constructor.name] = (indexUpdates[m.constructor.name] ?? []).concat([m]);
 
-            if (m.constructor.searchProperties().length > 0) {
-                const rawSearchIndex = {
-                    ...await this.getSearchIndexRaw(m.constructor),
-                    [m.id]: m.toSearchData(),
-                };
+                if (m.constructor.searchProperties().length > 0) {
+                    const rawSearchIndex = {
+                        ...await this.getSearchIndexRaw(m.constructor),
+                        [m.id]: m.toSearchData(),
+                    };
 
-                await this.putSearchIndexRaw(m.constructor, rawSearchIndex);
+                    await this.putSearchIndexRaw(m.constructor, rawSearchIndex);
 
-                const compiledIndex = lunr(function () {
-                    this.ref('id');
+                    const compiledIndex = lunr(function () {
+                        this.ref('id');
 
-                    for (const field of m.constructor.searchProperties()) {
-                        this.field(field);
-                    }
+                        for (const field of m.constructor.searchProperties()) {
+                            this.field(field);
+                        }
 
-                    Object.values(rawSearchIndex).forEach(function (doc) {
-                        this.add(doc);
-                    }, this);
-                });
+                        Object.values(rawSearchIndex).forEach(function (doc) {
+                            this.add(doc);
+                        }, this);
+                    });
 
-                await this.putSearchIndexCompiled(m.constructor, compiledIndex);
-            }
-
-            for (const [_, property] of Object.entries(m)) {
-                if (Type.Model.isModel(property)) {
-                    await processModel(property);
+                    await this.putSearchIndexCompiled(m.constructor, compiledIndex);
                 }
-                if (Array.isArray(property) && Type.Model.isModel(property[0])) {
-                    for (const subModel of property) {
-                        await processModel(subModel);
+
+                for (const [_, property] of Object.entries(m)) {
+                    if (Type.Model.isModel(property)) {
+                        await processModel(property);
+                    }
+                    if (Array.isArray(property) && Type.Model.isModel(property[0])) {
+                        for (const subModel of property) {
+                            await processModel(subModel);
+                        }
                     }
                 }
             }
