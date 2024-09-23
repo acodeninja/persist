@@ -17,7 +17,7 @@ export class Models {
                     .concat(
                         Object.entries(this.models)
                             .filter(([id, _]) => id.startsWith(`${model.name}/`))
-                            .map(([_, model]) => [model.id, model.toIndexData()])
+                            .map(([id, m]) => [id, m.toIndexData()])
                             .concat(Object.entries(additionalIndexData)),
                     ),
             );
@@ -27,7 +27,7 @@ export class Models {
             Object.entries(additionalIndexData)
                 .concat(
                     Object.entries(this.models)
-                        .map(([_, model]) => [model.id, model.toIndexData()])
+                        .map(([id, m]) => [id, m.toIndexData()])
                         .concat(Object.entries(additionalIndexData)),
                 ),
         );
@@ -39,7 +39,7 @@ export class Models {
                 .concat(
                     Object.entries(this.models)
                         .filter(([id, _]) => id.startsWith(`${model.name}/`))
-                        .map(([_, model]) => [model.id, model.toSearchData()]),
+                        .map(([id, m]) => [id, m.toSearchData()]),
                 ),
         );
     }

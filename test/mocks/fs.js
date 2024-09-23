@@ -5,8 +5,8 @@ import sinon from 'sinon';
 function stubFs(filesystem = {}, models = []) {
     const modelsAddedToFilesystem = [];
 
-    function fileSystemFromModels(initialFilesystem = {}, ...models) {
-        for (const model of models) {
+    function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
+        for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
 

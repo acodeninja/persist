@@ -144,27 +144,27 @@ class Engine {
         const uploadedModels = [];
         const indexUpdates = {};
 
-        const processModel = async (model) => {
-            if (uploadedModels.includes(model.id)) return false;
-            model.validate();
+        const processModel = async (m) => {
+            if (uploadedModels.includes(m.id)) return false;
+            m.validate();
 
-            await this.putModel(model);
+            await this.putModel(m);
 
-            uploadedModels.push(model.id);
-            indexUpdates[model.constructor.name] = (indexUpdates[model.constructor.name] ?? []).concat([model]);
+            uploadedModels.push(m.id);
+            indexUpdates[m.constructor.name] = (indexUpdates[m.constructor.name] ?? []).concat([m]);
 
-            if (model.constructor.searchProperties().length > 0) {
+            if (m.constructor.searchProperties().length > 0) {
                 const rawSearchIndex = {
-                    ...await this.getSearchIndexRaw(model.constructor),
-                    [model.id]: model.toSearchData(),
+                    ...await this.getSearchIndexRaw(m.constructor),
+                    [m.id]: m.toSearchData(),
                 };
 
-                await this.putSearchIndexRaw(model.constructor, rawSearchIndex);
+                await this.putSearchIndexRaw(m.constructor, rawSearchIndex);
 
                 const compiledIndex = lunr(function () {
                     this.ref('id');
 
-                    for (const field of model.constructor.searchProperties()) {
+                    for (const field of m.constructor.searchProperties()) {
                         this.field(field);
                     }
 
@@ -173,10 +173,10 @@ class Engine {
                     }, this);
                 });
 
-                await this.putSearchIndexCompiled(model.constructor, compiledIndex);
+                await this.putSearchIndexCompiled(m.constructor, compiledIndex);
             }
 
-            for (const [_, property] of Object.entries(model)) {
+            for (const [_, property] of Object.entries(m)) {
                 if (Type.Model.isModel(property)) {
                     await processModel(property);
                 }
