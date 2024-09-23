@@ -12,7 +12,7 @@ function parseArgument(arg) {
     }
 }
 
-export function calledWith(t, spy, ...args) {
+function calledWith(t, spy, ...args) {
     for (const call of spy.getCalls()) {
         const calledArguments = call.args.map(parseArgument);
         const expectedArguments = args.map(parseArgument);
