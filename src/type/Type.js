@@ -9,7 +9,7 @@ class Type {
     static _schema = undefined;
 
     static toString() {
-        return this['name']?.replace(/Type$/, '');
+        return this.name?.replace(/Type$/, '');
     }
 
     /**

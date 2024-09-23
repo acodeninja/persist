@@ -19,7 +19,7 @@ class Engine {
      * @abstract
      */
     static async getById(_id) {
-        throw new NotImplementedError(`${this['name']} must implement .getById()`);
+        throw new NotImplementedError(`${this.name} must implement .getById()`);
     }
 
     /**
@@ -30,7 +30,7 @@ class Engine {
      * @abstract
      */
     static async putModel(_data) {
-        throw new NotImplementedError(`${this['name']} must implement .putModel()`);
+        throw new NotImplementedError(`${this.name} must implement .putModel()`);
     }
 
     /**
@@ -41,7 +41,7 @@ class Engine {
      * @abstract
      */
     static async getIndex(_model) {
-        throw new NotImplementedError(`${this['name']} does not implement .getIndex()`);
+        throw new NotImplementedError(`${this.name} does not implement .getIndex()`);
     }
 
     /**
@@ -52,7 +52,7 @@ class Engine {
      * @abstract
      */
     static async putIndex(_index) {
-        throw new NotImplementedError(`${this['name']} does not implement .putIndex()`);
+        throw new NotImplementedError(`${this.name} does not implement .putIndex()`);
     }
 
     /**
@@ -63,7 +63,7 @@ class Engine {
      * @abstract
      */
     static async getSearchIndexCompiled(_model) {
-        throw new NotImplementedError(`${this['name']} does not implement .getSearchIndexCompiled()`);
+        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexCompiled()`);
     }
 
     /**
@@ -74,7 +74,7 @@ class Engine {
      * @abstract
      */
     static async getSearchIndexRaw(_model) {
-        throw new NotImplementedError(`${this['name']} does not implement .getSearchIndexRaw()`);
+        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexRaw()`);
     }
 
     /**
@@ -86,7 +86,7 @@ class Engine {
      * @abstract
      */
     static async putSearchIndexCompiled(_model, _compiledIndex) {
-        throw new NotImplementedError(`${this['name']} does not implement .putSearchIndexCompiled()`);
+        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexCompiled()`);
     }
 
     /**
@@ -98,7 +98,7 @@ class Engine {
      * @abstract
      */
     static async putSearchIndexRaw(_model, _rawIndex) {
-        throw new NotImplementedError(`${this['name']} does not implement .putSearchIndexRaw()`);
+        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`);
     }
 
     /**
@@ -200,7 +200,7 @@ class Engine {
             return model.fromData(found);
         } catch (error) {
             if (error.constructor === NotImplementedError) throw error;
-            throw new NotFoundEngineError(`${this['name']}.get(${id}) model not found`, error);
+            throw new NotFoundEngineError(`${this.name}.get(${id}) model not found`, error);
         }
     }
 
@@ -285,7 +285,7 @@ class Engine {
     }
 
     static toString() {
-        return this['name'];
+        return this.name;
     }
 }
 
