@@ -42,7 +42,7 @@ class S3Engine extends Engine {
     static async getIndex(location) {
         try {
             const data = await this.configuration.client.send(new GetObjectCommand({
-                Key: [this.configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'),
+                Key: [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/'),
                 Bucket: this.configuration.bucket,
             }));
 
@@ -55,7 +55,7 @@ class S3Engine extends Engine {
     static async putIndex(index) {
         const processIndex = async (location, models) => {
             const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
-            const Key = [this.configuration.prefix, location, '_index.json'].filter(e => !!e).join('/');
+            const Key = [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/');
 
             const currentIndex = await this.getIndex(location);
 

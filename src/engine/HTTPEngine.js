@@ -115,7 +115,7 @@ class HTTPEngine extends Engine {
     }
 
     static async getIndex(location) {
-        const url = new URL([this.configuration.host, this.configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'));
+        const url = new URL([this.configuration.host, this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/'));
 
         return await this._processFetch(url, this._getReadOptions(), {});
     }
