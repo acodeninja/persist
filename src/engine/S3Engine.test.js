@@ -24,7 +24,7 @@ test('S3Engine.configure(configuration) returns a new engine without altering th
 
 test('S3Engine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        async () => await S3Engine.get(MainModel, 'MainModel/000000000000'),
+        () =>  S3Engine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
@@ -813,7 +813,7 @@ test('S3Engine.search(MainModel, "test") when no search index exists for the mod
         client,
     };
 
-    await t.throwsAsync(async () => await S3Engine.configure(configuration).search(MainModel, 'test'), {
+    await t.throwsAsync(() =>  S3Engine.configure(configuration).search(MainModel, 'test'), {
         instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });

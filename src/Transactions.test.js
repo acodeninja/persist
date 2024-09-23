@@ -47,7 +47,7 @@ test('transaction.commit() throws an exception if the transaction was successful
 
     await transaction.commit();
 
-    await t.throwsAsync(async () => await transaction.commit(), {
+    await t.throwsAsync(() => transaction.commit(), {
         instanceOf: TransactionCommittedError,
         message: 'Transaction was already committed.',
     });
@@ -68,7 +68,7 @@ test('transaction.commit() throws an exception if the transaction fails', async 
     await transaction.put(model);
 
     await t.throwsAsync(
-        async () => await transaction.commit(),
+        () =>  transaction.commit(),
         {
             instanceOf: EngineError,
             message: 'Failed to put model',
@@ -98,7 +98,7 @@ test('transaction.commit() reverts already commited changes if the transaction f
     await transaction.put(model);
 
     await t.throwsAsync(
-        async () => await transaction.commit(),
+        () =>  transaction.commit(),
         {
             instanceOf: EngineError,
             message: 'Failed to put model LinkedModel/000000000000',
@@ -132,7 +132,7 @@ test('transaction.commit() reverts already commited changes if the transaction f
     await transaction.put(model);
 
     await t.throwsAsync(
-        async () => await transaction.commit(),
+        () =>  transaction.commit(),
         {
             instanceOf: EngineError,
             message: 'Failed to put model LinkedModel/000000000000',

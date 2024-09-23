@@ -17,7 +17,7 @@ test('FileEngine.configure(configuration) returns a new engine without altering 
 
 test('FileEngine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        async () => await FileEngine.get(MainModel, 'MainModel/000000000000'),
+        () =>  FileEngine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
@@ -425,7 +425,7 @@ test('FileEngine.search(MainModel, "test") when no index exists for the model', 
         filesystem,
     };
 
-    await t.throwsAsync(async () => await FileEngine.configure(configuration).search(MainModel, 'test'), {
+    await t.throwsAsync(() =>  FileEngine.configure(configuration).search(MainModel, 'test'), {
         instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });

@@ -53,7 +53,7 @@ test('HTTPEngine.configure(configuration) with additional headers returns a new 
 
 test('HTTPEngine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        async () => await HTTPEngine.get(MainModel, 'MainModel/000000000000'),
+        () =>  HTTPEngine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
@@ -796,7 +796,7 @@ test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when no matching
 test('HTTPEngine.search(MainModel, "tes") when no index exists for the model', async t => {
     const fetch = stubFetch({}, []);
 
-    await t.throwsAsync(async () => await HTTPEngine.configure({
+    await t.throwsAsync(() =>  HTTPEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,

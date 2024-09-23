@@ -64,7 +64,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
     test(`${engine.toString()}.get(MainModel, id) throws MissConfiguredError when engine is not configured`, async t => {
         const error = await t.throwsAsync(
-            async () => await engine.get(MainModel, 'MainModel/000000000000'),
+            () =>  engine.get(MainModel, 'MainModel/000000000000'),
             {
                 instanceOf: MissConfiguredError,
             },
@@ -91,7 +91,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
         const store = engine.configure(configuration());
 
         const error = await t.throwsAsync(
-            async () => await store.get(MainModel, 'MainModel/999999999999'),
+            () =>  store.get(MainModel, 'MainModel/999999999999'),
             {
                 instanceOf: NotFoundEngineError,
             },
@@ -102,7 +102,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
     test(`${engine.toString()}.put(model) throws MissConfiguredError when engine is not configured`, async t => {
         const error = await t.throwsAsync(
-            async () => await engine.put(MainModel, {string: 'string'}),
+            () =>  engine.put(MainModel, {string: 'string'}),
             {
                 instanceOf: MissConfiguredError,
             },
@@ -120,7 +120,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
     test(`${engine.toString()}.find(MainModel, parameters) throws MissConfiguredError when engine is not configured`, async t => {
         const error = await t.throwsAsync(
-            async () => await engine.find(MainModel, {string: 'string'}),
+            () =>  engine.find(MainModel, {string: 'string'}),
             {
                 instanceOf: MissConfiguredError,
             },
@@ -139,7 +139,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
     test(`${engine.toString()}.search(MainModel, 'string') throws MissConfiguredError when engine is not configured`, async t => {
         const error = await t.throwsAsync(
-            async () => await engine.search(MainModel, 'string'),
+            () =>  engine.search(MainModel, 'string'),
             {
                 instanceOf: MissConfiguredError,
             },
@@ -162,7 +162,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
 
     test(`${engine.toString()}.hydrate(model) throws MissConfiguredError when engine is not configured`, async t => {
         const error = await t.throwsAsync(
-            async () => await engine.hydrate(new Models().createFullTestModel().toData()),
+            () =>  engine.hydrate(new Models().createFullTestModel().toData()),
             {
                 instanceOf: MissConfiguredError,
             },
