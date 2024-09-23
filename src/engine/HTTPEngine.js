@@ -13,7 +13,7 @@ export class HTTPRequestFailedError extends HTTPEngineError {
     }
 }
 
-export default class HTTPEngine extends Engine {
+class HTTPEngine extends Engine {
     static configure(configuration = {}) {
         configuration.fetchOptions = {
             ...(configuration.fetchOptions ?? {}),
@@ -170,3 +170,5 @@ export default class HTTPEngine extends Engine {
         });
     }
 }
+
+export default HTTPEngine;

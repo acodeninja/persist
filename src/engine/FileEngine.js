@@ -10,7 +10,7 @@ class FailedWriteFileEngineError extends FileEngineError {}
  * @class FileEngine
  * @extends Engine
  */
-export default class FileEngine extends Engine {
+class FileEngine extends Engine {
     static configure(configuration) {
         if (!configuration.filesystem) {
             configuration.filesystem = fs;
@@ -101,3 +101,5 @@ export default class FileEngine extends Engine {
         }
     }
 }
+
+export default FileEngine;

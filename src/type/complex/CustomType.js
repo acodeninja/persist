@@ -1,7 +1,7 @@
 import Type from '../Type.js';
 import ajv from 'ajv';
 
-export default class CustomType {
+class CustomType {
     static of(schema) {
         new ajv().compile(schema);
 
@@ -13,3 +13,5 @@ export default class CustomType {
         return Custom;
     }
 }
+
+export default CustomType;

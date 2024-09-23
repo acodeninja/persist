@@ -1,6 +1,6 @@
 import Type from '../Type.js';
 
-export default class ArrayType {
+class ArrayType {
     static of(type) {
         class ArrayOf extends Type {
             static _type = 'array';
@@ -30,3 +30,5 @@ export default class ArrayType {
         return ArrayOf;
     }
 }
+
+export default ArrayType;

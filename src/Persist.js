@@ -4,7 +4,7 @@ import enableTransactions from './Transactions.js';
 /**
  * @class Persist
  */
-export default class Persist {
+class Persist {
     static _engine = {};
     /**
      * @memberof Persist
@@ -42,3 +42,5 @@ export default class Persist {
                 engine.configure(configuration);
     }
 }
+
+export default Persist;

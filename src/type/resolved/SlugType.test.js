@@ -14,11 +14,11 @@ test('SlugType is not required', t => {
 });
 
 test('SlugType does not have properties', t => {
-    t.is(SlugType._properties, undefined);
+    t.assert(SlugType._properties === undefined);
 });
 
 test('SlugType does not have items', t => {
-    t.is(SlugType._items, undefined);
+    t.assert(SlugType._items === undefined);
 });
 
 test('SlugType is a resolved type', t => {

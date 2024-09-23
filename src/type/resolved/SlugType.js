@@ -1,7 +1,7 @@
 import ResolvedType from './ResolvedType.js';
 import slugify from 'slugify';
 
-export default class SlugType extends ResolvedType {
+class SlugType extends ResolvedType {
     static of(property) {
         class SlugOf extends ResolvedType {
             static _type = 'string';
@@ -22,3 +22,5 @@ export default class SlugType extends ResolvedType {
         return SlugOf;
     }
 }
+
+export default SlugType;

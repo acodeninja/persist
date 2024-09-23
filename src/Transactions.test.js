@@ -1,6 +1,7 @@
-import {LinkedModel, getTestModelInstance, valid} from '../test/fixtures/TestModel.js';
+import {LinkedModel, MainModel} from '../test/fixtures/Models.js';
 import enableTransactions, {TransactionCommittedError} from './Transactions.js';
 import {EngineError} from './engine/Engine.js';
+import {Models} from '../test/fixtures/ModelCollection.js';
 import assertions from '../test/assertions.js';
 import {getTestEngine} from '../test/mocks/engine.js';
 import test from 'ava';
@@ -20,7 +21,7 @@ test('enableTransactions(Engine) leaves the original engine intact', t => {
 });
 
 test('transaction.put(model) calls putModel(model) on transaction.commit()', async t => {
-    const model = getTestModelInstance(valid);
+    const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 
@@ -36,7 +37,7 @@ test('transaction.put(model) calls putModel(model) on transaction.commit()', asy
 });
 
 test('transaction.commit() throws an exception if the transaction was successfully commited before', async t => {
-    const model = getTestModelInstance(valid);
+    const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 
@@ -53,7 +54,7 @@ test('transaction.commit() throws an exception if the transaction was successful
 });
 
 test('transaction.commit() throws an exception if the transaction fails', async t => {
-    const model = getTestModelInstance(valid);
+    const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
 
     testEngine.putModel.callsFake(async () => {
@@ -109,12 +110,10 @@ test('transaction.commit() reverts already commited changes if the transaction f
 });
 
 test('transaction.commit() reverts already commited changes if the transaction fails for complex models', async t => {
-    const model = getTestModelInstance(valid);
-    const original = getTestModelInstance(valid);
+    const models = new Models();
+    models.createFullTestModel();
 
-    const testEngine = getTestEngine([original]);
-
-    model.linked.string = 'updated';
+    const testEngine = getTestEngine([...Object.values(models.models)]);
 
     testEngine.putModel.callsFake(async subject => {
         if (subject.string === 'updated') {
@@ -126,6 +125,10 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     const transaction = transactionalEngine.start();
 
+    const model = await transaction.hydrate(await transaction.get(MainModel, 'MainModel/000000000000'));
+
+    model.linked.string = 'updated';
+
     await transaction.put(model);
 
     await t.throwsAsync(
@@ -136,6 +139,12 @@ test('transaction.commit() reverts already commited changes if the transaction f
         },
     );
 
-    assertions.calledWith(t, testEngine.putModel, model);
-    assertions.calledWith(t, testEngine.putModel, original);
+    assertions.calledWith(t, testEngine.putModel, {
+        id: 'LinkedModel/000000000000',
+        string: 'updated',
+    });
+    assertions.calledWith(t, testEngine.putModel, {
+        id: 'LinkedModel/000000000000',
+        string: 'test',
+    });
 });

@@ -5,7 +5,7 @@ class S3EngineError extends EngineError {}
 
 class FailedPutS3EngineError extends S3EngineError {}
 
-export default class S3Engine extends Engine {
+class S3Engine extends Engine {
     static checkConfiguration() {
         if (
             !this.configuration?.bucket ||
@@ -128,3 +128,5 @@ export default class S3Engine extends Engine {
         }
     }
 }
+
+export default S3Engine;

@@ -1,5 +1,7 @@
 import SimpleType from './SimpleType.js';
 
-export default class StringType extends SimpleType {
+class StringType extends SimpleType {
     static _type = 'string';
 }
+
+export default StringType;

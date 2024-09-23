@@ -1,5 +1,6 @@
-import {MainModel, getTestModelInstance, invalid, valid} from '../test/fixtures/TestModel.js';
 import SchemaCompiler, {CompiledSchema, ValidationError} from './SchemaCompiler.js';
+import {MainModel} from '../test/fixtures/Models.js';
+import {Models} from '../test/fixtures/ModelCollection.js';
 import Type from './type/index.js';
 import test from 'ava';
 
@@ -34,6 +35,54 @@ const schema = {
     requiredArrayOfDate: Type.Array.of(Type.Date).required,
 };
 
+export const valid = {
+    custom: {test: 'string'},
+    string: 'String',
+    requiredString: 'Required String',
+    number: 24.3,
+    requiredNumber: 12.2,
+    boolean: false,
+    requiredBoolean: true,
+    date: new Date().toISOString(),
+    requiredDate: new Date().toISOString(),
+    emptyArrayOfStrings: [],
+    emptyArrayOfNumbers: [],
+    emptyArrayOfBooleans: [],
+    emptyArrayOfDates: [],
+    arrayOfString: ['String'],
+    arrayOfNumber: [24.5],
+    arrayOfBoolean: [false],
+    arrayOfDate: [new Date().toISOString()],
+    requiredArrayOfString: ['String'],
+    requiredArrayOfNumber: [24.5],
+    requiredArrayOfBoolean: [false],
+    requiredArrayOfDate: [new Date().toISOString()],
+};
+
+export const invalid = {
+    custom: {test: 123, additional: false},
+    string: false,
+    requiredString: undefined,
+    number: 'test',
+    requiredNumber: undefined,
+    boolean: 13.4,
+    requiredBoolean: undefined,
+    date: 'not-a-date',
+    requiredDate: undefined,
+    emptyArrayOfStrings: 'not-a-list',
+    emptyArrayOfNumbers: 'not-a-list',
+    emptyArrayOfBooleans: 'not-a-list',
+    emptyArrayOfDates: 'not-a-list',
+    arrayOfString: [true],
+    arrayOfNumber: ['string'],
+    arrayOfBoolean: [15.8],
+    arrayOfDate: ['not-a-date'],
+    requiredArrayOfString: [true],
+    requiredArrayOfNumber: ['string'],
+    requiredArrayOfBoolean: [15.8],
+    requiredArrayOfDate: ['not-a-date'],
+};
+
 const invalidDataErrors = [{
     instancePath: '',
     keyword: 'required',
@@ -58,6 +107,18 @@ const invalidDataErrors = [{
     message: 'must have required property \'requiredDate\'',
     params: {missingProperty: 'requiredDate'},
     schemaPath: '#/required',
+}, {
+    instancePath: '/custom',
+    keyword: 'additionalProperties',
+    message: 'must NOT have additional properties',
+    params: {additionalProperty: 'additional'},
+    schemaPath: '#/properties/custom/additionalProperties',
+}, {
+    instancePath: '/custom/test',
+    keyword: 'type',
+    message: 'must be string',
+    params: {type: 'string'},
+    schemaPath: '#/properties/custom/properties/test/type',
 }, {
     instancePath: '/string',
     keyword: 'type',
@@ -208,14 +269,10 @@ test('.compile(schema) has the given schema associated with it', t => {
 });
 
 test('.compile(schema).validate(valid) returns true', t => {
-    delete valid.id;
-
-    t.true(SchemaCompiler.compile(schema).validate(valid));
+    t.assert(SchemaCompiler.compile(schema).validate(valid));
 });
 
 test('.compile(schema).validate(invalid) throws a ValidationError', t => {
-    delete invalid.id;
-
     const error = t.throws(
         () => SchemaCompiler.compile(schema).validate(invalid),
         {instanceOf: ValidationError},
@@ -346,11 +403,17 @@ test('.compile(MainModel) has the given schema associated with it', t => {
 });
 
 test('.compile(MainModel).validate(validModel) returns true', t => {
-    t.true(SchemaCompiler.compile(MainModel).validate(getTestModelInstance(valid)));
+    const model = new Models().createFullTestModel();
+    t.true(SchemaCompiler.compile(MainModel).validate(model));
 });
 
 test('.compile(MainModel).validate(invalidModel) throws a ValidationError', t => {
-    const invalidModel = getTestModelInstance(invalid);
+    const invalidModel = new Models().createFullTestModel(invalid);
+
+    invalidModel.circular.id = 'CircularModel/not-a-valid-id';
+    invalidModel.circularMany[0].id = 'CircularManyModel/not-a-valid-id';
+    invalidModel.linked.id = 'LinkedModel/not-a-valid-id';
+    invalidModel.linkedMany[0].id = 'LinkedManyModel/not-a-valid-id';
 
     t.plan(Object.keys(invalidModel).length + 6);
 

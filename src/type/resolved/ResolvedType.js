@@ -1,6 +1,6 @@
 import Type from '../Type.js';
 
-export default class ResolvedType extends Type {
+class ResolvedType extends Type {
     static _resolved = true;
 
     static resolve(_model) {
@@ -17,3 +17,5 @@ export default class ResolvedType extends Type {
         return ResolvedTypeOf;
     }
 }
+
+export default ResolvedType;

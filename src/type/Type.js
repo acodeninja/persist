@@ -1,13 +1,7 @@
 /**
  * @class Type
- * @property {string} _type
- * @property {boolean} _required
- * @property {boolean} _resolved
- * @property {map?} _properties
- * @property {map?} _items
- * @property {map?} _schema
  */
-export default class Type {
+class Type {
     static _required = false;
     static _resolved = false;
     static _properties = undefined;
@@ -15,7 +9,7 @@ export default class Type {
     static _schema = undefined;
 
     static toString() {
-        return this.name?.replace(/Type$/, '');
+        return this['name']?.replace(/Type$/, '');
     }
 
     /**
@@ -31,3 +25,5 @@ export default class Type {
         return Required;
     }
 }
+
+export default Type;
