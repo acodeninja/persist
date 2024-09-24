@@ -101,6 +101,8 @@ function stubS3Client(filesystem = {}, models = {}) {
                 throw new NoSuchKey({});
             case 'PutObjectCommand':
                 break;
+            default:
+                throw new Error('Unsupported command');
         }
     });
 
