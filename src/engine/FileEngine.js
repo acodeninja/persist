@@ -54,10 +54,10 @@ class FileEngine extends Engine {
      * Retrieves a model by its ID from the file system.
      *
      * @param {string} id - The ID of the model to retrieve.
-     * @returns {Object} The parsed model data.
+     * @returns {Promise<Object>} The parsed model data.
      * @throws {Error} Throws if the file cannot be read or parsed.
      */
-    static async getById(id) {
+    static getById(id) {
         return this.configuration.filesystem
             .readFile(join(this.configuration.path, `${id}.json`))
             .then((b) => b.toString())
@@ -68,10 +68,10 @@ class FileEngine extends Engine {
      * Retrieves the index for a given model from the file system.
      *
      * @param {Model.constructor?} model - The model for which the index is retrieved.
-     * @returns {Object} The parsed index data.
+     * @returns {Promise<Object>} The parsed index data.
      * @throws {Error} Throws if the file cannot be read.
      */
-    static async getIndex(model) {
+    static getIndex(model) {
         return this.configuration.filesystem
             .readFile(join(this.configuration.path, model.toString(), '_index.json'))
             .then((b) => b.toString())
@@ -128,10 +128,10 @@ class FileEngine extends Engine {
      * Retrieves the compiled search index for a model from the file system.
      *
      * @param {Model.constructor} model - The model for which the search index is retrieved.
-     * @returns {Object} The parsed compiled search index.
+     * @returns {Promise<Object>} The parsed compiled search index.
      * @throws {Error} Throws if the file cannot be read.
      */
-    static async getSearchIndexCompiled(model) {
+    static getSearchIndexCompiled(model) {
         return this.configuration.filesystem
             .readFile(join(this.configuration.path, model.toString(), '_search_index.json'))
             .then((b) => b.toString())
@@ -142,10 +142,10 @@ class FileEngine extends Engine {
      * Retrieves the raw search index for a model from the file system.
      *
      * @param {Model.constructor} model - The model for which the raw search index is retrieved.
-     * @returns {Object} The parsed raw search index.
+     * @returns {Promise<Object>} The parsed raw search index.
      * @throws {Error} Throws if the file cannot be read.
      */
-    static async getSearchIndexRaw(model) {
+    static getSearchIndexRaw(model) {
         return this.configuration.filesystem
             .readFile(join(this.configuration.path, model.toString(), '_search_index_raw.json'))
             .then((b) => b.toString())

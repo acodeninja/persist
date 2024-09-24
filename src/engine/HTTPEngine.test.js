@@ -267,16 +267,14 @@ test('HTTPEngine.put(model) when the engine fails to put a compiled search index
             return Promise.resolve({
                 ok: false,
                 status: 500,
-                json: async () => {
-                    throw new Error();
-                },
+                json: () => Promise.reject(new Error()),
             });
         }
 
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: async () => ({}),
+            json: () => Promise.resolve({}),
         });
     });
 
@@ -332,16 +330,14 @@ test('HTTPEngine.put(model) when the engine fails to put a raw search index', as
             return Promise.resolve({
                 ok: false,
                 status: 500,
-                json: async () => {
-                    throw new Error();
-                },
+                json: () => Promise.reject(new Error()),
             });
         }
 
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: async () => ({}),
+            json: () => Promise.resolve({}),
         });
     });
 
@@ -388,16 +384,14 @@ test('HTTPEngine.put(model) when putting an index fails', async t => {
             return Promise.resolve({
                 ok: false,
                 status: 500,
-                json: async () => {
-                    throw new Error();
-                },
+                json: () => Promise.reject(new Error()),
             });
         }
 
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: async () => ({}),
+            json: () => Promise.resolve({}),
         });
     });
 
@@ -444,16 +438,14 @@ test('HTTPEngine.put(model) when the initial model put fails', async t => {
             return Promise.resolve({
                 ok: false,
                 status: 500,
-                json: async () => {
-                    throw new Error();
-                },
+                json: () => Promise.reject(new Error()),
             });
         }
 
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: async () => ({}),
+            json: () => Promise.resolve({}),
         });
     });
 
@@ -489,16 +481,14 @@ test('HTTPEngine.put(model) when the engine fails to put a linked model', async 
             return Promise.resolve({
                 ok: false,
                 status: 500,
-                json: async () => {
-                    throw new Error();
-                },
+                json: () => Promise.reject(new Error()),
             });
         }
 
         return Promise.resolve({
             ok: true,
             status: 200,
-            json: async () => ({}),
+            json: () => Promise.resolve({}),
         });
     });
 
