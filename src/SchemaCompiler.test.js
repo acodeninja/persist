@@ -424,7 +424,7 @@ test('.compile(MainModel).validate(invalidModel) throws a ValidationError', t =>
 
     t.is(error.message, 'Validation failed');
 
-    t.true(!!error.data.id.match(/MainModel\/[A-Z0-9]+/));
+    t.true(new RegExp(/MainModel\/[A-Z0-9]+/).test(error.data.id));
 
     for (const [name, value] of Object.entries(invalidModel.toData())) {
         t.deepEqual(error.data[name], value);

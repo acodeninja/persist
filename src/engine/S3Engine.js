@@ -105,7 +105,7 @@ class S3Engine extends Engine {
             }));
 
             return JSON.parse(await data.Body.transformToString());
-        } catch (_) {
+        } catch (_error) {
             return {};
         }
     }

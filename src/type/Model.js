@@ -253,9 +253,9 @@ class Model {
             return (
                 !this.isModel(possibleDryModel) &&
                 Object.keys(possibleDryModel).includes('id') &&
-                !!possibleDryModel.id.match(/[A-Za-z]+\/[A-Z0-9]+/)
+                new RegExp(/[A-Za-z]+\/[A-Z0-9]+/).test(possibleDryModel.id)
             );
-        } catch (_) {
+        } catch (_error) {
             return false;
         }
     }

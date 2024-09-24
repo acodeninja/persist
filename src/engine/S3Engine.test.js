@@ -399,10 +399,11 @@ test('S3Engine.put(model) when the engine fails to put a compiled search index',
         },
     });
 
-    client.send.callsFake(async command => {
+    client.send.callsFake(command => {
         if (command.input.Key.endsWith('_search_index.json')) {
-            throw new Error();
+            return Promise.reject(new Error());
         }
+        return Promise.resolve();
     });
 
     const models = new Models();
@@ -458,10 +459,11 @@ test('S3Engine.put(model) when the engine fails to put a raw search index', asyn
         },
     });
 
-    client.send.callsFake(async command => {
+    client.send.callsFake(command => {
         if (command.input.Key.endsWith('_search_index_raw.json')) {
-            throw new Error();
+            return Promise.reject(new Error());
         }
+        return Promise.resolve();
     });
 
     const models = new Models();
@@ -510,10 +512,11 @@ test('S3Engine.put(model) when putting an index fails', async t => {
         },
     });
 
-    client.send.callsFake(async command => {
+    client.send.callsFake(command => {
         if (command.input.Key.endsWith('/_index.json')) {
-            throw new Error();
+            return Promise.reject(new Error());
         }
+        return Promise.resolve();
     });
 
     const models = new Models();
@@ -618,10 +621,11 @@ test('S3Engine.put(model) when the initial model put fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    client.send.callsFake(async command => {
+    client.send.callsFake(command => {
         if (command.input.Key.endsWith('MainModel/000000000000.json')) {
-            throw new Error();
+            return Promise.reject(new Error());
         }
+        return Promise.resolve();
     });
 
     await t.throwsAsync(() => S3Engine.configure({

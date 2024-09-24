@@ -27,13 +27,13 @@ function stubFs(filesystem = {}, models = []) {
 
             modelsAddedToFilesystem.push(model.id);
 
-            for (const [_, value] of Object.entries(model)) {
+            for (const [_proptery, value] of Object.entries(model)) {
                 if (Model.isModel(value) && !modelsAddedToFilesystem.includes(value.id)) {
                     initialFilesystem = fileSystemFromModels(initialFilesystem, value);
                 }
 
                 if (Array.isArray(value)) {
-                    for (const [_, subModel] of Object.entries(value)) {
+                    for (const [_subProperty, subModel] of Object.entries(value)) {
                         if (Model.isModel(subModel) && !modelsAddedToFilesystem.includes(subModel.id)) {
                             initialFilesystem = fileSystemFromModels(initialFilesystem, subModel);
                         }
@@ -66,29 +66,24 @@ function stubFs(filesystem = {}, models = []) {
         }
     }
 
-    const readFile = sinon.stub().callsFake(async (filePath) => {
+    const readFile = sinon.stub().callsFake((filePath) => {
         for (const [filename, value] of Object.entries(resolvedFiles)) {
             if (filePath.endsWith(filename)) {
                 if (typeof value === 'string') {
-                    return Buffer.from(value);
+                    return Promise.resolve(Buffer.from(value));
                 }
-                return Buffer.from(JSON.stringify(value));
+                return Promise.resolve(Buffer.from(JSON.stringify(value)));
             }
         }
 
         const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
         err.code = 'EPIPE';
         err.errno = -3;
-        throw err;
+        return Promise.reject(err);
     });
 
-    const writeFile = sinon.stub().callsFake(async () => {
-
-    });
-
-    const mkdir = sinon.stub().callsFake(async () => {
-
-    });
+    const writeFile = sinon.stub();
+    const mkdir = sinon.stub();
 
     return {readFile, writeFile, mkdir};
 }
