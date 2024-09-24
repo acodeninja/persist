@@ -82,13 +82,8 @@ function stubFs(filesystem = {}, models = []) {
         throw err;
     });
 
-    const writeFile = sinon.stub().callsFake(async () => {
-
-    });
-
-    const mkdir = sinon.stub().callsFake(async () => {
-
-    });
+    const writeFile = sinon.stub();
+    const mkdir = sinon.stub();
 
     return {readFile, writeFile, mkdir};
 }
