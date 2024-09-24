@@ -5,16 +5,28 @@ test('DateType is Date', t => {
     t.is(DateType.toString(), 'Date');
 });
 
+test('DateType.isDate(not-a-date) returns false', t => {
+    t.false(DateType.isDate('not-a-date'));
+});
+
+test('DateType.isDate(date) returns true', t => {
+    t.true(DateType.isDate(new Date()));
+});
+
+test('DateType.isDate(date-string) returns true', t => {
+    t.true(DateType.isDate('2024-09-21T09:25:34.595Z'));
+});
+
 test('DateType is not required', t => {
     t.is(DateType._required, false);
 });
 
 test('DateType does not have properties', t => {
-    t.is(DateType._properties, undefined);
+    t.assert(DateType._properties === undefined);
 });
 
 test('DateType does not have items', t => {
-    t.is(DateType._items, undefined);
+    t.assert(DateType._items === undefined);
 });
 
 test('DateType is not a resolved type', t => {
@@ -30,11 +42,11 @@ test('RequiredDateType is required', t => {
 });
 
 test('RequiredDateType does not have properties', t => {
-    t.is(DateType.required._properties, undefined);
+    t.assert(DateType.required._properties === undefined);
 });
 
 test('RequiredDateType does not have items', t => {
-    t.is(DateType.required._items, undefined);
+    t.assert(DateType.required._items === undefined);
 });
 
 test('RequiredDateType is not a resolved type', t => {

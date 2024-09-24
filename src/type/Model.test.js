@@ -1,101 +1,83 @@
-import {MainModel, getTestModelInstance, invalid, valid} from '../../test/fixtures/TestModel.js';
+import {MainModel} from '../../test/fixtures/Models.js';
+import {Models} from '../../test/fixtures/ModelCollection.js';
 import Type from './index.js';
 import {ValidationError} from '../SchemaCompiler.js';
 import test from 'ava';
 
 test('constructor() creates a model instance with an id', t => {
-    const model = getTestModelInstance();
+    const model = new MainModel();
 
     t.true(!!model.id.match(/MainModel\/[A-Z0-9]+/));
 });
 
 test('constructor(valid) creates a model using the input valid', t => {
-    const model = new MainModel(valid);
+    const model = new MainModel({string: 'String'});
 
     t.true(!!model.id.match(/MainModel\/[A-Z0-9]+/));
 
-    t.like(model.toData(), {
-        ...valid,
-        stringSlug: 'string',
-        requiredStringSlug: 'required-string',
-    });
+    t.like(model.toData(), {string: 'String'});
 });
 
 test('model.toData() returns an object representation of the model', t => {
-    const model = getTestModelInstance(valid);
+    const data = new Models().createFullTestModel().toData();
 
-    t.deepEqual(model.toData(), {
-        ...valid,
-        id: 'MainModel/000000000000',
-        stringSlug: 'string',
-        requiredStringSlug: 'required-string',
-        linked: {id: 'LinkedModel/000000000000'},
-        requiredLinked: {id: 'LinkedModel/111111111111'},
-        circular: {id: 'CircularModel/000000000000'},
-        linkedMany: [{id: 'LinkedManyModel/000000000000'}],
-        emptyArrayOfModels: [],
-        circularMany: [{id: 'CircularManyModel/000000000000'}],
-    });
+    delete data.id;
+
+    const model = new MainModel(data);
+
+    t.like(model.toData(), data);
 });
 
 test('model.toIndexData() returns an object with the index properties', t => {
-    const index = new Type.Model(valid).toIndexData();
+    const index = new Models().createFullTestModel().toIndexData();
 
-    t.assert(index.id.match(/Model\/[A-Z0-9]+/));
-});
-
-test('testModel.toIndexData() returns an object with the indexed properties', t => {
-    const index = getTestModelInstance(valid).toIndexData();
-
-    t.deepEqual(index, {
+    t.deepEqual({
+        arrayOfString: ['test'],
+        boolean: false,
         id: 'MainModel/000000000000',
-        string: 'String',
         linked: {string: 'test'},
         linkedMany: [{string: 'many'}],
-        stringSlug: 'string',
-    });
+        number: 24.3,
+        string: 'test',
+        stringSlug: 'test',
+    }, index);
 });
 
 test('model.toSearchData() returns an object with the searchable properties', t => {
-    const searchData = new Type.Model(valid).toSearchData();
+    const index = new Models().createFullTestModel().toSearchData();
 
-    t.assert(searchData.id.match(/Model\/[A-Z0-9]+/));
-});
-
-test('testModel.toSearchData() returns an object with the searchable properties', t => {
-    const searchData = getTestModelInstance(valid).toSearchData();
-
-    t.deepEqual(searchData, {
+    t.deepEqual({
         id: 'MainModel/000000000000',
-        string: 'String',
-    });
+        linked: {string: 'test'},
+        linkedMany: [{string: 'many'}],
+        string: 'test',
+        stringSlug: 'test',
+    }, index);
 });
 
-test('TestModel.fromData(data) produces a model', t => {
-    const model = MainModel.fromData(valid);
+test('Model.fromData(data) produces a model', t => {
+    const data = new Models().createFullTestModel().toData();
+    const model = MainModel.fromData(data);
 
     t.assert(model instanceof MainModel);
-    t.like(model.toData(), {
-        ...valid,
-        stringSlug: 'string',
-        requiredStringSlug: 'required-string',
-    });
+    t.deepEqual(model.toData(), data);
 });
 
 test('model.validate() returns true', t => {
-    const model = getTestModelInstance(valid);
+    const model = new Models().createFullTestModel();
 
     t.true(model.validate());
 });
 
 test('invalidModel.validate() returns true', t => {
-    const model = getTestModelInstance(invalid);
+    const model = new Models().createFullTestModel();
+    model.string = 123;
 
     t.throws(() => model.validate(), {instanceOf: ValidationError});
 });
 
 test('Model.isModel(model) returns true', t => {
-    t.true(Type.Model.isModel(getTestModelInstance()));
+    t.true(Type.Model.isModel(new Models().createFullTestModel()));
 });
 
 test('Model.isModel(non-model) returns false', t => {
@@ -108,8 +90,12 @@ test('Model.isDryModel(dry-model) returns true', t => {
     }));
 });
 
-test('Model.isDryModel(non-dry-model) returns false', t => {
+test('Model.isDryModel(not-a-model) returns false', t => {
     t.false(Type.Model.isDryModel({}));
+});
+
+test('Model.isDryModel(hydrated-model) returns false', t => {
+    t.false(Type.Model.isDryModel(new Models().createFullTestModel()));
 });
 
 test('Model.isDryModel(almost-dry-model) returns false', t => {

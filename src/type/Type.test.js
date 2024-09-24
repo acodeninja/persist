@@ -10,11 +10,11 @@ test('Type is not required', t => {
 });
 
 test('Type does not have properties', t => {
-    t.is(Type._properties, undefined);
+    t.assert(Type._properties === undefined);
 });
 
 test('Type does not have items', t => {
-    t.is(Type._items, undefined);
+    t.assert(Type._items === undefined);
 });
 
 test('Type is not a resolved type', t => {
@@ -30,11 +30,11 @@ test('RequiredType is required', t => {
 });
 
 test('RequiredType does not have properties', t => {
-    t.is(Type.required._properties, undefined);
+    t.assert(Type.required._properties === undefined);
 });
 
 test('RequiredType does not have items', t => {
-    t.is(Type.required._items, undefined);
+    t.assert(Type.required._items === undefined);
 });
 
 test('RequiredType is not a resolved type', t => {

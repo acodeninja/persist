@@ -65,7 +65,7 @@ function stubS3Client(filesystem = {}, models = {}) {
         if (searchIndexes.length > 0) {
             for (const [name, index] of searchIndexes) {
                 const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
-                const compiledIndex = lunr(function () {
+                resolvedFiles[name.replace('_raw', '')] = lunr(function () {
                     this.ref('id');
 
                     for (const field of fields) {
@@ -76,8 +76,6 @@ function stubS3Client(filesystem = {}, models = {}) {
                         this.add(doc);
                     }, this);
                 });
-
-                resolvedFiles[name.replace('_raw', '')] = compiledIndex;
             }
         }
 

@@ -10,11 +10,11 @@ test('BooleanType is not required', t => {
 });
 
 test('BooleanType does not have properties', t => {
-    t.is(BooleanType._properties, undefined);
+    t.assert(BooleanType._properties === undefined);
 });
 
 test('BooleanType does not have items', t => {
-    t.is(BooleanType._items, undefined);
+    t.assert(BooleanType._items === undefined);
 });
 
 test('BooleanType is not a resolved type', t => {
@@ -30,11 +30,11 @@ test('RequiredBooleanType is required', t => {
 });
 
 test('RequiredBooleanType does not have properties', t => {
-    t.is(BooleanType.required._properties, undefined);
+    t.assert(BooleanType.required._properties === undefined);
 });
 
 test('RequiredBooleanType does not have items', t => {
-    t.is(BooleanType.required._items, undefined);
+    t.assert(BooleanType.required._items === undefined);
 });
 
 test('RequiredBooleanType is not a resolved type', t => {

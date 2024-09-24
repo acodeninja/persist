@@ -18,11 +18,11 @@ test('UnimplementedResolvedType is not required', t => {
 });
 
 test('UnimplementedResolvedType does not have properties', t => {
-    t.is(UnimplementedResolvedType._properties, undefined);
+    t.assert(UnimplementedResolvedType._properties === undefined);
 });
 
 test('UnimplementedResolvedType does not have items', t => {
-    t.is(UnimplementedResolvedType._items, undefined);
+    t.assert(UnimplementedResolvedType._items === undefined);
 });
 
 test('UnimplementedResolvedType is a resolved type', t => {

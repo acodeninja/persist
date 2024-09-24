@@ -8,7 +8,7 @@ test('Persist allows adding the FileEngine', t => {
         path: '/tmp/fileEngine',
     });
 
-    t.like(Persist._engine.files.FileEngine._configuration, {
+    t.like(Persist._engine.files.FileEngine.configuration, {
         path: '/tmp/fileEngine',
         filesystem: fs,
     });
@@ -20,7 +20,7 @@ test('Persist allows adding the FileEngine with transactions', t => {
         transactions: true,
     });
 
-    t.like(Persist._engine.files.FileEngine._configuration, {
+    t.like(Persist._engine.files.FileEngine.configuration, {
         path: '/tmp/fileEngine',
         filesystem: fs,
         transactions: true,
@@ -34,7 +34,7 @@ test('Persist allows retrieving a FileEngine', t => {
         path: '/tmp/fileEngine',
     });
 
-    t.like(Persist.getEngine('files', FileEngine)._configuration, {
+    t.like(Persist.getEngine('files', FileEngine).configuration, {
         path: '/tmp/fileEngine',
         filesystem: fs,
     });

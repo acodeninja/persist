@@ -1,49 +1,107 @@
 import Engine, {EngineError, MissConfiguredError} from './Engine.js';
 import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 
+/**
+ * Represents an error specific to the S3 engine operations.
+ * @class S3EngineError
+ * @extends EngineError
+ */
 class S3EngineError extends EngineError {}
 
+/**
+ * Error indicating a failure when putting an object to S3.
+ * @class FailedPutS3EngineError
+ * @extends S3EngineError
+ */
 class FailedPutS3EngineError extends S3EngineError {}
 
-export default class S3Engine extends Engine {
-    static checkConfiguration() {
-        if (
-            !this._configuration?.bucket ||
-            !this._configuration?.client
-        ) throw new MissConfiguredError(this._configuration);
+/**
+ * S3Engine is an extension of the Engine class that provides methods for interacting with AWS S3.
+ * It allows for storing, retrieving, and managing model data in an S3 bucket.
+ *
+ * @class S3Engine
+ * @extends Engine
+ */
+class S3Engine extends Engine {
+    /**
+     * Configures the S3 engine with additional options.
+     *
+     * @param {Object} configuration - Configuration object.
+     * @param {S3Client} [configuration.client] - An S3 client used to process operations.
+     * @param {string} [configuration.bucket] - The S3 bucket to perform operations against.
+     * @param {string?} [configuration.prefix] - The optional prefix in the bucket to perform operations against.
+     * @returns {Object} The configured settings for the HTTP engine.
+     */
+    static configure(configuration = {}) {
+        return super.configure(configuration);
     }
 
-    static async getById(id) {
-        const objectPath = [this._configuration.prefix, `${id}.json`].join('/');
+    /**
+     * Validates the S3 engine configuration to ensure necessary parameters (bucket and client) are present.
+     * Throws an error if the configuration is invalid.
+     *
+     * @throws {MissConfiguredError} Thrown when the configuration is missing required parameters.
+     */
+    static checkConfiguration() {
+        if (
+            !this.configuration?.bucket ||
+            !this.configuration?.client
+        ) throw new MissConfiguredError(this.configuration);
+    }
 
-        const data = await this._configuration.client.send(new GetObjectCommand({
-            Bucket: this._configuration.bucket,
+    /**
+     * Retrieves an object from S3 by its ID.
+     *
+     * @param {string} id - The ID of the object to retrieve.
+     * @returns {Promise<Object>} The parsed JSON object retrieved from S3.
+     *
+     * @throws {Error} Thrown if there is an issue with the S3 client request.
+     */
+    static async getById(id) {
+        const objectPath = [this.configuration.prefix, `${id}.json`].join('/');
+
+        const data = await this.configuration.client.send(new GetObjectCommand({
+            Bucket: this.configuration.bucket,
             Key: objectPath,
         }));
 
         return JSON.parse(await data.Body.transformToString());
     }
 
+    /**
+     * Puts (uploads) a model object to S3.
+     *
+     * @param {Model} model - The model object to upload.
+     * @returns {Promise<void>}
+     *
+     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     */
     static async putModel(model) {
-        const Key = [this._configuration.prefix, `${model.id}.json`].join('/');
+        const Key = [this.configuration.prefix, `${model.id}.json`].join('/');
 
         try {
-            await this._configuration.client.send(new PutObjectCommand({
+            await this.configuration.client.send(new PutObjectCommand({
                 Key,
                 Body: JSON.stringify(model.toData()),
-                Bucket: this._configuration.bucket,
+                Bucket: this.configuration.bucket,
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this._configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 
-    static async getIndex(location) {
+    /**
+     * Retrieves the index object from S3 at the specified location.
+     *
+     * @param {Model.constructor?} model - The model in the bucket where the index is stored.
+     * @returns {Promise<Object>} The parsed index object.
+     */
+    static async getIndex(model) {
         try {
-            const data = await this._configuration.client.send(new GetObjectCommand({
-                Key: [this._configuration.prefix, location, '_index.json'].filter(e => !!e).join('/'),
-                Bucket: this._configuration.bucket,
+            const data = await this.configuration.client.send(new GetObjectCommand({
+                Key: [this.configuration.prefix, model?.toString(), '_index.json'].filter(e => Boolean(e)).join('/'),
+                Bucket: this.configuration.bucket,
             }));
 
             return JSON.parse(await data.Body.transformToString());
@@ -52,17 +110,25 @@ export default class S3Engine extends Engine {
         }
     }
 
+    /**
+     * Puts (uploads) an index object to S3.
+     *
+     * @param {Object} index - The index data to upload, organized by location.
+     * @returns {Promise<void>}
+     *
+     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
             const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
-            const Key = [this._configuration.prefix, location, '_index.json'].filter(e => !!e).join('/');
+            const Key = [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/');
 
             const currentIndex = await this.getIndex(location);
 
             try {
-                await this._configuration.client.send(new PutObjectCommand({
+                await this.configuration.client.send(new PutObjectCommand({
                     Key,
-                    Bucket: this._configuration.bucket,
+                    Bucket: this.configuration.bucket,
                     ContentType: 'application/json',
                     Body: JSON.stringify({
                         ...currentIndex,
@@ -70,7 +136,7 @@ export default class S3Engine extends Engine {
                     }),
                 }));
             } catch (error) {
-                throw new FailedPutS3EngineError(`Failed to put s3://${this._configuration.bucket}/${Key}`, error);
+                throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
             }
         };
 
@@ -81,50 +147,82 @@ export default class S3Engine extends Engine {
         await processIndex(null, Object.values(index).flat());
     }
 
+    /**
+     * Retrieves the compiled search index for a specific model from S3.
+     *
+     * @param {Model.constructor} model - The model whose search index to retrieve.
+     * @returns {Promise<Object>} The compiled search index.
+     */
     static async getSearchIndexCompiled(model) {
-        return await this._configuration.client.send(new GetObjectCommand({
-            Key: [this._configuration.prefix, model.name, '_search_index.json'].join('/'),
-            Bucket: this._configuration.bucket,
+        return await this.configuration.client.send(new GetObjectCommand({
+            Key: [this.configuration.prefix, model.name, '_search_index.json'].join('/'),
+            Bucket: this.configuration.bucket,
         })).then(data => data.Body.transformToString())
             .then(JSON.parse);
     }
 
+    /**
+     * Retrieves the raw (uncompiled) search index for a specific model from S3.
+     *
+     * @param {Model.constructor} model - The model whose raw search index to retrieve.
+     * @returns {Promise<Object>} The raw search index, or an empty object if not found.
+     */
     static async getSearchIndexRaw(model) {
-        return await this._configuration.client.send(new GetObjectCommand({
-            Key: [this._configuration.prefix, model.name, '_search_index_raw.json'].join('/'),
-            Bucket: this._configuration.bucket,
+        return await this.configuration.client.send(new GetObjectCommand({
+            Key: [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/'),
+            Bucket: this.configuration.bucket,
         })).then(data => data.Body.transformToString())
             .then(JSON.parse)
             .catch(() => ({}));
     }
 
+    /**
+     * Puts (uploads) a compiled search index for a specific model to S3.
+     *
+     * @param {Model.constructor} model - The model whose compiled search index to upload.
+     * @param {Object} compiledIndex - The compiled search index data.
+     * @returns {Promise<void>}
+     *
+     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     */
     static async putSearchIndexCompiled(model, compiledIndex) {
-        const Key = [this._configuration.prefix, model.name, '_search_index.json'].join('/');
+        const Key = [this.configuration.prefix, model.toString(), '_search_index.json'].join('/');
 
         try {
-            await this._configuration.client.send(new PutObjectCommand({
+            await this.configuration.client.send(new PutObjectCommand({
                 Key,
                 Body: JSON.stringify(compiledIndex),
-                Bucket: this._configuration.bucket,
+                Bucket: this.configuration.bucket,
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this._configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 
+    /**
+     * Puts (uploads) a raw search index for a specific model to S3.
+     *
+     * @param {Model.constructor} model - The model whose raw search index to upload.
+     * @param {Object} rawIndex - The raw search index data.
+     * @returns {Promise<void>}
+     *
+     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     */
     static async putSearchIndexRaw(model, rawIndex) {
-        const Key = [this._configuration.prefix, model.name, '_search_index_raw.json'].join('/');
+        const Key = [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/');
 
         try {
-            await this._configuration.client.send(new PutObjectCommand({
+            await this.configuration.client.send(new PutObjectCommand({
                 Key,
                 Body: JSON.stringify(rawIndex),
-                Bucket: this._configuration.bucket,
+                Bucket: this.configuration.bucket,
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this._configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 }
+
+export default S3Engine;

@@ -2,11 +2,11 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
-function stubFs(filesystem, models = []) {
+function stubFs(filesystem = {}, models = []) {
     const modelsAddedToFilesystem = [];
 
-    function fileSystemFromModels(initialFilesystem = {}, ...models) {
-        for (const model of models) {
+    function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
+        for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
 
@@ -52,7 +52,7 @@ function stubFs(filesystem, models = []) {
     if (searchIndexes.length > 0) {
         for (const [name, index] of searchIndexes) {
             const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
-            const compiledIndex = lunr(function () {
+            resolvedFiles[name.replace('_raw', '')] = lunr(function () {
                 this.ref('id');
 
                 for (const field of fields) {
@@ -63,8 +63,6 @@ function stubFs(filesystem, models = []) {
                     this.add(doc);
                 }, this);
             });
-
-            resolvedFiles[name.replace('_raw', '')] = compiledIndex;
         }
     }
 

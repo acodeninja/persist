@@ -10,11 +10,11 @@ test('StringType is not required', t => {
 });
 
 test('StringType does not have properties', t => {
-    t.is(StringType._properties, undefined);
+    t.assert(StringType._properties === undefined);
 });
 
 test('StringType does not have items', t => {
-    t.is(StringType._items, undefined);
+    t.assert(StringType._items === undefined);
 });
 
 test('StringType is not a resolved type', t => {
@@ -30,11 +30,11 @@ test('RequiredStringType is required', t => {
 });
 
 test('RequiredStringType does not have properties', t => {
-    t.is(StringType.required._properties, undefined);
+    t.assert(StringType.required._properties === undefined);
 });
 
 test('RequiredStringType does not have items', t => {
-    t.is(StringType.required._items, undefined);
+    t.assert(StringType.required._items === undefined);
 });
 
 test('RequiredStringType is not a resolved type', t => {

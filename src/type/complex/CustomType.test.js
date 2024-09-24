@@ -20,11 +20,11 @@ test('CustomType.of(validSchema) is not required', t => {
 });
 
 test('CustomType.of(validSchema) does not have properties', t => {
-    t.is(CustomType.of(validSchema)._properties, undefined);
+    t.assert(CustomType.of(validSchema)._properties === undefined);
 });
 
 test('CustomType.of(validSchema) has items of type String', t => {
-    t.is(CustomType.of(validSchema)._items, undefined);
+    t.assert(CustomType.of(validSchema)._items === undefined);
 });
 
 test('CustomType.of(validSchema) is not a resolved type', t => {
@@ -40,11 +40,11 @@ test('RequiredCustomType.of(validSchema) is required', t => {
 });
 
 test('RequiredCustomType.of(validSchema) does not have properties', t => {
-    t.is(CustomType.of(validSchema).required._properties, undefined);
+    t.assert(CustomType.of(validSchema).required._properties === undefined);
 });
 
 test('RequiredCustomType.of(validSchema) has items of type String', t => {
-    t.is(CustomType.of(validSchema).required._items, undefined);
+    t.assert(CustomType.of(validSchema).required._items === undefined);
 });
 
 test('RequiredCustomType.of(validSchema) is not a resolved type', t => {

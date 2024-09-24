@@ -1,5 +1,5 @@
 import Engine, {NotFoundEngineError, NotImplementedError} from './Engine.js';
-import {MainModel} from '../../test/fixtures/TestModel.js';
+import {MainModel} from '../../test/fixtures/Models.js';
 import Type from '../type/index.js';
 import test from 'ava';
 
@@ -11,13 +11,13 @@ test('Engine.configure returns a new store without altering the exising one', t 
     const originalStore = Engine;
     const configuredStore = Engine.configure({});
 
-    t.deepEqual(configuredStore._configuration, {});
-    t.is(originalStore._configuration, undefined);
+    t.deepEqual(configuredStore.configuration, {});
+    t.assert(originalStore.configuration === undefined);
 });
 
 test('UnimplementedEngine.get(Model, id) raises a getById not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.get(Type.Model, 'TestModel/999999999999'),
+            UnimplementedEngine.get(MainModel, 'TestModel/999999999999'),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine must implement .getById()');
@@ -41,23 +41,23 @@ test('UnimplementedEngine.putIndex(model) raises a putIndex not implemented erro
 
 test('UnimplementedEngine.find(Model, {param: value}) raises a getIndex not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.find(Type.Model, {param: 'value'}),
+            UnimplementedEngine.find(MainModel, {param: 'value'}),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine does not implement .getIndex()');
 });
 
-test('UnimplementedEngine.getSearchIndexCompiled(Model, {param: value}) raises a getSearchIndexCompiled not implemented error', async t => {
+test('UnimplementedEngine.getSearchIndexCompiled(Model) raises a getSearchIndexCompiled not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.getSearchIndexCompiled(Type.Model, {param: 'value'}),
+            UnimplementedEngine.getSearchIndexCompiled(MainModel),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine does not implement .getSearchIndexCompiled()');
 });
 
-test('UnimplementedEngine.getSearchIndexRaw(Model, {param: value}) raises a getSearchIndexRaw not implemented error', async t => {
+test('UnimplementedEngine.getSearchIndexRaw(Model) raises a getSearchIndexRaw not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.getSearchIndexRaw(Type.Model, {param: 'value'}),
+            UnimplementedEngine.getSearchIndexRaw(MainModel),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine does not implement .getSearchIndexRaw()');
@@ -65,7 +65,7 @@ test('UnimplementedEngine.getSearchIndexRaw(Model, {param: value}) raises a getS
 
 test('UnimplementedEngine.putSearchIndexCompiled(Model, {param: value}) raises a putSearchIndexCompiled not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.putSearchIndexCompiled(Type.Model, {param: 'value'}),
+            UnimplementedEngine.putSearchIndexCompiled(MainModel, {param: 'value'}),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine does not implement .putSearchIndexCompiled()');
@@ -73,14 +73,14 @@ test('UnimplementedEngine.putSearchIndexCompiled(Model, {param: value}) raises a
 
 test('UnimplementedEngine.putSearchIndexRaw(Model, {param: value}) raises a putSearchIndexRaw not implemented error', async t => {
     const error = await t.throwsAsync(() =>
-            UnimplementedEngine.putSearchIndexRaw(Type.Model, {param: 'value'}),
+            UnimplementedEngine.putSearchIndexRaw(MainModel, {param: 'value'}),
         {instanceOf: NotImplementedError},
     );
     t.is(error.message, 'UnimplementedEngine does not implement .putSearchIndexRaw()');
 });
 
 class ImplementedEngine extends Engine {
-    static getById(_model, _id) {
+    static getById(_id) {
         return null;
     }
 }

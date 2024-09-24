@@ -10,11 +10,11 @@ test('NumberType is not required', t => {
 });
 
 test('NumberType does not have properties', t => {
-    t.is(NumberType._properties, undefined);
+    t.assert(NumberType._properties === undefined);
 });
 
 test('NumberType does not have items', t => {
-    t.is(NumberType._items, undefined);
+    t.assert(NumberType._items === undefined);
 });
 
 test('NumberType is not a resolved type', t => {
@@ -30,11 +30,11 @@ test('RequiredNumberType is required', t => {
 });
 
 test('RequiredNumberType does not have properties', t => {
-    t.is(NumberType.required._properties, undefined);
+    t.assert(NumberType.required._properties === undefined);
 });
 
 test('RequiredNumberType does not have items', t => {
-    t.is(NumberType.required._items, undefined);
+    t.assert(NumberType.required._items === undefined);
 });
 
 test('RequiredNumberType is not a resolved type', t => {
