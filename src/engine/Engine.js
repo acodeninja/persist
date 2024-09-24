@@ -36,7 +36,7 @@ class Engine {
     /**
      * Retrieves the index for a given model. This method must be implemented by subclasses.
      *
-     * @param {Object} _model - The model to retrieve the index for.
+     * @param {Model.constructor} _model - The model to retrieve the index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
      * @abstract
      */
@@ -58,7 +58,7 @@ class Engine {
     /**
      * Retrieves the compiled search index for a model. This method must be implemented by subclasses.
      *
-     * @param {Object} _model - The model to retrieve the compiled search index for.
+     * @param {Model.constructor} _model - The model to retrieve the compiled search index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
      * @abstract
      */
@@ -69,7 +69,7 @@ class Engine {
     /**
      * Retrieves the raw search index for a model. This method must be implemented by subclasses.
      *
-     * @param {Object} _model - The model to retrieve the raw search index for.
+     * @param {Model.constructor} _model - The model to retrieve the raw search index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
      * @abstract
      */
@@ -80,7 +80,7 @@ class Engine {
     /**
      * Saves the compiled search index for a model. This method must be implemented by subclasses.
      *
-     * @param {Object} _model - The model for which the compiled search index is saved.
+     * @param {Model.constructor} _model - The model for which the compiled search index is saved.
      * @param {Object} _compiledIndex - The compiled search index data.
      * @throws {NotImplementedError} Throws if the method is not implemented.
      * @abstract
@@ -92,7 +92,7 @@ class Engine {
     /**
      * Saves the raw search index for a model. This method must be implemented by subclasses.
      *
-     * @param {Object} _model - The model for which the raw search index is saved.
+     * @param {Model.constructor} _model - The model for which the raw search index is saved.
      * @param {Object} _rawIndex - The raw search index data.
      * @throws {NotImplementedError} Throws if the method is not implemented.
      * @abstract
@@ -132,6 +132,13 @@ class Engine {
         return output;
     }
 
+    /**
+     * Finds models that match a query in the model's index.
+     *
+     * @param {Model.constructor} model - The model class to search.
+     * @param {object} query - The query object containing search criteria.
+     * @returns {Array<Model>} An array of models matching the query.
+     */
     static async find(model, query) {
         this.checkConfiguration();
         const index = await this.getIndex(model);
@@ -139,6 +146,12 @@ class Engine {
         return new Query(query).execute(model, index);
     }
 
+    /**
+     * Stores a model and its associated index data into the system.
+     *
+     * @param {Model} model - The model to store.
+     * @throws {EngineError} Throws if the model fails to validate or index fails to save.
+     */
     static async put(model) {
         this.checkConfiguration();
         const uploadedModels = [];
@@ -193,6 +206,14 @@ class Engine {
         await this.putIndex(indexUpdates);
     }
 
+    /**
+     * Retrieves a model by its ID and converts it to its data representation.
+     *
+     * @param {Model.constructor} model - The model class to retrieve.
+     * @param {string} id - The ID of the model to retrieve.
+     * @returns {Model} The found model.
+     * @throws {NotFoundEngineError} Throws if the model is not found.
+     */
     static async get(model, id) {
         this.checkConfiguration();
 
@@ -205,6 +226,12 @@ class Engine {
         }
     }
 
+    /**
+     * Hydrates a model by populating its related properties (e.g., submodels) from stored data.
+     *
+     * @param {Model} model - The model to hydrate.
+     * @returns {Model} The hydrated model.
+     */
     static async hydrate(model) {
         this.checkConfiguration();
         const hydratedModels = {};
@@ -271,20 +298,37 @@ class Engine {
         return await hydrateModel(await this.get(model.constructor, model.id));
     }
 
+    /**
+     * Configures the engine with specific settings.
+     *
+     * @param {Object} configuration - The configuration settings for the engine.
+     * @returns {Engine} A new engine instance with the applied configuration.
+     */
     static configure(configuration) {
         class ConfiguredStore extends this {
             static configuration = configuration;
         }
 
-        Object.defineProperty(ConfiguredStore, 'name', {value: `${this.toString()}`});
+        Object.defineProperty(ConfiguredStore, 'name', { value: `${this.toString()}` });
 
         return ConfiguredStore;
     }
 
+    /**
+     * Checks if the engine is properly configured.
+     *
+     * @throws {MissConfiguredError} Throws if the engine is misconfigured.
+     * @abstract
+     */
     static checkConfiguration() {
 
     }
 
+    /**
+     * Returns the name of the engine class.
+     *
+     * @returns {string} The name of the engine class.
+     */
     static toString() {
         return this.name;
     }
