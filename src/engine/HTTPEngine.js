@@ -133,7 +133,7 @@ class HTTPEngine extends Engine {
             this.configuration.host,
             this.configuration.prefix,
             `${id}.json`,
-        ].filter(e => !!e).join('/'));
+        ].filter(e => Boolean(e)).join('/'));
 
         return await this._processFetch(url, this._getReadOptions());
     }
@@ -151,7 +151,7 @@ class HTTPEngine extends Engine {
             this.configuration.host,
             this.configuration.prefix,
             `${model.id}.json`,
-        ].filter(e => !!e).join('/'));
+        ].filter(e => Boolean(e)).join('/'));
 
         return await this._processFetch(url, {
             ...this._getWriteOptions(),
@@ -175,7 +175,7 @@ class HTTPEngine extends Engine {
                 this.configuration.prefix,
                 location,
                 '_index.json',
-            ].filter(e => !!e).join('/'));
+            ].filter(e => Boolean(e)).join('/'));
 
             return await this._processFetch(url, {
                 ...this._getWriteOptions(),
@@ -259,7 +259,7 @@ class HTTPEngine extends Engine {
             this.configuration.prefix,
             model.toString(),
             '_search_index.json',
-        ].filter(e => !!e).join('/'));
+        ].filter(e => Boolean(e)).join('/'));
 
         return this._processFetch(url, {
             ...this._getWriteOptions(),
@@ -282,7 +282,7 @@ class HTTPEngine extends Engine {
             this.configuration.prefix,
             model.toString(),
             '_search_index_raw.json',
-        ].filter(e => !!e).join('/'));
+        ].filter(e => Boolean(e)).join('/'));
 
         return await this._processFetch(url, {
             ...this._getWriteOptions(),

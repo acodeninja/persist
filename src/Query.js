@@ -52,13 +52,12 @@ class Query {
     execute(model, index) {
         const matchIs = (query) => query?.$is !== undefined;
         const matchPrimitive = (query) => ['string', 'number', 'boolean'].includes(typeof query);
-        const matchContains = (query) => !!query?.$contains;
+        const matchContains = (query) => query?.$contains !== undefined;
 
         const matchesQuery = (subject, inputQuery = this.query) => {
             if (matchPrimitive(inputQuery)) return subject === inputQuery;
 
-            if (matchIs(inputQuery))
-                if (subject === inputQuery.$is) return true;
+            if (matchIs(inputQuery) && subject === inputQuery.$is) return true;
 
             if (matchContains(inputQuery)) {
                 if (subject.includes?.(inputQuery.$contains)) return true;
