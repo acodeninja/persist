@@ -102,7 +102,7 @@ class HTTPEngine extends Engine {
      *
      * @throws {HTTPRequestFailedError} Thrown if the fetch request fails.
      */
-    static async _processFetch(url, options, defaultValue = undefined) {
+    static _processFetch(url, options, defaultValue = undefined) {
         return this.configuration.fetch(url, options)
             .then(response => {
                 if (!response.ok) {
@@ -146,14 +146,14 @@ class HTTPEngine extends Engine {
      *
      * @throws {HTTPRequestFailedError} Thrown if the PUT request fails.
      */
-    static async putModel(model) {
+    static putModel(model) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
             `${model.id}.json`,
         ].filter(e => Boolean(e)).join('/'));
 
-        return await this._processFetch(url, {
+        return this._processFetch(url, {
             ...this._getWriteOptions(),
             body: JSON.stringify(model.toData()),
         });

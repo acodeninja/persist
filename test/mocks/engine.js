@@ -15,43 +15,49 @@ export function getTestEngine(models = []) {
     class TestEngine extends Engine {
     }
 
-    TestEngine.getById = sinon.stub().callsFake(async (id) => {
-        if (_models[id]) return _.cloneDeep(_models[id]);
+    TestEngine.getById = sinon.stub().callsFake((id) => {
+        if (_models[id]) return Promise.resolve(_.cloneDeep(_models[id]));
 
-        throw new Error(`Model ${id} not found.`);
+        return Promise.reject(new Error(`Model ${id} not found.`));
     });
 
-    TestEngine.putModel = sinon.stub().callsFake(async (model) => {
+    TestEngine.putModel = sinon.stub().callsFake((model) => {
         _models[model.id] = _.cloneDeep(model.toData());
+        return Promise.resolve();
     });
 
-    TestEngine.putIndex = sinon.stub().callsFake(async (index) => {
+    TestEngine.putIndex = sinon.stub().callsFake((index) => {
         for (const [key, value] of Object.entries(index)) {
             _index[key] = _.cloneDeep(value);
         }
+        return Promise.resolve();
     });
 
-    TestEngine.getSearchIndexCompiled = sinon.stub().callsFake(async (model) => {
-        if (_searchIndexCompiled[model.toString()]) return _.cloneDeep(_searchIndexCompiled[model.toString()]);
+    TestEngine.getSearchIndexCompiled = sinon.stub().callsFake((model) => {
+        if (_searchIndexCompiled[model.toString()])
+            return Promise.resolve(_.cloneDeep(_searchIndexCompiled[model.toString()]));
 
-        throw new Error(`Search index does not exist for ${model.name}`);
+        return Promise.reject(new Error(`Search index does not exist for ${model.name}`));
     });
 
-    TestEngine.getSearchIndexRaw = sinon.stub().callsFake(async (model) => {
-        if (_searchIndexRaw[model.toString()]) return _.cloneDeep(_searchIndexRaw[model.toString()]);
+    TestEngine.getSearchIndexRaw = sinon.stub().callsFake((model) => {
+        if (_searchIndexRaw[model.toString()])
+            return Promise.resolve(_.cloneDeep(_searchIndexRaw[model.toString()]));
 
-        return {};
+        return Promise.resolve({});
     });
 
-    TestEngine.putSearchIndexCompiled = sinon.stub().callsFake(async (model, compiledIndex) => {
+    TestEngine.putSearchIndexCompiled = sinon.stub().callsFake((model, compiledIndex) => {
         _searchIndexCompiled[model.toString()] = _.cloneDeep(compiledIndex);
+        return Promise.resolve();
     });
 
-    TestEngine.putSearchIndexRaw = sinon.stub().callsFake(async (model, rawIndex) => {
+    TestEngine.putSearchIndexRaw = sinon.stub().callsFake((model, rawIndex) => {
         _searchIndexCompiled[model.toString()] = _.cloneDeep(rawIndex);
+        return Promise.resolve();
     });
 
-    TestEngine.findByValue = sinon.stub().callsFake(async (model, parameters) => {
+    TestEngine.findByValue = sinon.stub().callsFake((model, parameters) => {
         const found = [];
         for (const [id, data] of Object.entries(_models)) {
             if (id.startsWith(model.toString())) {
@@ -63,7 +69,7 @@ export function getTestEngine(models = []) {
                 }
             }
         }
-        return found;
+        return Promise.resolve(found);
     });
 
     return TestEngine;

@@ -15,12 +15,14 @@ export default function enableTransactions(engine) {
             static committed = false;
             static failed = false;
 
-            static async put(model) {
+            static put(model) {
                 this.transactions.push({
                     hasRun: false,
                     hasRolledBack: false,
                     model,
                 });
+
+                return Promise.resolve();
             }
 
             static _checkCommitted() {

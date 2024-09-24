@@ -12,7 +12,7 @@ class TestEngine {
     }
 }
 
-test('includes Type', async t => {
+test('includes Type', t => {
     t.is(Persist.Type, Type);
 });
 

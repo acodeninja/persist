@@ -66,20 +66,20 @@ function stubFs(filesystem = {}, models = []) {
         }
     }
 
-    const readFile = sinon.stub().callsFake(async (filePath) => {
+    const readFile = sinon.stub().callsFake((filePath) => {
         for (const [filename, value] of Object.entries(resolvedFiles)) {
             if (filePath.endsWith(filename)) {
                 if (typeof value === 'string') {
-                    return Buffer.from(value);
+                    return Promise.resolve(Buffer.from(value));
                 }
-                return Buffer.from(JSON.stringify(value));
+                return Promise.resolve(Buffer.from(JSON.stringify(value)));
             }
         }
 
         const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
         err.code = 'EPIPE';
         err.errno = -3;
-        throw err;
+        return Promise.reject(err);
     });
 
     const writeFile = sinon.stub();

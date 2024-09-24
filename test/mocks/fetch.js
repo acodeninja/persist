@@ -41,6 +41,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
                 }
             }
         }
+
         return initialFilesystem;
     }
 
@@ -68,36 +69,42 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         }
     }
 
-    return sinon.stub().callsFake(async (url, opts) => {
+    return sinon.stub().callsFake((url, opts) => {
         if (opts.method === 'PUT') {
             resolvedFiles[url.pathname ?? url] = JSON.parse(opts.body);
-            return {ok: true, status: 200, json: async () => ({})};
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({}),
+            });
         }
 
         for (const [path, value] of Object.entries(errors)) {
             if ((url.pathname ?? url).endsWith(path)) {
                 if (value) return value;
-                return {
+                return Promise.resolve({
                     ok: false,
                     status: 404,
-                    json: async () => {
-                        throw new Error();
-                    },
-                };
+                    json: () => Promise.reject(new Error()),
+                });
             }
         }
 
         for (const [filename, value] of Object.entries(resolvedFiles)) {
             if ((url.pathname ?? url).endsWith(filename)) {
-                return {ok: true, status: 200, json: async () => value};
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json:() => Promise.resolve(value),
+                });
             }
         }
 
-        return {
-            ok: false, status: 404, json: async () => {
-                throw new Error();
-            },
-        };
+        return Promise.resolve({
+            ok: false,
+            status: 404,
+            json: () => Promise.reject(new Error()),
+        });
     });
 }
 

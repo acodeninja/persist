@@ -16,10 +16,11 @@ class Engine {
      *
      * @param {string} _id - The ID of the model to retrieve.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<Object>} - Returns a promise resolving to the raw data of the requested model.
      * @abstract
      */
-    static async getById(_id) {
-        throw new NotImplementedError(`${this.name} must implement .getById()`);
+    static getById(_id) {
+        return Promise.reject(new NotImplementedError(`${this.name} must implement .getById()`));
     }
 
     /**
@@ -27,10 +28,11 @@ class Engine {
      *
      * @param {Model} _data - The model data to save.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>}
      * @abstract
      */
-    static async putModel(_data) {
-        throw new NotImplementedError(`${this.name} must implement .putModel()`);
+    static putModel(_data) {
+        return Promise.reject(new NotImplementedError(`${this.name} must implement .putModel()`));
     }
 
     /**
@@ -38,10 +40,11 @@ class Engine {
      *
      * @param {Model.constructor} _model - The model to retrieve the index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<Object>} - Returns a promise resolving to the model index.
      * @abstract
      */
-    static async getIndex(_model) {
-        throw new NotImplementedError(`${this.name} does not implement .getIndex()`);
+    static getIndex(_model) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .getIndex()`));
     }
 
     /**
@@ -49,10 +52,11 @@ class Engine {
      *
      * @param {Object} _index - The index data to save.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>}
      * @abstract
      */
-    static async putIndex(_index) {
-        throw new NotImplementedError(`${this.name} does not implement .putIndex()`);
+    static putIndex(_index) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .putIndex()`));
     }
 
     /**
@@ -60,10 +64,11 @@ class Engine {
      *
      * @param {Model.constructor} _model - The model to retrieve the compiled search index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<Object>} - Returns a promise resolving to the compiled search index.
      * @abstract
      */
-    static async getSearchIndexCompiled(_model) {
-        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexCompiled()`);
+    static getSearchIndexCompiled(_model) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .getSearchIndexCompiled()`));
     }
 
     /**
@@ -71,10 +76,11 @@ class Engine {
      *
      * @param {Model.constructor} _model - The model to retrieve the raw search index for.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<Object>} - Returns a promise resolving to the raw search index.
      * @abstract
      */
-    static async getSearchIndexRaw(_model) {
-        throw new NotImplementedError(`${this.name} does not implement .getSearchIndexRaw()`);
+    static getSearchIndexRaw(_model) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .getSearchIndexRaw()`));
     }
 
     /**
@@ -83,10 +89,11 @@ class Engine {
      * @param {Model.constructor} _model - The model for which the compiled search index is saved.
      * @param {Object} _compiledIndex - The compiled search index data.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>}
      * @abstract
      */
-    static async putSearchIndexCompiled(_model, _compiledIndex) {
-        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexCompiled()`);
+    static putSearchIndexCompiled(_model, _compiledIndex) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .putSearchIndexCompiled()`));
     }
 
     /**
@@ -95,10 +102,11 @@ class Engine {
      * @param {Model.constructor} _model - The model for which the raw search index is saved.
      * @param {Object} _rawIndex - The raw search index data.
      * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>}
      * @abstract
      */
-    static async putSearchIndexRaw(_model, _rawIndex) {
-        throw new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`);
+    static putSearchIndexRaw(_model, _rawIndex) {
+        return Promise.reject(new NotImplementedError(`${this.name} does not implement .putSearchIndexRaw()`));
     }
 
     /**
