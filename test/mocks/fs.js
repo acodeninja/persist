@@ -27,13 +27,13 @@ function stubFs(filesystem = {}, models = []) {
 
             modelsAddedToFilesystem.push(model.id);
 
-            for (const [_, value] of Object.entries(model)) {
+            for (const [_proptery, value] of Object.entries(model)) {
                 if (Model.isModel(value) && !modelsAddedToFilesystem.includes(value.id)) {
                     initialFilesystem = fileSystemFromModels(initialFilesystem, value);
                 }
 
                 if (Array.isArray(value)) {
-                    for (const [_, subModel] of Object.entries(value)) {
+                    for (const [_subProperty, subModel] of Object.entries(value)) {
                         if (Model.isModel(subModel) && !modelsAddedToFilesystem.includes(subModel.id)) {
                             initialFilesystem = fileSystemFromModels(initialFilesystem, subModel);
                         }

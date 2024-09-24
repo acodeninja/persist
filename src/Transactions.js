@@ -112,7 +112,7 @@ export default function enableTransactions(engine) {
                     for (const [index, {model}] of this.transactions.entries()) {
                         try {
                             this.transactions[index].original = await engine.get(model.constructor, model.id);
-                        } catch (_) {
+                        } catch (_error) {
                             this.transactions[index].original = null;
                         }
 

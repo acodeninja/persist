@@ -5,8 +5,8 @@ import sinon from 'sinon';
 function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
     const modelsAddedToFilesystem = [];
 
-    function fileSystemFromModels(initialFilesystem = {}, ...models) {
-        for (const model of models) {
+    function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
+        for (const model of initialModels) {
             const modelIndexPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_index.json')].filter(i => Boolean(i)).join('/');
             const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json')].filter(i => Boolean(i)).join('/');
 
@@ -27,13 +27,13 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
 
             modelsAddedToFilesystem.push(model.id);
 
-            for (const [_, value] of Object.entries(model)) {
+            for (const [_property, value] of Object.entries(model)) {
                 if (Model.isModel(value) && !modelsAddedToFilesystem.includes(value.id)) {
                     initialFilesystem = fileSystemFromModels(initialFilesystem, value);
                 }
 
                 if (Array.isArray(value)) {
-                    for (const [_, subModel] of Object.entries(value)) {
+                    for (const [_subProperty, subModel] of Object.entries(value)) {
                         if (Model.isModel(subModel) && !modelsAddedToFilesystem.includes(subModel.id)) {
                             initialFilesystem = fileSystemFromModels(initialFilesystem, subModel);
                         }
@@ -52,7 +52,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
 
     if (searchIndexes.length > 0) {
         for (const [name, index] of searchIndexes) {
-            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
+            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
             const compiledIndex = lunr(function () {
                 this.ref('id');
 

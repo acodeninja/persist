@@ -7,7 +7,7 @@ function parseArgument(arg) {
             return JSON.parse(JSON.stringify(arg.toData()));
         }
         return JSON.parse(JSON.stringify(arg));
-    } catch (_) {
+    } catch (_error) {
         return arg;
     }
 }

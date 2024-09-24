@@ -255,7 +255,7 @@ class Model {
                 Object.keys(possibleDryModel).includes('id') &&
                 new RegExp(/[A-Za-z]+\/[A-Z0-9]+/).test(possibleDryModel.id)
             );
-        } catch (_) {
+        } catch (_error) {
             return false;
         }
     }

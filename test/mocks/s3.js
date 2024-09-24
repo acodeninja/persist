@@ -16,8 +16,8 @@ function S3ObjectWrapper(data) {
 function stubS3Client(filesystem = {}, models = {}) {
     const modelsAddedToFilesystem = [];
 
-    function bucketFilesFromModels(initialFilesystem = {}, ...models) {
-        for (const model of models) {
+    function bucketFilesFromModels(initialFilesystem = {}, ...initialModels) {
+        for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const modelIndex = initialFilesystem[modelIndexPath];
             initialFilesystem[model.id + '.json'] = model.toData();
@@ -37,13 +37,13 @@ function stubS3Client(filesystem = {}, models = {}) {
                 };
             }
 
-            for (const [_, value] of Object.entries(model)) {
+            for (const [_property, value] of Object.entries(model)) {
                 if (Model.isModel(value) && !modelsAddedToFilesystem.includes(value.id)) {
                     initialFilesystem = bucketFilesFromModels(initialFilesystem, value);
                 }
 
                 if (Array.isArray(value)) {
-                    for (const [_, subModel] of Object.entries(value)) {
+                    for (const [_subProperty, subModel] of Object.entries(value)) {
                         if (Model.isModel(subModel) && !modelsAddedToFilesystem.includes(subModel.id)) {
                             initialFilesystem = bucketFilesFromModels(initialFilesystem, subModel);
                         }
@@ -64,7 +64,7 @@ function stubS3Client(filesystem = {}, models = {}) {
 
         if (searchIndexes.length > 0) {
             for (const [name, index] of searchIndexes) {
-                const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
+                const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
                 resolvedFiles[name.replace('_raw', '')] = lunr(function () {
                     this.ref('id');
 
