@@ -7,13 +7,13 @@ import test from 'ava';
 test('constructor() creates a model instance with an id', t => {
     const model = new MainModel();
 
-    t.true(!!model.id.match(/MainModel\/[A-Z0-9]+/));
+    t.true(new RegExp(/MainModel\/[A-Z0-9]+/).test(model.id));
 });
 
 test('constructor(valid) creates a model using the input valid', t => {
     const model = new MainModel({string: 'String'});
 
-    t.true(!!model.id.match(/MainModel\/[A-Z0-9]+/));
+    t.true(new RegExp(/MainModel\/[A-Z0-9]+/).test(model.id));
 
     t.like(model.toData(), {string: 'String'});
 });
