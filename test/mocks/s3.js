@@ -85,24 +85,24 @@ function stubS3Client(filesystem = {}, models = {}) {
         };
     }
 
-    const send = sinon.stub().callsFake(async (command) => {
-        switch (command.constructor.name) {
+    const send = sinon.stub().callsFake((command) => {
+        switch (command?.constructor?.name) {
             case 'GetObjectCommand':
                 if (resolvedBuckets[command.input.Bucket]) {
                     for (const [filename, value] of Object.entries(resolvedBuckets[command.input.Bucket])) {
                         if (command.input.Key.endsWith(filename)) {
                             if (typeof value === 'string') {
-                                return S3ObjectWrapper(Buffer.from(value));
+                                return Promise.resolve(S3ObjectWrapper(Buffer.from(value)));
                             }
-                            return S3ObjectWrapper(Buffer.from(JSON.stringify(value)));
+                            return Promise.resolve(S3ObjectWrapper(Buffer.from(JSON.stringify(value))));
                         }
                     }
                 }
-                throw new NoSuchKey({});
+                return Promise.reject(new NoSuchKey({}));
             case 'PutObjectCommand':
-                break;
+                return Promise.resolve(null);
             default:
-                throw new Error('Unsupported command');
+                return Promise.reject(new Error('Unsupported command'));
         }
     });
 
