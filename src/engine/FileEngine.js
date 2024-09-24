@@ -58,10 +58,10 @@ class FileEngine extends Engine {
      * @throws {Error} Throws if the file cannot be read or parsed.
      */
     static async getById(id) {
-        const filePath = join(this.configuration.path, `${id}.json`);
-        return JSON.parse(
-            await this.configuration.filesystem.readFile(filePath).then((f) => f.toString()),
-        );
+        return this.configuration.filesystem
+            .readFile(join(this.configuration.path, `${id}.json`))
+            .then((b) => b.toString())
+            .then(JSON.parse);
     }
 
     /**
@@ -72,9 +72,11 @@ class FileEngine extends Engine {
      * @throws {Error} Throws if the file cannot be read.
      */
     static async getIndex(model) {
-        return JSON.parse(
-            (await this.configuration.filesystem.readFile(join(this.configuration.path, model?.toString(), '_index.json')).catch(() => '{}')).toString(),
-        );
+        return this.configuration.filesystem
+            .readFile(join(this.configuration.path, model.toString(), '_index.json'))
+            .then((b) => b.toString())
+            .catch(() => '{}')
+            .then(JSON.parse);
     }
 
     /**
@@ -130,7 +132,7 @@ class FileEngine extends Engine {
      * @throws {Error} Throws if the file cannot be read.
      */
     static async getSearchIndexCompiled(model) {
-        return await this.configuration.filesystem
+        return this.configuration.filesystem
             .readFile(join(this.configuration.path, model.toString(), '_search_index.json'))
             .then((b) => b.toString())
             .then(JSON.parse);
@@ -144,7 +146,7 @@ class FileEngine extends Engine {
      * @throws {Error} Throws if the file cannot be read.
      */
     static async getSearchIndexRaw(model) {
-        return await this.configuration.filesystem
+        return this.configuration.filesystem
             .readFile(join(this.configuration.path, model.toString(), '_search_index_raw.json'))
             .then((b) => b.toString())
             .then(JSON.parse)
