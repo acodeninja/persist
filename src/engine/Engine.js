@@ -321,7 +321,7 @@ class Engine {
      * @abstract
      */
     static checkConfiguration() {
-
+      // Implemented in extending Engine class
     }
 
     /**
