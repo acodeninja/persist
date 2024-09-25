@@ -50,45 +50,93 @@ class Query {
      * @returns {Array<Model>} The models that match the query.
      */
     execute(model, index) {
-        const matchIs = (query) => query?.$is !== undefined;
-        const matchPrimitive = (query) => ['string', 'number', 'boolean'].includes(typeof query);
-        const matchContains = (query) => query?.$contains !== undefined;
-
-        const matchesQuery = (subject, inputQuery = this.query) => {
-            if (matchPrimitive(inputQuery)) return subject === inputQuery;
-
-            if (matchIs(inputQuery) && subject === inputQuery.$is) return true;
-
-            if (matchContains(inputQuery)) {
-                if (subject.includes?.(inputQuery.$contains)) return true;
-
-                for (const value of subject) {
-                    if (matchesQuery(value, inputQuery.$contains)) return true;
-                }
-            }
-
-            for (const key of Object.keys(inputQuery)) {
-                if (!['$is', '$contains'].includes(key))
-                    if (matchesQuery(subject[key], inputQuery[key])) return true;
-            }
-        };
-
-        const splitQuery = (query) =>
-            Object.entries(query)
-                .flatMap(([key, value]) =>
-                    typeof value === 'object' && value !== null && !Array.isArray(value)
-                        ? splitQuery(value).map(nestedObj => ({[key]: nestedObj}))
-                        : {[key]: value},
-                );
-
         return Object.values(index)
             .filter(m =>
-                splitQuery(this.query)
-                    .map(query => Boolean(matchesQuery(m, query)))
-                    .every(m => m),
+                this._splitQuery(this.query)
+                    .map(query => Boolean(this._matchesQuery(m, query)))
+                    .every(c => c),
             )
             .map(m => model.fromData(m));
     }
+
+    /**
+     * Checks if the query contains the `$is` property.
+     *
+     * @private
+     * @param {*} query - The query object to check.
+     * @returns {boolean} True if the query contains `$is`, otherwise false.
+     */
+    _matchIs = (query) => query?.$is !== undefined;
+
+    /**
+     * Checks if the query is a primitive type (string, number, or boolean).
+     *
+     * @private
+     * @param {*} query - The value to check.
+     * @returns {boolean} True if the query is a primitive type, otherwise false.
+     */
+    _matchPrimitive = (query) => ['string', 'number', 'boolean'].includes(typeof query);
+
+    /**
+     * Checks if the query contains the `$contains` property.
+     *
+     * @private
+     * @param {*} query - The query object to check.
+     * @returns {boolean} True if the query contains `$contains`, otherwise false.
+     */
+    _matchContains = (query) => query?.$contains !== undefined;
+
+    /**
+     * Recursively checks if a subject matches a given query.
+     *
+     * This function supports matching:
+     * - Primitive values directly (`string`, `number`, `boolean`)
+     * - The `$is` property for exact matches
+     * - The `$contains` property for substring or array element matches
+     *
+     * @private
+     * @param {*} subject - The subject to be matched.
+     * @param {Object} [inputQuery=this.query] - The query to match against. Defaults to `this.query` if not provided.
+     * @returns {boolean} True if the subject matches the query, otherwise false.
+     */
+    _matchesQuery = (subject, inputQuery = this.query) => {
+        if (this._matchPrimitive(inputQuery)) return subject === inputQuery;
+
+        if (this._matchIs(inputQuery) && subject === inputQuery.$is) return true;
+
+        if (this._matchContains(inputQuery)) {
+            if (subject.includes?.(inputQuery.$contains)) return true;
+
+            for (const value of subject) {
+                if (this._matchesQuery(value, inputQuery.$contains)) return true;
+            }
+        }
+
+        for (const key of Object.keys(inputQuery)) {
+            if (!['$is', '$contains'].includes(key))
+                if (this._matchesQuery(subject[key], inputQuery[key])) return true;
+        }
+    };
+
+    /**
+     * Recursively splits an object into an array of objects,
+     * where each key-value pair from the input query becomes a separate object.
+     *
+     * If the value of a key is a nested object (and not an array),
+     * the function recursively splits it, preserving the parent key.
+     *
+     * @private
+     * @param {Object} query - The input object to be split into individual key-value pairs.
+     * @returns {Array<Object>} An array of objects, where each object contains a single key-value pair
+     *                         from the original query or its nested objects.
+     */
+    _splitQuery = (query) =>
+        Object.entries(query)
+            .flatMap(([key, value]) =>
+                typeof value === 'object' && value !== null && !Array.isArray(value)
+                    ? this._splitQuery(value).map(nestedObj => ({[key]: nestedObj}))
+                    : {[key]: value},
+            );
 }
 
 export default Query;
