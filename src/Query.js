@@ -60,33 +60,6 @@ class Query {
     }
 
     /**
-     * Checks if the query contains the `$is` property.
-     *
-     * @private
-     * @param {*} query - The query object to check.
-     * @returns {boolean} True if the query contains `$is`, otherwise false.
-     */
-    _matchIs = (query) => query?.$is !== undefined;
-
-    /**
-     * Checks if the query is a primitive type (string, number, or boolean).
-     *
-     * @private
-     * @param {*} query - The value to check.
-     * @returns {boolean} True if the query is a primitive type, otherwise false.
-     */
-    _matchPrimitive = (query) => ['string', 'number', 'boolean'].includes(typeof query);
-
-    /**
-     * Checks if the query contains the `$contains` property.
-     *
-     * @private
-     * @param {*} query - The query object to check.
-     * @returns {boolean} True if the query contains `$contains`, otherwise false.
-     */
-    _matchContains = (query) => query?.$contains !== undefined;
-
-    /**
      * Recursively checks if a subject matches a given query.
      *
      * This function supports matching:
@@ -99,12 +72,12 @@ class Query {
      * @param {Object} [inputQuery=this.query] - The query to match against. Defaults to `this.query` if not provided.
      * @returns {boolean} True if the subject matches the query, otherwise false.
      */
-    _matchesQuery = (subject, inputQuery = this.query) => {
-        if (this._matchPrimitive(inputQuery)) return subject === inputQuery;
+    _matchesQuery(subject, inputQuery = this.query) {
+        if (['string', 'number', 'boolean'].includes(typeof inputQuery)) return subject === inputQuery;
 
-        if (this._matchIs(inputQuery) && subject === inputQuery.$is) return true;
+        if (inputQuery?.$is !== undefined && subject === inputQuery.$is) return true;
 
-        if (this._matchContains(inputQuery)) {
+        if (inputQuery?.$contains !== undefined) {
             if (subject.includes?.(inputQuery.$contains)) return true;
 
             for (const value of subject) {
@@ -116,6 +89,8 @@ class Query {
             if (!['$is', '$contains'].includes(key))
                 if (this._matchesQuery(subject[key], inputQuery[key])) return true;
         }
+
+        return false;
     };
 
     /**
@@ -130,13 +105,14 @@ class Query {
      * @returns {Array<Object>} An array of objects, where each object contains a single key-value pair
      *                         from the original query or its nested objects.
      */
-    _splitQuery = (query) =>
-        Object.entries(query)
+    _splitQuery(query) {
+        return Object.entries(query)
             .flatMap(([key, value]) =>
                 typeof value === 'object' && value !== null && !Array.isArray(value)
                     ? this._splitQuery(value).map(nestedObj => ({[key]: nestedObj}))
                     : {[key]: value},
             );
+    }
 }
 
 export default Query;
