@@ -6,9 +6,11 @@ import Type from '../../src/type/index.js';
  * @class LinkedModel
  * @extends {Type.Model}
  * @property {Type.String} string - A string type property.
+ * @property {Type.Boolean} boolean - A boolean type property.
  */
 export class LinkedModel extends Type.Model {
     static string = Type.String;
+    static boolean = Type.Boolean;
 }
 
 /**
@@ -130,6 +132,7 @@ export class MainModel extends Type.Model {
         'arrayOfString',
         'stringSlug',
         'linked.string',
+        'linked.boolean',
         'linkedMany.[*].string',
     ];
 

@@ -71,6 +71,16 @@ test('Query.execute(index) finds exact number matches with primitive type', t =>
     t.like(results, [model.toIndexData()]);
 });
 
+test('Query.execute(index) finds exact string matches with slug type', t => {
+    const models = new Models();
+    const model = models.createFullTestModel();
+
+    const query = new Query({stringSlug: 'test'});
+    const results = query.execute(MainModel, models.getIndex(MainModel));
+
+    t.like(results, [model.toIndexData()]);
+});
+
 test('Query.execute(index) finds matches containing for strings', t => {
     const models = new Models();
     const model1 = models.createFullTestModel();
@@ -122,4 +132,29 @@ test('Query.execute(index) finds partial matches for elements in arrays', t => {
         model1.toIndexData(),
         model2.toIndexData(),
     ]);
+});
+
+test('Query.execute(index) finds matches for multiple inclusive conditions', t => {
+    const models = new Models();
+    const model1 = models.createFullTestModel();
+    models.createFullTestModel();
+
+    model1.boolean = true;
+
+    const query = new Query({string: {$is: 'test'}, boolean: true});
+    const results = query.execute(MainModel, models.getIndex(MainModel));
+
+    t.deepEqual(results, [MainModel.fromData(model1.toIndexData())]);
+});
+
+test('Query.execute(index) finds matches for multiple inclusive nested conditions', t => {
+    const models = new Models();
+    const model1 = models.createFullTestModel();
+    models.createFullTestModel();
+    model1.linked.boolean = false;
+
+    const query = new Query({linked: {string: 'test', boolean: false}});
+    const results = query.execute(MainModel, models.getIndex(MainModel));
+
+    t.deepEqual(results, [MainModel.fromData(model1.toIndexData())]);
 });

@@ -35,7 +35,7 @@ test('model.toIndexData() returns an object with the index properties', t => {
         arrayOfString: ['test'],
         boolean: false,
         id: 'MainModel/000000000000',
-        linked: {string: 'test'},
+        linked: {string: 'test', boolean: true},
         linkedMany: [{string: 'many'}],
         number: 24.3,
         string: 'test',

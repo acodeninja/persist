@@ -161,7 +161,7 @@ export class Models {
         model.id = this.getNextModelId(model);
         this.addModel(model);
 
-        const linked = new LinkedModel({string: 'test'});
+        const linked = new LinkedModel({string: 'test', boolean: true});
         linked.id = this.getNextModelId(linked);
         model.linked = linked;
         this.addModel(linked);
