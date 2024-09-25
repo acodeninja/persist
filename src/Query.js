@@ -73,8 +73,20 @@ class Query {
             }
         };
 
+        const splitQuery = (query) =>
+            Object.entries(query)
+                .flatMap(([key, value]) =>
+                    typeof value === 'object' && value !== null && !Array.isArray(value)
+                        ? splitQuery(value).map(nestedObj => ({[key]: nestedObj}))
+                        : {[key]: value},
+                );
+
         return Object.values(index)
-            .filter(m => matchesQuery(m))
+            .filter(m =>
+                splitQuery(this.query)
+                    .map(query => Boolean(matchesQuery(m, query)))
+                    .every(m => m),
+            )
             .map(m => model.fromData(m));
     }
 }

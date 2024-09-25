@@ -142,9 +142,11 @@ test('transaction.commit() reverts already commited changes if the transaction f
     assertions.calledWith(t, testEngine.putModel, {
         id: 'LinkedModel/000000000000',
         string: 'updated',
+        boolean: true,
     });
     assertions.calledWith(t, testEngine.putModel, {
         id: 'LinkedModel/000000000000',
         string: 'test',
+        boolean: true,
     });
 });
