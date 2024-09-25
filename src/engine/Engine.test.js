@@ -1,6 +1,8 @@
 import Engine, {NotFoundEngineError, NotImplementedError} from './Engine.js';
 import {MainModel} from '../../test/fixtures/Models.js';
+import {Models} from '../../test/fixtures/ModelCollection.js';
 import Type from '../type/index.js';
+import sinon from 'sinon';
 import test from 'ava';
 
 class UnimplementedEngine extends Engine {
@@ -79,13 +81,13 @@ test('UnimplementedEngine.putSearchIndexRaw(Model, {param: value}) raises a putS
     t.is(error.message, 'UnimplementedEngine does not implement .putSearchIndexRaw()');
 });
 
-class ImplementedEngine extends Engine {
-    static getById(_id) {
-        return null;
-    }
-}
-
 test('ImplementedEngine.get(MainModel, id) when id does not exist', async t => {
+    class ImplementedEngine extends Engine {
+        static getById(_id) {
+            return null;
+        }
+    }
+
     await t.throwsAsync(
         () => ImplementedEngine.get(MainModel, 'MainModel/000000000000'),
         {
@@ -93,4 +95,49 @@ test('ImplementedEngine.get(MainModel, id) when id does not exist', async t => {
             message: 'ImplementedEngine.get(MainModel/000000000000) model not found',
         },
     );
+});
+
+test('ImplementedEngine.search(MainModel, "test") when caching is off calls ImplementedEngine.getSearchIndexCompiled every time', async t => {
+    class ImplementedEngine extends Engine {
+        static getById(id) {
+            const models = new Models();
+            models.createFullTestModel();
+            return models.models[id] || null;
+        }
+
+        static getSearchIndexCompiled = sinon.stub().callsFake((model) => {
+            const models = new Models();
+            models.createFullTestModel();
+            return Promise.resolve(JSON.parse(JSON.stringify(models.getSearchIndex(model))));
+        });
+    }
+
+    const engine = ImplementedEngine.configure({});
+
+    await engine.search(MainModel, 'test');
+    await engine.search(MainModel, 'test');
+
+    t.is(engine.getSearchIndexCompiled.getCalls().length, 2);
+});
+
+test('ImplementedEngine.search(MainModel, "test") when caching is on calls ImplementedEngine.getSearchIndexCompiled once', async t => {
+    const models = new Models();
+    models.createFullTestModel();
+
+    class ImplementedEngine extends Engine {
+        static getById(id) {
+            return models.models[id];
+        }
+
+        static getSearchIndexCompiled = sinon.stub().callsFake((model) =>
+            Promise.resolve(JSON.parse(JSON.stringify(models.getSearchIndex(model)))),
+        );
+    }
+
+    const engine = ImplementedEngine.configure({cache: {search: 5000}});
+
+    await engine.search(MainModel, 'test');
+    await engine.search(MainModel, 'test');
+
+    t.is(engine.getSearchIndexCompiled.getCalls().length, 1);
 });

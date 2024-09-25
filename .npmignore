@@ -10,3 +10,4 @@ release.config.js
 eslint.config.js
 Makefile
 .tool-versions
+.deepsource.toml

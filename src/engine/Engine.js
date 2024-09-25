@@ -10,6 +10,7 @@ import lunr from 'lunr';
  */
 class Engine {
     static configuration = undefined;
+    static _searchCache = undefined;
 
     /**
      * Retrieves a model by its ID. This method must be implemented by subclasses.
@@ -113,16 +114,24 @@ class Engine {
      * Performs a search query on a model's index and returns the matching models.
      *
      * @param {Model.constructor} model - The model class.
-     * @param {object} query - The search query string.
-     * @returns {Array<Model>} An array of models matching the search query.
+     * @param {string} query - The search query string.
+     * @returns {Promise<Array<Model>>} An array of models matching the search query.
      * @throws {EngineError} Throws if the search index is not available for the model.
      */
     static async search(model, query) {
         this.checkConfiguration();
 
-        const index = await this.getSearchIndexCompiled(model).catch(() => {
-            throw new EngineError(`The model ${model.toString()} does not have a search index available.`);
-        });
+        const index =
+            (this._searchCache && this.configuration?.cache?.search && Date.now() - this._searchCache[0] < this.configuration.cache.search) ?
+                this._searchCache[1] :
+                await this.getSearchIndexCompiled(model)
+                    .then(i => {
+                        this._searchCache = [Date.now(), i];
+                        return i;
+                    })
+                    .catch(error => {
+                        throw new EngineError(`The model ${model.toString()} does not have a search index available.`, error);
+                    });
 
         const searchIndex = lunr.Index.load(index);
 
@@ -317,7 +326,7 @@ class Engine {
             static configuration = configuration;
         }
 
-        Object.defineProperty(ConfiguredStore, 'name', { value: `${this.toString()}` });
+        Object.defineProperty(ConfiguredStore, 'name', {value: `${this.toString()}`});
 
         return ConfiguredStore;
     }
@@ -329,7 +338,7 @@ class Engine {
      * @abstract
      */
     static checkConfiguration() {
-      // Implemented in extending Engine class
+        // Implemented in extending Engine class
     }
 
     /**
