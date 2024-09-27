@@ -66,17 +66,17 @@ class ArrayType {
                      * @returns {string} The string representation of the required array type.
                      */
                     static toString() {
-                        return `RequiredArrayOf(${type})`;
+                        return `RequiredArrayOf(${type.toString()})`;
                     }
                 }
 
-                Object.defineProperty(Required, 'name', {value: `Required${this.toString()}Type`});
+                Object.defineProperty(Required, 'name', {value: `Required${this.toString()}`});
 
                 return Required;
             }
         }
 
-        Object.defineProperty(ArrayOf, 'name', {value: `${ArrayOf.toString()}Type`});
+        Object.defineProperty(ArrayOf, 'name', {value: ArrayOf.toString()});
 
         return ArrayOf;
     }

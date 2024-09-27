@@ -62,14 +62,10 @@ const invalidSchema = {
 };
 
 test('CustomType.of(invalidSchema) throws an invalid schema error', t => {
-    const error = t.throws(() => {
+    t.throws(() => {
         CustomType.of(invalidSchema);
-    }, {instanceOf: Error});
-
-    t.is(
-        error.message,
-        'schema is invalid: data/properties/string/type must be equal to one of the allowed ' +
-        'values, data/properties/string/type must be array, data/properties/string/type must ' +
-        'match a schema in anyOf',
-    );
+    }, {
+        instanceOf: Error,
+        message: 'schema is invalid: data/properties/string/type must be equal to one of the allowed values, data/properties/string/type must be array, data/properties/string/type must match a schema in anyOf',
+    });
 });

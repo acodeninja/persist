@@ -10,17 +10,21 @@ import SimpleType from './SimpleType.js';
  * @extends SimpleType
  */
 class DateType extends SimpleType {
-    /**
-     * @static
-     * @property {string} _type - The type identifier for DateType, set to `'string'`.
-     */
-    static _type = 'string';
+    static {
+        /**
+         * @static
+         * @property {string} _type - The type identifier for DateType, set to `'string'`.
+         */
+        this._type = 'string';
 
-    /**
-     * @static
-     * @property {string} _format - The format for DateType, set to `'iso-date-time'`.
-     */
-    static _format = 'iso-date-time';
+        /**
+         * @static
+         * @property {string} _format - The format for DateType, set to `'iso-date-time'`.
+         */
+        this._format = 'iso-date-time';
+
+        Object.defineProperty(this, 'name', {value: 'Date'});
+    }
 
     /**
      * Checks if the given value is a valid date.

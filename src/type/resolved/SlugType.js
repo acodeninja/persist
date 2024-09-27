@@ -59,6 +59,10 @@ class SlugType extends ResolvedType {
 
         return SlugOf;
     }
+
+    static {
+        Object.defineProperty(this, 'name', {value: 'Slug'});
+    }
 }
 
 export default SlugType;
