@@ -57,6 +57,8 @@ class SlugType extends ResolvedType {
             }
         }
 
+        Object.defineProperty(SlugOf, 'name', {value: `SlugOf(${property})`});
+
         return SlugOf;
     }
 

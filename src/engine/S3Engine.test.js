@@ -736,7 +736,7 @@ test('S3Engine.find(MainModel, {string: "test"}) when a matching model does not 
         bucket: 'test-bucket',
         prefix: 'test',
         client,
-    }).find(MainModel, {string: 'String'});
+    }).find(MainModel, {string: 'test'});
 
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Key: 'test/MainModel/_index.json',
@@ -753,7 +753,7 @@ test('S3Engine.find(MainModel, {string: "test"}) when no index exists', async t 
         bucket: 'test-bucket',
         prefix: 'test',
         client,
-    }).find(MainModel, {string: 'String'});
+    }).find(MainModel, {string: 'test'});
 
     t.deepEqual(models, []);
 });

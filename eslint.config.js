@@ -2,7 +2,13 @@ import globals from 'globals';
 import pluginJs from '@eslint/js';
 
 export default [
-    {ignores: ['coverage/', 'node_modules/']},
+    {
+        ignores: [
+            'coverage/',
+            'node_modules/',
+            'test/fixtures/minified/main.bundle.*',
+        ],
+    },
     {languageOptions: {globals: globals.node}},
     pluginJs.configs.recommended,
     {
