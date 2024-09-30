@@ -35,14 +35,22 @@ class CustomType {
          * Represents a custom type defined by a JSON schema.
          */
         class Custom extends Type {
-            /** @type {string} The data type, which is 'object' */
-            static _type = 'object';
+            static {
+                /** @type {string} The data type, which is 'object' */
+                this._type = 'object';
 
-            /** @type {Object} The JSON schema that defines the structure and validation rules */
-            static _schema = schema;
+                /** @type {Object} The JSON schema that defines the structure and validation rules */
+                this._schema = schema;
+
+                Object.defineProperty(this, 'name', {value: 'Custom'});
+            }
         }
 
         return Custom;
+    }
+
+    static {
+        Object.defineProperty(this, 'name', {value: 'Custom'});
     }
 }
 

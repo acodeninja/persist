@@ -10,11 +10,15 @@ import SimpleType from './SimpleType.js';
  * @extends SimpleType
  */
 class NumberType extends SimpleType {
-    /**
-     * @static
-     * @property {string} _type - The type identifier for NumberType, set to `'number'`.
-     */
-    static _type = 'number';
+    static {
+        /**
+         * @static
+         * @property {string} _type - The type identifier for NumberType, set to `'number'`.
+         */
+        this._type = 'number';
+
+        Object.defineProperty(this, 'name', {value: 'Number'});
+    }
 }
 
 export default NumberType;

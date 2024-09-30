@@ -38,12 +38,12 @@ class Type {
     static _schema = undefined;
 
     /**
-     * Converts the class name to a string, removing the "Type" suffix.
+     * Converts the class name to a string
      *
-     * @returns {string} The name of the type without the "Type" suffix.
+     * @returns {string} The name of the type.
      */
     static toString() {
-        return this.name?.replace(/Type$/, '');
+        return this.name;
     }
 
     /**
@@ -58,9 +58,13 @@ class Type {
         }
 
         // Define the class name as "Required<OriginalTypeName>"
-        Object.defineProperty(Required, 'name', {value: `Required${this.toString()}Type`});
+        Object.defineProperty(Required, 'name', {value: `Required${this.toString()}`});
 
         return Required;
+    }
+
+    static {
+        Object.defineProperty(this, 'name', {value: 'Type'});
     }
 }
 

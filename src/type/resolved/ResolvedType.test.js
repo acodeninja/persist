@@ -6,7 +6,7 @@ class UnimplementedResolvedType extends ResolvedType {
 }
 
 test('UnimplementedResolvedType is of type UnimplementedResolved', t => {
-    t.is(UnimplementedResolvedType.toString(), 'UnimplementedResolved');
+    t.is(UnimplementedResolvedType.toString(), 'UnimplementedResolvedType');
 });
 
 test('UnimplementedResolvedType.of(name) is of type UnimplementedResolvedOf', t => {
@@ -30,17 +30,19 @@ test('UnimplementedResolvedType is a resolved type', t => {
 });
 
 test('UnimplementedResolvedType raises a not implemented error on resolving', t => {
-    const error = t.throws(() => {
+    t.throws(() => {
         UnimplementedResolvedType.resolve({});
-    }, {instanceOf: Error});
-
-    t.is(error.message, 'UnimplementedResolvedType does not implement resolve(model)');
+    }, {
+        instanceOf: Error,
+        message: 'UnimplementedResolvedType does not implement resolve(model)',
+    });
 });
 
 test('UnimplementedResolvedType.of(propertyName) raises a not implemented error on resolving', t => {
-    const error = t.throws(() => {
+    t.throws(() => {
         UnimplementedResolvedType.of('name').resolve({});
-    }, {instanceOf: Error});
-
-    t.is(error.message, 'ResolvedTypeOf does not implement resolve(model)');
+    }, {
+        instanceOf: Error,
+        message: 'ResolvedTypeOf does not implement resolve(model)',
+    });
 });

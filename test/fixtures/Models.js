@@ -9,8 +9,11 @@ import Type from '../../src/type/index.js';
  * @property {Type.Boolean} boolean - A boolean type property.
  */
 export class LinkedModel extends Type.Model {
-    static string = Type.String;
-    static boolean = Type.Boolean;
+    static {
+        this.setMinifiedName('LinkedModel');
+        this.string = Type.String;
+        this.boolean = Type.Boolean;
+    }
 }
 
 /**
@@ -21,7 +24,10 @@ export class LinkedModel extends Type.Model {
  * @property {Type.String} string - A string type property.
  */
 export class LinkedManyModel extends Type.Model {
-    static string = Type.String;
+    static {
+        this.setMinifiedName('LinkedManyModel');
+        this.string = Type.String;
+    }
 }
 
 /**
@@ -32,7 +38,10 @@ export class LinkedManyModel extends Type.Model {
  * @property {MainModel} linked - A circular reference to the `MainModel`.
  */
 export class CircularModel extends Type.Model {
-    static linked = () => MainModel;
+    static {
+        this.setMinifiedName('CircularModel');
+        this.linked = () => MainModel;
+    }
 }
 
 /**
@@ -43,7 +52,10 @@ export class CircularModel extends Type.Model {
  * @property {MainModel[]} linked - An array of circular references to the `MainModel`.
  */
 export class CircularManyModel extends Type.Model {
-    static linked = () => Type.Array.of(MainModel);
+    static {
+        this.setMinifiedName('CircularManyModel');
+        this.linked = () => Type.Array.of(MainModel);
+    }
 }
 
 /**
@@ -85,61 +97,64 @@ export class CircularManyModel extends Type.Model {
  * @method searchProperties Returns the list of properties used in search.
  */
 export class MainModel extends Type.Model {
-    static custom = Type.Custom.of({
-        type: 'object',
-        additionalProperties: false,
-        properties: {test: {type: 'string'}},
-        required: ['test'],
-    });
-    static string = Type.String;
-    static stringSlug = Type.Resolved.Slug.of('string');
-    static requiredString = Type.String.required;
-    static requiredStringSlug = Type.Resolved.Slug.of('requiredString');
-    static number = Type.Number;
-    static requiredNumber = Type.Number.required;
-    static boolean = Type.Boolean;
-    static requiredBoolean = Type.Boolean.required;
-    static date = Type.Date;
-    static requiredDate = Type.Date.required;
-    static emptyArrayOfStrings = Type.Array.of(Type.String);
-    static emptyArrayOfNumbers = Type.Array.of(Type.Number);
-    static emptyArrayOfBooleans = Type.Array.of(Type.Boolean);
-    static emptyArrayOfDates = Type.Array.of(Type.Date);
-    static emptyArrayOfModels = Type.Array.of(LinkedManyModel);
-    static arrayOfString = Type.Array.of(Type.String);
-    static arrayOfNumber = Type.Array.of(Type.Number);
-    static arrayOfBoolean = Type.Array.of(Type.Boolean);
-    static arrayOfDate = Type.Array.of(Type.Date);
-    static requiredArrayOfString = Type.Array.of(Type.String).required;
-    static requiredArrayOfNumber = Type.Array.of(Type.Number).required;
-    static requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
-    static requiredArrayOfDate = Type.Array.of(Type.Date).required;
-    static circular = CircularModel;
-    static circularMany = Type.Array.of(CircularManyModel);
-    static linked = () => LinkedModel;
-    static requiredLinked = LinkedModel.required;
-    static linkedMany = () => Type.Array.of(LinkedManyModel);
+    static {
+        this.setMinifiedName('MainModel');
+        this.custom = Type.Custom.of({
+            type: 'object',
+            additionalProperties: false,
+            properties: {test: {type: 'string'}},
+            required: ['test'],
+        });
+        this.string = Type.String;
+        this.stringSlug = Type.Resolved.Slug.of('string');
+        this.requiredString = Type.String.required;
+        this.requiredStringSlug = Type.Resolved.Slug.of('requiredString');
+        this.number = Type.Number;
+        this.requiredNumber = Type.Number.required;
+        this.boolean = Type.Boolean;
+        this.requiredBoolean = Type.Boolean.required;
+        this.date = Type.Date;
+        this.requiredDate = Type.Date.required;
+        this.emptyArrayOfStrings = Type.Array.of(Type.String);
+        this.emptyArrayOfNumbers = Type.Array.of(Type.Number);
+        this.emptyArrayOfBooleans = Type.Array.of(Type.Boolean);
+        this.emptyArrayOfDates = Type.Array.of(Type.Date);
+        this.emptyArrayOfModels = Type.Array.of(LinkedManyModel);
+        this.arrayOfString = Type.Array.of(Type.String);
+        this.arrayOfNumber = Type.Array.of(Type.Number);
+        this.arrayOfBoolean = Type.Array.of(Type.Boolean);
+        this.arrayOfDate = Type.Array.of(Type.Date);
+        this.requiredArrayOfString = Type.Array.of(Type.String).required;
+        this.requiredArrayOfNumber = Type.Array.of(Type.Number).required;
+        this.requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
+        this.requiredArrayOfDate = Type.Array.of(Type.Date).required;
+        this.circular = CircularModel;
+        this.circularMany = Type.Array.of(CircularManyModel);
+        this.linked = LinkedModel;
+        this.requiredLinked = () => LinkedModel.required;
+        this.linkedMany = Type.Array.of(LinkedManyModel);
 
-    /**
-     * Returns the list of properties to be indexed.
-     *
-     * @returns {string[]} An array of property names to be indexed.
-     */
-    static indexedProperties = () => [
-        'string',
-        'boolean',
-        'number',
-        'arrayOfString',
-        'stringSlug',
-        'linked.string',
-        'linked.boolean',
-        'linkedMany.[*].string',
-    ];
+        /**
+         * Returns the list of properties to be indexed.
+         *
+         * @returns {string[]} An array of property names to be indexed.
+         */
+        this.indexedProperties = () => [
+            'string',
+            'boolean',
+            'number',
+            'arrayOfString',
+            'stringSlug',
+            'linked.string',
+            'linked.boolean',
+            'linkedMany.[*].string',
+        ];
 
-    /**
-     * Returns the list of properties used in search.
-     *
-     * @returns {string[]} An array of property names used for search.
-     */
-    static searchProperties = () => ['string', 'stringSlug', 'linked.string', 'linkedMany.[*].string'];
+        /**
+         * Returns the list of properties used in search.
+         *
+         * @returns {string[]} An array of property names used for search.
+         */
+        this.searchProperties = () => ['string', 'stringSlug', 'linked.string', 'linkedMany.[*].string'];
+    }
 }

@@ -73,11 +73,11 @@ class Model {
             (key, value) => {
                 if (!simple) {
                     if (this.constructor[key]) {
-                        if (this.constructor[key].name.endsWith('DateType')) {
+                        if (this.constructor[key].name.endsWith('Date')) {
                             return new Date(value);
                         }
 
-                        if (this.constructor[key].name.endsWith('ArrayOf(Date)Type')) {
+                        if (this.constructor[key].name.endsWith('ArrayOf(Date)')) {
                             return value.map(d => new Date(d));
                         }
                     }
@@ -211,12 +211,12 @@ class Model {
         for (const [name, value] of Object.entries(data)) {
             if (this[name]?._resolved) continue;
 
-            if (this[name].name.endsWith('DateType')) {
+            if (this[name].name.endsWith('Date')) {
                 model[name] = new Date(value);
                 continue;
             }
 
-            if (this[name].name.endsWith('ArrayOf(Date)Type')) {
+            if (this[name].name.endsWith('ArrayOf(Date)')) {
                 model[name] = data[name].map(d => new Date(d));
                 continue;
             }
@@ -258,6 +258,26 @@ class Model {
         } catch (_error) {
             return false;
         }
+    }
+
+    /**
+     * Set the name of the Model class
+     *
+     * Use this when your model might be minified to retain consistent class names.
+     *
+     * @param {string} name
+     * @static
+     *
+     * @example
+     * export default class TestModel {
+     *     static {
+     *         this.string = Persist.Type.String;
+     *         Object.defineProperty(this, 'name', {value: 'TestModel'});
+     *     }
+     * }
+     */
+    static setMinifiedName(name) {
+        Object.defineProperty(this, 'name', {value: name});
     }
 }
 

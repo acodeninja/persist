@@ -1,8 +1,8 @@
 import Type from './Type.js';
 import test from 'ava';
 
-test('Type has no type', t => {
-    t.is(Type.toString(), '');
+test('Type is of type Type', t => {
+    t.is(Type.toString(), 'Type');
 });
 
 test('Type is not required', t => {
@@ -22,7 +22,7 @@ test('Type is not a resolved type', t => {
 });
 
 test('RequiredType is of Required type', t => {
-    t.is(Type.required.toString(), 'Required');
+    t.is(Type.required.toString(), 'RequiredType');
 });
 
 test('RequiredType is required', t => {

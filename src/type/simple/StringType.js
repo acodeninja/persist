@@ -10,11 +10,15 @@ import SimpleType from './SimpleType.js';
  * @extends SimpleType
  */
 class StringType extends SimpleType {
-    /**
-     * @static
-     * @property {string} _type - The type identifier for the string type.
-     */
-    static _type = 'string';
+    static {
+        /**
+         * @static
+         * @property {string} _type - The type identifier for the string type.
+         */
+        this._type = 'string';
+
+        Object.defineProperty(this, 'name', {value: 'String'});
+    }
 }
 
 export default StringType;

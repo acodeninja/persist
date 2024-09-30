@@ -10,11 +10,15 @@ import SimpleType from './SimpleType.js';
  * @extends SimpleType
  */
 class BooleanType extends SimpleType {
-    /**
-     * @static
-     * @property {string} _type - The type identifier for BooleanType, set to `'boolean'`.
-     */
-    static _type = 'boolean';
+    static {
+        /**
+         * @static
+         * @property {string} _type - The type identifier for BooleanType, set to `'boolean'`.
+         */
+        this._type = 'boolean';
+
+        Object.defineProperty(this, 'name', {value: 'Boolean'});
+    }
 }
 
 export default BooleanType;
