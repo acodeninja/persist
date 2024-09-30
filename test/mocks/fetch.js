@@ -2,9 +2,21 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
+/**
+ * @param filesystem
+ * @param models
+ * @param errors
+ * @param prefix
+ * @return {void|*}
+ */
 function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
     const modelsAddedToFilesystem = [];
 
+    /**
+     * @param initialFilesystem
+     * @param initialModels
+     * @return {object}
+     */
     function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
         for (const model of initialModels) {
             const modelIndexPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_index.json')].filter(i => Boolean(i)).join('/');

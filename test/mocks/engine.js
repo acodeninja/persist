@@ -2,6 +2,10 @@ import Engine from '../../src/engine/Engine.js';
 import _ from 'lodash';
 import sinon from 'sinon';
 
+/**
+ * @param models
+ * @return {TestEngine}
+ */
 export function getTestEngine(models = []) {
     const _models = {};
     const _index = {};
@@ -12,6 +16,10 @@ export function getTestEngine(models = []) {
         _models[model.id] = _.cloneDeep(model);
     }
 
+    /**
+     * @class TestEngine
+     * @extends Engine
+     */
     class TestEngine extends Engine {
     }
 

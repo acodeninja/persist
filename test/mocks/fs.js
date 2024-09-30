@@ -2,9 +2,19 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
+/**
+ * @param filesystem
+ * @param models
+ * @return {{readFile: (*|void), writeFile: *, mkdir: *}}
+ */
 function stubFs(filesystem = {}, models = []) {
     const modelsAddedToFilesystem = [];
 
+    /**
+     * @param initialFilesystem
+     * @param initialModels
+     * @return {object}
+     */
     function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
         for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');

@@ -1,6 +1,10 @@
 import Model from '../src/type/Model.js';
 import {inspect} from 'node:util';
 
+/**
+ * @param arg
+ * @return {*}
+ */
 function parseArgument(arg) {
     try {
         if (Model.isModel(arg)) {
