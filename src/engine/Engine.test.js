@@ -161,13 +161,13 @@ test('ImplementedEngine.put(partialModel) does not put dry models', async t => {
             Promise.resolve(JSON.parse(JSON.stringify(models.getRawSearchIndex(model)))),
         );
 
-        static putSearchIndexRaw = sinon.stub().callsFake(() => {});
+        static putSearchIndexRaw = sinon.stub();
 
-        static putSearchIndexCompiled = sinon.stub().callsFake(() => {});
+        static putSearchIndexCompiled = sinon.stub();
 
-        static putIndex = sinon.stub().callsFake(() => {});
+        static putIndex = sinon.stub();
 
-        static putModel = sinon.stub().callsFake(() => {});
+        static putModel = sinon.stub();
     }
 
     const engine = ImplementedEngine.configure({cache: {search: 5000}});
