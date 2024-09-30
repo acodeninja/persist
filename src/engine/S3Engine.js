@@ -153,9 +153,9 @@ class S3Engine extends Engine {
      * @param {Model.constructor} model - The model whose search index to retrieve.
      * @returns {Promise<Object>} The compiled search index.
      */
-    static async getSearchIndexCompiled(model) {
-        return await this.configuration.client.send(new GetObjectCommand({
-            Key: [this.configuration.prefix, model.name, '_search_index.json'].join('/'),
+    static getSearchIndexCompiled(model) {
+        return this.configuration.client.send(new GetObjectCommand({
+            Key: [this.configuration.prefix, model.toString(), '_search_index.json'].join('/'),
             Bucket: this.configuration.bucket,
         })).then(data => data.Body.transformToString())
             .then(JSON.parse);
@@ -167,8 +167,8 @@ class S3Engine extends Engine {
      * @param {Model.constructor} model - The model whose raw search index to retrieve.
      * @returns {Promise<Object>} The raw search index, or an empty object if not found.
      */
-    static async getSearchIndexRaw(model) {
-        return await this.configuration.client.send(new GetObjectCommand({
+    static getSearchIndexRaw(model) {
+        return this.configuration.client.send(new GetObjectCommand({
             Key: [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/'),
             Bucket: this.configuration.bucket,
         })).then(data => data.Body.transformToString())

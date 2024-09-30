@@ -661,10 +661,11 @@ test('S3Engine.put(model) when the engine fails to put a linked model', async t 
     const models = new Models();
     const model = models.createFullTestModel();
 
-    client.send.callsFake(async command => {
+    client.send.callsFake(command => {
         if (command.input.Key.endsWith('LinkedModel/000000000000.json')) {
-            throw new Error();
+            return Promise.reject(new Error());
         }
+        return Promise.resolve();
     });
 
     await t.throwsAsync(() => S3Engine.configure({

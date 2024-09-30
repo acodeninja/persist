@@ -40,7 +40,7 @@ class Model {
             }
             if (value?._resolved) {
                 Object.defineProperty(this, key, {
-                    get: function () {
+                    get() {
                         return value.resolve(this);
                     },
                 });

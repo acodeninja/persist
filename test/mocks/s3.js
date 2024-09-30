@@ -3,24 +3,37 @@ import {NoSuchKey} from '@aws-sdk/client-s3';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
+/**
+ * @param data
+ * @return {{Body: {transformToString: (function(): Promise<Awaited<string>>)}}}
+ * @constructor
+ */
 function S3ObjectWrapper(data) {
     return {
         Body: {
-            transformToString: async () => {
-                return data.toString();
-            },
+            transformToString: () => Promise.resolve(data.toString()),
         },
     };
 }
 
+/**
+ * @param filesystem
+ * @param models
+ * @return {{send: (*|void)}}
+ */
 function stubS3Client(filesystem = {}, models = {}) {
     const modelsAddedToFilesystem = [];
 
+    /**
+     * @param initialFilesystem
+     * @param initialModels
+     * @return {object}
+     */
     function bucketFilesFromModels(initialFilesystem = {}, ...initialModels) {
         for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const modelIndex = initialFilesystem[modelIndexPath];
-            initialFilesystem[model.id + '.json'] = model.toData();
+            initialFilesystem[`${model.id}.json`] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),

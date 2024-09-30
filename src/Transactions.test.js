@@ -58,7 +58,7 @@ test('transaction.commit() throws an exception if the transaction fails', async 
     const testEngine = getTestEngine();
 
     testEngine.putModel.callsFake(async () => {
-        throw new EngineError('Failed to put model');
+        return Promise.reject(new EngineError('Failed to put model'));
     });
 
     const transactionalEngine = enableTransactions(testEngine);
@@ -85,10 +85,11 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     model.string = 'updated';
 
-    testEngine.putModel.callsFake(async subject => {
+    testEngine.putModel.callsFake(subject => {
         if (subject.string === 'updated') {
-            throw new EngineError(`Failed to put model ${subject.id}`);
+            return Promise.reject(new EngineError(`Failed to put model ${subject.id}`));
         }
+        return Promise.resolve();
     });
 
     const transactionalEngine = enableTransactions(testEngine);
@@ -115,10 +116,11 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     const testEngine = getTestEngine([...Object.values(models.models)]);
 
-    testEngine.putModel.callsFake(async subject => {
+    testEngine.putModel.callsFake(subject => {
         if (subject.string === 'updated') {
-            throw new EngineError(`Failed to put model ${subject.id}`);
+            return Promise.reject(new EngineError(`Failed to put model ${subject.id}`));
         }
+        return Promise.resolve();
     });
 
     const transactionalEngine = enableTransactions(testEngine);

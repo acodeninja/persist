@@ -2,16 +2,26 @@ import Model from '../../src/type/Model.js';
 import lunr from 'lunr';
 import sinon from 'sinon';
 
+/**
+ * @param filesystem
+ * @param models
+ * @return {{readFile: (*|void), writeFile: *, mkdir: *}}
+ */
 function stubFs(filesystem = {}, models = []) {
     const modelsAddedToFilesystem = [];
 
+    /**
+     * @param initialFilesystem
+     * @param initialModels
+     * @return {object}
+     */
     function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
         for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[model.id + '.json'] = model.toData();
+            initialFilesystem[`${model.id}.json`] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),
@@ -51,7 +61,7 @@ function stubFs(filesystem = {}, models = []) {
 
     if (searchIndexes.length > 0) {
         for (const [name, index] of searchIndexes) {
-            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
+            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
             resolvedFiles[name.replace('_raw', '')] = lunr(function () {
                 this.ref('id');
 

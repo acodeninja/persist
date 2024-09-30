@@ -1,4 +1,4 @@
-import Type from '../src/type/index.js';
+import Type from './type/index.js';
 import enableTransactions from './Transactions.js';
 
 /**
