@@ -11,7 +11,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
             const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json')].filter(i => Boolean(i)).join('/');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[[prefix, model.id + '.json'].filter(i => Boolean(i)).join('/')] = model.toData();
+            initialFilesystem[[`${prefix}/${model.id}.json`].filter(i => Boolean(i)).join('/')] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),

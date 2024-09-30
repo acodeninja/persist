@@ -18,7 +18,7 @@ function stubS3Client(filesystem = {}, models = {}) {
         for (const model of initialModels) {
             const modelIndexPath = model.id.replace(/[A-Z0-9]+$/, '_index.json');
             const modelIndex = initialFilesystem[modelIndexPath];
-            initialFilesystem[model.id + '.json'] = model.toData();
+            initialFilesystem[`${model.id}.json`] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),

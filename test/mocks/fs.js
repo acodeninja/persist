@@ -11,7 +11,7 @@ function stubFs(filesystem = {}, models = []) {
             const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[model.id + '.json'] = model.toData();
+            initialFilesystem[`${model.id}.json`] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),
