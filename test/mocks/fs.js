@@ -51,7 +51,7 @@ function stubFs(filesystem = {}, models = []) {
 
     if (searchIndexes.length > 0) {
         for (const [name, index] of searchIndexes) {
-            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(i => i !== 'id')).flat(Infinity))];
+            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
             resolvedFiles[name.replace('_raw', '')] = lunr(function () {
                 this.ref('id');
 
