@@ -24,23 +24,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3
       - run: make init
-      - run: make test/coverage
-
-  dry-run-release:
-    name: 📋 dry run release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: asdf-vm/actions/install@v3
-      - run: npm clean-install
-      - run: npx semantic-release --dry-run
+      - run: make test/coverage/report
+      - run: curl https://deepsource.io/cli | sh
+      - name: deepsource report
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+        run: |
+          ./bin/deepsource report \
+            --analyzer test-coverage \
+            --key javascript \
+            --value-file "$(realpath ./coverage/lcov.info)"
