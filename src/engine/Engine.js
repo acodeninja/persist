@@ -258,8 +258,10 @@ class Engine {
 
             for (const [name, property] of Object.entries(modelToProcess)) {
                 if (Type.Model.isDryModel(property)) {
+                    // skipcq: JS-0129
                     modelToProcess[name] = await hydrateSubModel(property, modelToProcess, name);
                 } else if (Array.isArray(property) && Type.Model.isDryModel(property[0])) {
+                    // skipcq: JS-0129
                     modelToProcess[name] = await hydrateModelList(property, modelToProcess, name);
                 }
             }
