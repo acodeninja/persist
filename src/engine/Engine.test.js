@@ -141,3 +141,38 @@ test('ImplementedEngine.search(MainModel, "test") when caching is on calls Imple
 
     t.is(engine.getSearchIndexCompiled.getCalls().length, 1);
 });
+
+test('ImplementedEngine.put(partialModel) does not put dry models', async t => {
+    const models = new Models();
+    const model = models.createFullTestModel();
+
+    const partialModel = MainModel.fromData(model.toData());
+
+    class ImplementedEngine extends Engine {
+        static getById(id) {
+            return models.models[id];
+        }
+
+        static getSearchIndexCompiled = sinon.stub().callsFake((model) =>
+            Promise.resolve(JSON.parse(JSON.stringify(models.getSearchIndex(model)))),
+        );
+
+        static getSearchIndexRaw = sinon.stub().callsFake((model) =>
+            Promise.resolve(JSON.parse(JSON.stringify(models.getRawSearchIndex(model)))),
+        );
+
+        static putSearchIndexRaw = sinon.stub().callsFake(() => {});
+
+        static putSearchIndexCompiled = sinon.stub().callsFake(() => {});
+
+        static putIndex = sinon.stub().callsFake(() => {});
+
+        static putModel = sinon.stub().callsFake(() => {});
+    }
+
+    const engine = ImplementedEngine.configure({cache: {search: 5000}});
+
+    await engine.put(partialModel);
+
+    t.is(engine.putModel.getCalls().length, 1);
+});
