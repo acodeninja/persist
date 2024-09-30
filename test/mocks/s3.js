@@ -6,9 +6,7 @@ import sinon from 'sinon';
 function S3ObjectWrapper(data) {
     return {
         Body: {
-            transformToString: async () => {
-                return data.toString();
-            },
+            transformToString: () => Promise.resolve(data.toString()),
         },
     };
 }
