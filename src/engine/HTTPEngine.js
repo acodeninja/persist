@@ -126,7 +126,7 @@ class HTTPEngine extends Engine {
      *
      * @throws {HTTPRequestFailedError} Thrown if the fetch request fails.
      */
-    static async getById(id) {
+    static getById(id) {
         this.checkConfiguration();
 
         const url = new URL([
@@ -135,7 +135,7 @@ class HTTPEngine extends Engine {
             `${id}.json`,
         ].filter(e => Boolean(e)).join('/'));
 
-        return await this._processFetch(url, this._getReadOptions());
+        return this._processFetch(url, this._getReadOptions());
     }
 
     /**
@@ -177,7 +177,7 @@ class HTTPEngine extends Engine {
                 '_index.json',
             ].filter(e => Boolean(e)).join('/'));
 
-            return await this._processFetch(url, {
+            return this._processFetch(url, {
                 ...this._getWriteOptions(),
                 body: JSON.stringify({
                     ...await this.getIndex(location),
@@ -199,7 +199,7 @@ class HTTPEngine extends Engine {
      * @param {Model.constructor?} model - The model in the host where the index is stored.
      * @returns {Promise<Object>} The index data in JSON format.
      */
-    static async getIndex(model) {
+    static getIndex(model) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
@@ -207,7 +207,7 @@ class HTTPEngine extends Engine {
             '_index.json',
         ].filter(e => Boolean(e)).join('/'));
 
-        return await this._processFetch(url, this._getReadOptions(), {});
+        return this._processFetch(url, this._getReadOptions(), {});
     }
 
     /**
@@ -216,7 +216,7 @@ class HTTPEngine extends Engine {
      * @param {Model.constructor} model - The model whose compiled search index to retrieve.
      * @returns {Promise<Object>} The compiled search index in JSON format.
      */
-    static async getSearchIndexCompiled(model) {
+    static getSearchIndexCompiled(model) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
@@ -224,7 +224,7 @@ class HTTPEngine extends Engine {
             '_search_index.json',
         ].join('/'));
 
-        return await this._processFetch(url, this._getReadOptions());
+        return this._processFetch(url, this._getReadOptions());
     }
 
     /**
@@ -233,7 +233,7 @@ class HTTPEngine extends Engine {
      * @param {Model.constructor} model - The model whose raw search index to retrieve.
      * @returns {Promise<Object>} The raw search index in JSON format, or an empty object if not found.
      */
-    static async getSearchIndexRaw(model) {
+    static getSearchIndexRaw(model) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
@@ -241,7 +241,7 @@ class HTTPEngine extends Engine {
             '_search_index_raw.json',
         ].join('/'));
 
-        return await this._processFetch(url, this._getReadOptions()).catch(() => ({}));
+        return this._processFetch(url, this._getReadOptions()).catch(() => ({}));
     }
 
     /**
@@ -253,7 +253,7 @@ class HTTPEngine extends Engine {
      *
      * @throws {HTTPRequestFailedError} Thrown if the PUT request fails.
      */
-    static async putSearchIndexCompiled(model, compiledIndex) {
+    static putSearchIndexCompiled(model, compiledIndex) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
@@ -276,7 +276,7 @@ class HTTPEngine extends Engine {
      *
      * @throws {HTTPRequestFailedError} Thrown if the PUT request fails.
      */
-    static async putSearchIndexRaw(model, rawIndex) {
+    static putSearchIndexRaw(model, rawIndex) {
         const url = new URL([
             this.configuration.host,
             this.configuration.prefix,
@@ -284,7 +284,7 @@ class HTTPEngine extends Engine {
             '_search_index_raw.json',
         ].filter(e => Boolean(e)).join('/'));
 
-        return await this._processFetch(url, {
+        return this._processFetch(url, {
             ...this._getWriteOptions(),
             body: JSON.stringify(rawIndex),
         });

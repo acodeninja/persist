@@ -283,15 +283,15 @@ class Engine {
         const hydrateModelList = async (property, modelToProcess, name) => {
             const subModelClass = getSubModelClass(modelToProcess, name, true);
 
-            const newModelList = await Promise.all(property.map(async subModel => {
+            const newModelList = await Promise.all(property.map(subModel => {
                 if (hydratedModels[subModel.id]) {
                     return hydratedModels[subModel.id];
                 }
 
-                return await this.get(subModelClass, subModel.id);
+                return this.get(subModelClass, subModel.id);
             }));
 
-            return await Promise.all(newModelList.map(async subModel => {
+            return Promise.all(newModelList.map(async subModel => {
                 if (hydratedModels[subModel.id]) {
                     return hydratedModels[subModel.id];
                 }
@@ -312,7 +312,7 @@ class Engine {
             return isArray ? constructorField._items : constructorField;
         }
 
-        return await hydrateModel(await this.get(model.constructor, model.id));
+        return hydrateModel(await this.get(model.constructor, model.id));
     }
 
     /**
