@@ -29,6 +29,14 @@ test('SlugType.of(name).resolve({name: \'Testing the Slug\')) returns \'testing-
     t.is(SlugType.of('name').resolve({name: 'Testing the Slug'}), 'testing-the-slug');
 });
 
+test('SlugType.of(name).resolve({name: \' Trimming whitespace \')) returns \'trimming-whitespace\'', t => {
+    t.is(SlugType.of('name').resolve({name: ' Trimming whitespace '}), 'trimming-whitespace');
+});
+
 test('SlugType.of(name).resolve()) returns \'\'', t => {
     t.is(SlugType.of('name').resolve(), '');
+});
+
+test('SlugType.of(special).resolve({special: \'don\'t include special characters\')) returns \'dont-include-special-characters\'', t => {
+    t.is(SlugType.of('special').resolve({special: 'don\'t include special characters'}), 'dont-include-special-characters');
 });
