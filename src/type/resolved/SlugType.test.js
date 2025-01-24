@@ -32,3 +32,7 @@ test('SlugType.of(name).resolve({name: \'Testing the Slug\')) returns \'testing-
 test('SlugType.of(name).resolve()) returns \'\'', t => {
     t.is(SlugType.of('name').resolve(), '');
 });
+
+test('SlugType.of(don\'t include special characters).resolve()) returns \'dont-include-special-characters\'', t => {
+    t.is(SlugType.of('special').resolve({special: 'don\'t include special characters'}), 'dont-include-special-characters');
+});
