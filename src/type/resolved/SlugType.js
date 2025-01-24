@@ -54,6 +54,7 @@ class SlugType extends ResolvedType {
                 return slugify(model?.[property], {
                     lower: true,
                     strict: true,
+                    trim: true,
                 });
             }
         }
