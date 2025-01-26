@@ -114,12 +114,22 @@ function stubS3Client(filesystem = {}, models = {}) {
                 return Promise.reject(new NoSuchKey({}));
             case 'PutObjectCommand':
                 return Promise.resolve(null);
+            case 'DeleteObjectCommand':
+                if (resolvedBuckets[command.input.Bucket]) {
+                    for (const [filename, _] of Object.entries(resolvedBuckets[command.input.Bucket])) {
+                        if (command.input.Key.endsWith(filename)) {
+                            delete resolvedBuckets[command.input.Bucket][filename];
+                            return Promise.resolve();
+                        }
+                    }
+                }
+                return Promise.reject(new NoSuchKey({}));
             default:
                 return Promise.reject(new Error('Unsupported command'));
         }
     });
 
-    return {send};
+    return {send, resolvedBuckets};
 }
 
 export default stubS3Client;

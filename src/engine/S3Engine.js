@@ -1,5 +1,5 @@
+import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 import Engine, {EngineError, MissConfiguredError} from './Engine.js';
-import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 
 /**
  * Represents an error specific to the S3 engine operations.
@@ -66,6 +66,24 @@ class S3Engine extends Engine {
         }));
 
         return JSON.parse(await data.Body.transformToString());
+    }
+
+    /**
+     * Deletes a model by its ID from theS3 bucket.
+     *
+     * @param {string} id - The ID of the model to delete.
+     * @returns {Promise<void>} Resolves when the model has been deleted.
+     * @throws {Error} Throws if the model cannot be deleted.
+     */
+    static async deleteById(id) {
+        const objectPath = [this.configuration.prefix, `${id}.json`].join('/');
+
+        await this.configuration.client.send(new DeleteObjectCommand({
+            Bucket: this.configuration.bucket,
+            Key: objectPath,
+        }));
+
+        return undefined;
     }
 
     /**
