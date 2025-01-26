@@ -139,6 +139,25 @@ class HTTPEngine extends Engine {
     }
 
     /**
+     * Deletes a model by its ID from an HTTP server.
+     *
+     * @param {string} id - The ID of the model to delete.
+     * @returns {Promise<void>} Resolves when the model has been deleted.
+     * @throws {Error} Throws if the file cannot be deleted.
+     */
+    static deleteById(id) {
+        this.checkConfiguration();
+
+        const url = new URL([
+            this.configuration.host,
+            this.configuration.prefix,
+            `${id}.json`,
+        ].filter(e => Boolean(e)).join('/'));
+
+        return this._processFetch(url, {...this._getReadOptions(), method: 'DELETE'});
+    }
+
+    /**
      * Uploads (puts) a model object to the server.
      *
      * @param {Model} model - The model object to upload.

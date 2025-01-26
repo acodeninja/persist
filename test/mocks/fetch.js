@@ -81,13 +81,22 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         }
     }
 
-    return sinon.stub().callsFake((url, opts) => {
+    const stubbedFetch = sinon.stub().callsFake((url, opts) => {
         if (opts.method === 'PUT') {
             resolvedFiles[url.pathname ?? url] = JSON.parse(opts.body);
             return Promise.resolve({
                 ok: true,
                 status: 200,
                 json: () => Promise.resolve({}),
+            });
+        }
+
+        if (opts.method === 'DELETE') {
+            delete resolvedFiles[url.pathname ?? url];
+            return Promise.resolve({
+                ok: true,
+                status: 204,
+                json: () => Promise.resolve(),
             });
         }
 
@@ -118,6 +127,10 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
             json: () => Promise.reject(new Error()),
         });
     });
+
+    stubbedFetch.resolvedFiles = resolvedFiles;
+
+    return stubbedFetch;
 }
 
 export default stubFetch;
