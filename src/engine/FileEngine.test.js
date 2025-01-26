@@ -1,5 +1,5 @@
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
-import {EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import FileEngine from './FileEngine.js';
 import {Models} from '../../test/fixtures/ModelCollection.js';
 import assertions from '../../test/assertions.js';
@@ -454,4 +454,58 @@ test('FileEngine.hydrate(model)', async t => {
 
     t.is(filesystem.readFile.getCalls().length, 6);
     t.deepEqual(hydratedModel, model);
+});
+
+test('FileEngine.delete(model)', async t => {
+    const models = new Models();
+    const model = models.createFullTestModel();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const filesystem = stubFs({}, [model, modelToBeDeleted]);
+
+    await FileEngine.configure({
+        path: '/tmp/fileEngine',
+        filesystem,
+    }).delete(modelToBeDeleted);
+
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000002.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000003.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000001.json');
+
+    t.is(filesystem.readFile.getCalls().length, 6);
+
+    t.falsy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
+
+    assertions.calledWith(t, filesystem.rm, '/tmp/fileEngine/MainModel/000000000001.json');
+
+    t.is(filesystem.rm.getCalls().length, 1);
+});
+
+test('FileEngine.delete(model) when rm throws an error', async t => {
+    const models = new Models();
+    const model = models.createFullTestModel();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const filesystem = stubFs({}, [model, modelToBeDeleted]);
+
+    modelToBeDeleted.id = 'MainModel/999999999999';
+
+    await t.throwsAsync(() => FileEngine.configure({
+        path: '/tmp/fileEngine',
+        filesystem,
+    }).delete(modelToBeDeleted), {
+        instanceOf: CannotDeleteEngineError,
+        message: 'FileEngine.delete(MainModel/999999999999) model cannot be deleted',
+    });
+
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/999999999999.json');
+
+    t.is(filesystem.readFile.getCalls().length, 1);
+
+    t.truthy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
+
+    t.is(filesystem.rm.getCalls().length, 0);
 });

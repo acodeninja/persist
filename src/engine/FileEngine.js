@@ -65,6 +65,17 @@ class FileEngine extends Engine {
     }
 
     /**
+     * Deletes a model by its ID from the file system.
+     *
+     * @param {string} id - The ID of the model to delete.
+     * @returns {Promise<void>} Resolves when the model has been deleted.
+     * @throws {Error} Throws if the file cannot be deleted.
+     */
+    static deleteById(id) {
+        return this.configuration.filesystem.rm(join(this.configuration.path, `${id}.json`));
+    }
+
+    /**
      * Retrieves the index for a given model from the file system.
      *
      * @param {Model.constructor?} model - The model for which the index is retrieved.

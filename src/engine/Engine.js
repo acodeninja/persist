@@ -25,6 +25,18 @@ class Engine {
     }
 
     /**
+     * Deletes a model by its ID. This method must be implemented by subclasses.
+     *
+     * @param {string} _id - The ID of the model to retrieve.
+     * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>} - Returns a promise resolving when the model has been deleted.
+     * @abstract
+     */
+    static deleteById(_id) {
+        return Promise.reject(new NotImplementedError(`${this.name} must implement .deleteById()`));
+    }
+
+    /**
      * Saves a model to the data store. This method must be implemented by subclasses.
      *
      * @param {Model} _data - The model data to save.
@@ -244,6 +256,25 @@ class Engine {
     }
 
     /**
+     * Deletes a model
+     *
+     * @param {Model} model
+     * @return {Promise<void>}
+     * @throws {NotFoundEngineError} Throws if the model is not found.
+     */
+    static async delete(model) {
+        this.checkConfiguration();
+
+        try {
+            const hydrated = await this.hydrate(model);
+            await this.deleteById(hydrated.id);
+        } catch (error) {
+            if (error.constructor === NotImplementedError) throw error;
+            throw new CannotDeleteEngineError(`${this.name}.delete(${model.id}) model cannot be deleted`, error);
+        }
+    }
+
+    /**
      * Hydrates a model by populating its related properties (e.g., submodels) from stored data.
      *
      * @param {Model} model - The model to hydrate.
@@ -383,6 +414,19 @@ export class EngineError extends Error {
 export class NotFoundEngineError extends EngineError {
     /**
      * Creates an instance of `NotFoundEngineError`.
+     *
+     * @param {string} message - The error message.
+     * @param {Error} [error] - An optional underlying error that caused this error.
+     */
+}
+
+/**
+ * Represents an error that occurs when a requested resource or item cannot be deleted by the engine.
+ * Extends the `EngineError` class.
+ */
+export class CannotDeleteEngineError extends EngineError {
+    /**
+     * Creates an instance of `CannotDeleteEngineError`.
      *
      * @param {string} message - The error message.
      * @param {Error} [error] - An optional underlying error that caused this error.

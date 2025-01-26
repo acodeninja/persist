@@ -92,10 +92,24 @@ function stubFs(filesystem = {}, models = []) {
         return Promise.reject(err);
     });
 
+    const rm = sinon.stub().callsFake((filePath) => {
+        for (const [filename, _] of Object.entries(resolvedFiles)) {
+            if (filePath.endsWith(filename)) {
+                delete resolvedFiles[filename];
+                return Promise.resolve();
+            }
+        }
+
+        const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+        err.code = 'EPIPE';
+        err.errno = -3;
+        return Promise.reject(err);
+    });
+
     const writeFile = sinon.stub();
     const mkdir = sinon.stub();
 
-    return {readFile, writeFile, mkdir};
+    return {readFile, rm, writeFile, mkdir, resolvedFiles};
 }
 
 export default stubFs;
