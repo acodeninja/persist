@@ -274,6 +274,11 @@ class Engine {
         const additionalDeletions = [];
         const deletedModels = [];
 
+        /**
+         * Delete the given model, updating search indexes as required.
+         * @param {Model} m - The model to be deleted.
+         * @return {Promise<void>}
+         */
         const deleteModel = async (m) => {
             if (deletedModels.includes(m.id)) return;
             if (m.constructor.searchProperties().length > 0) {
@@ -309,6 +314,11 @@ class Engine {
             deletedModels.push(m.id);
         };
 
+        /**
+         * Process updates to all sub-models of the given model.
+         * @param {Model} m - The model to process for updates.
+         * @return {Promise<void>}
+         */
         const processModelUpdates = async (m) => {
             if (!processedModels.includes(m.id)) {
                 processedModels.push(m.id);
@@ -351,14 +361,17 @@ class Engine {
             const hydrated = await this.hydrate(model);
             await processModelUpdates(hydrated);
             await deleteModel(hydrated);
-            for (const model of modelUpdates) {
-                if (!additionalDeletions.map(m => m.id).includes(model.id)) {
-                    await this.put(model);
+
+            for (const updatedModel of modelUpdates) {
+                if (!additionalDeletions.map(m => m.id).includes(updatedModel.id)) {
+                    await this.put(updatedModel);
                 }
             }
-            for (const model of additionalDeletions) {
-                await deleteModel(model);
+
+            for (const modelToBeDeleted of additionalDeletions) {
+                await deleteModel(modelToBeDeleted);
             }
+
             await this.putIndex(indexUpdates);
         } catch (error) {
             if (error.constructor === NotImplementedError) throw error;

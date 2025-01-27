@@ -114,8 +114,8 @@ function stubFs(filesystem = {}, models = []) {
         const path = filePath.replace('/tmp/fileEngine/', '');
         if (resolvedFiles[path]) {
             resolvedFiles[path] = contents;
-            return Promise.resolve();
         }
+        return Promise.resolve();
     });
 
     const mkdir = sinon.stub();
