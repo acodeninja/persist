@@ -33,6 +33,28 @@ test('UnimplementedEngine.put(model) raises a putModel not implemented error', a
     t.is(error.message, 'UnimplementedEngine must implement .putModel()');
 });
 
+test('UnimplementedEngine.delete(model) raises a getById not implemented error', async t => {
+    const error = await t.throwsAsync(() =>
+            UnimplementedEngine.delete(new Type.Model()),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'UnimplementedEngine must implement .getById()');
+});
+
+test('UnimplementedEngine.delete(model) raises a deleteById not implemented error when getById is implemented', async t => {
+    class WithGetById extends Engine {
+        static getById() {
+            return Promise.resolve(new Type.Model());
+        }
+    }
+
+    const error = await t.throwsAsync(() =>
+            WithGetById.delete(new Type.Model()),
+        {instanceOf: NotImplementedError},
+    );
+    t.is(error.message, 'WithGetById must implement .deleteById()');
+});
+
 test('UnimplementedEngine.putIndex(model) raises a putIndex not implemented error', async t => {
     const error = await t.throwsAsync(() =>
             UnimplementedEngine.putIndex(new Type.Model()),

@@ -76,13 +76,31 @@ function stubFs(filesystem = {}, models = []) {
         }
     }
 
+    resolvedFiles['_index.json'] = {
+        ...resolvedFiles['_index.json'] || {},
+        ...Object.fromEntries(models.map(m => ([m.id, m.toIndexData()]))),
+    };
+
     const readFile = sinon.stub().callsFake((filePath) => {
-        for (const [filename, value] of Object.entries(resolvedFiles)) {
+        const path = filePath.replace('/tmp/fileEngine/', '');
+        if (resolvedFiles[path]) {
+            if (typeof resolvedFiles[path] === 'string') {
+                return Promise.resolve(Buffer.from(resolvedFiles[path]));
+            }
+            return Promise.resolve(Buffer.from(JSON.stringify(resolvedFiles[path])));
+        }
+
+        const err = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+        err.code = 'EPIPE';
+        err.errno = -3;
+        return Promise.reject(err);
+    });
+
+    const rm = sinon.stub().callsFake((filePath) => {
+        for (const [filename, _] of Object.entries(resolvedFiles)) {
             if (filePath.endsWith(filename)) {
-                if (typeof value === 'string') {
-                    return Promise.resolve(Buffer.from(value));
-                }
-                return Promise.resolve(Buffer.from(JSON.stringify(value)));
+                delete resolvedFiles[filename];
+                return Promise.resolve();
             }
         }
 
@@ -92,10 +110,17 @@ function stubFs(filesystem = {}, models = []) {
         return Promise.reject(err);
     });
 
-    const writeFile = sinon.stub();
+    const writeFile = sinon.stub().callsFake((filePath, contents) => {
+        const path = filePath.replace('/tmp/fileEngine/', '');
+        if (resolvedFiles[path]) {
+            resolvedFiles[path] = contents;
+        }
+        return Promise.resolve();
+    });
+
     const mkdir = sinon.stub();
 
-    return {readFile, writeFile, mkdir};
+    return {readFile, rm, writeFile, mkdir, resolvedFiles};
 }
 
 export default stubFs;

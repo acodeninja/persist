@@ -25,6 +25,18 @@ class Engine {
     }
 
     /**
+     * Deletes a model by its ID. This method must be implemented by subclasses.
+     *
+     * @param {string} _id - The ID of the model to retrieve.
+     * @throws {NotImplementedError} Throws if the method is not implemented.
+     * @returns {Promise<void>} - Returns a promise resolving when the model has been deleted.
+     * @abstract
+     */
+    static deleteById(_id) {
+        return Promise.reject(new NotImplementedError(`${this.name} must implement .deleteById()`));
+    }
+
+    /**
      * Saves a model to the data store. This method must be implemented by subclasses.
      *
      * @param {Model} _data - The model data to save.
@@ -181,7 +193,10 @@ class Engine {
                 await this.putModel(m);
 
                 uploadedModels.push(m.id);
-                indexUpdates[m.constructor.name] = (indexUpdates[m.constructor.name] ?? []).concat([m]);
+                indexUpdates[m.constructor.name] = {
+                    ...indexUpdates[m.constructor.name] || {},
+                    [m.id]: m,
+                };
 
                 if (m.constructor.searchProperties().length > 0) {
                     const rawSearchIndex = {
@@ -240,6 +255,127 @@ class Engine {
         } catch (error) {
             if (error.constructor === NotImplementedError) throw error;
             throw new NotFoundEngineError(`${this.name}.get(${id}) model not found`, error);
+        }
+    }
+
+    /**
+     * Deletes a model
+     *
+     * @param {Model} model
+     * @return {Promise<void>}
+     * @throws {NotFoundEngineError} Throws if the model is not found.
+     */
+    static async delete(model) {
+        this.checkConfiguration();
+
+        const modelUpdates = [];
+        const processedModels = [];
+        const indexUpdates = {};
+        const additionalDeletions = [];
+        const deletedModels = [];
+
+        /**
+         * Delete the given model, updating search indexes as required.
+         * @param {Model} m - The model to be deleted.
+         * @return {Promise<void>}
+         */
+        const deleteModel = async (m) => {
+            if (deletedModels.includes(m.id)) return;
+            if (m.constructor.searchProperties().length > 0) {
+                const rawSearchIndex = await this.getSearchIndexRaw(m.constructor);
+
+                delete rawSearchIndex[m.id];
+
+                await this.putSearchIndexRaw(m.constructor, rawSearchIndex);
+
+                const compiledIndex = lunr(function () {
+                    this.ref('id');
+
+                    for (const field of m.constructor.searchProperties()) {
+                        this.field(field);
+                    }
+
+                    Object.values(rawSearchIndex).forEach(function (doc) {
+                        this.add(doc);
+                    }, this);
+                });
+
+                await this.putSearchIndexCompiled(m.constructor, compiledIndex);
+            }
+
+            if (m.constructor.indexedProperties().length > 0) {
+                indexUpdates[m.constructor.name] = {
+                    ...indexUpdates[m.constructor.name] || {},
+                    [m.id]: undefined,
+                };
+            }
+
+            await this.deleteById(m.id);
+            deletedModels.push(m.id);
+        };
+
+        /**
+         * Process updates to all sub-models of the given model.
+         * @param {Model} m - The model to process for updates.
+         * @return {Promise<void>}
+         */
+        const processModelUpdates = async (m) => {
+            if (!processedModels.includes(m.id)) {
+                processedModels.push(m.id);
+
+                for (const [key, property] of Object.entries(m)) {
+                    if (Type.Model.isModel(property)) {
+                        if (property.id === model.id) {
+                            m[key] = undefined;
+                            indexUpdates[m.constructor.name] = {
+                                ...indexUpdates[m.constructor.name] || {},
+                                [m.id]: m,
+                            };
+                            modelUpdates.push(m);
+                        }
+
+                        if (m.id !== model.id && (Type.Model.isModel(m.constructor[key]) ? m.constructor[key] : m.constructor[key]())._required) {
+                            additionalDeletions.push(m);
+                        }
+
+                        await processModelUpdates(property);
+                    }
+                    if (Array.isArray(property) && Type.Model.isModel(property[0])) {
+                        for (const [index, subModel] of property.entries()) {
+                            if (subModel.id === model.id) {
+                                m[key].splice(index, 1);
+                                indexUpdates[m.constructor.name] = {
+                                    ...indexUpdates[m.constructor.name] || {},
+                                    [m.id]: m,
+                                };
+                                modelUpdates.push(m);
+                            }
+                            await processModelUpdates(subModel);
+                        }
+                    }
+                }
+            }
+        };
+
+        try {
+            const hydrated = await this.hydrate(model);
+            await processModelUpdates(hydrated);
+            await deleteModel(hydrated);
+
+            for (const updatedModel of modelUpdates) {
+                if (!additionalDeletions.map(m => m.id).includes(updatedModel.id)) {
+                    await this.put(updatedModel);
+                }
+            }
+
+            for (const modelToBeDeleted of additionalDeletions) {
+                await deleteModel(modelToBeDeleted);
+            }
+
+            await this.putIndex(indexUpdates);
+        } catch (error) {
+            if (error.constructor === NotImplementedError) throw error;
+            throw new CannotDeleteEngineError(`${this.name}.delete(${model.id}) model cannot be deleted`, error);
         }
     }
 
@@ -383,6 +519,19 @@ export class EngineError extends Error {
 export class NotFoundEngineError extends EngineError {
     /**
      * Creates an instance of `NotFoundEngineError`.
+     *
+     * @param {string} message - The error message.
+     * @param {Error} [error] - An optional underlying error that caused this error.
+     */
+}
+
+/**
+ * Represents an error that occurs when a requested resource or item cannot be deleted by the engine.
+ * Extends the `EngineError` class.
+ */
+export class CannotDeleteEngineError extends EngineError {
+    /**
+     * Creates an instance of `CannotDeleteEngineError`.
      *
      * @param {string} message - The error message.
      * @param {Error} [error] - An optional underlying error that caused this error.

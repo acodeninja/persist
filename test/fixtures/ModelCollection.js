@@ -1,4 +1,4 @@
-import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from './Models.js';
+import {CircularManyModel, CircularModel, CircularRequiredModel, LinkedManyModel, LinkedModel, MainModel} from './Models.js';
 import lunr from 'lunr';
 
 /**
@@ -175,6 +175,11 @@ export class Models {
         circular.id = this.getNextModelId(circular);
         model.circular = circular;
         this.addModel(circular);
+
+        const circularRequired = new CircularRequiredModel({linked: model, other: circular});
+        circularRequired.id = this.getNextModelId(circularRequired);
+        model.circularRequired = circularRequired;
+        this.addModel(circularRequired);
 
         const circularMany = new CircularManyModel({linked: [model]});
         circularMany.id = this.getNextModelId(circularMany);

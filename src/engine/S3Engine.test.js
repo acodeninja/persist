@@ -1,6 +1,6 @@
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
-import {EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
-import {GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
+import {DeleteObjectsCommand, GetObjectCommand, NoSuchKey, PutObjectCommand} from '@aws-sdk/client-s3';
 import {Models} from '../../test/fixtures/ModelCollection.js';
 import S3Engine from './S3Engine.js';
 import assertions from '../../test/assertions.js';
@@ -531,7 +531,7 @@ test('S3Engine.put(model) when putting an index fails', async t => {
         message: 'Failed to put s3://test-bucket/test/MainModel/_index.json',
     });
 
-    t.is(client.send.getCalls().length, 11);
+    t.is(client.send.getCalls().length, 12);
 
     assertions.calledWith(t, client.send, new PutObjectCommand({
         Key: 'test/MainModel/000000000000.json',
@@ -595,6 +595,13 @@ test('S3Engine.put(model) when putting an index fails', async t => {
     assertions.calledWith(t, client.send, new PutObjectCommand({
         Key: 'test/CircularModel/000000000000.json',
         Body: JSON.stringify(model.circular.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/CircularRequiredModel/000000000000.json',
+        Body: JSON.stringify(model.circularRequired.toData()),
         Bucket: 'test-bucket',
         ContentType: 'application/json',
     }));
@@ -845,6 +852,117 @@ test('S3Engine.hydrate(model)', async t => {
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/000000000001.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedManyModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/MainModel/000000000000.json',
+    }));
+
+    t.is(client.send.getCalls().length, 7);
+    t.deepEqual(hydratedModel, model);
+});
+
+test('S3Engine.delete(model)', async t => {
+    const models = new Models();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const client = stubS3Client({}, {'test-bucket': Object.values(models.models)});
+
+    await S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client,
+    }).delete(modelToBeDeleted);
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/MainModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedModel/000000000001.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/LinkedManyModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularManyModel/000000000000.json',
+    }));
+
+    assertions.calledWith(t, client.send, new DeleteObjectsCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularManyModel/000000000000.json',
+    }));
+
+    t.is(client.send.getCalls().length, 32);
+
+    t.falsy(Object.keys(client.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
+});
+
+test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t => {
+    const models = new Models();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const client = stubS3Client({}, {'test-bucket': Object.values(models.models)});
+    const patchedClient = stubS3Client({}, {'test-bucket': Object.values(models.models)});
+
+    patchedClient.send.callsFake(command => {
+        if (command?.constructor?.name === 'DeleteObjectCommand') {
+            return Promise.reject(new NoSuchKey({message: `${command.input.Key} does not exist`}));
+        }
+        return client.send(command);
+    });
+
+    await t.throwsAsync(() => S3Engine.configure({
+        bucket: 'test-bucket',
+        prefix: 'test',
+        client: patchedClient,
+    }).delete(modelToBeDeleted), {
+        instanceOf: CannotDeleteEngineError,
+        message: 'S3Engine.delete(MainModel/000000000000) model cannot be deleted',
+    });
+
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/MainModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
         Key: 'test/CircularModel/000000000000.json',
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
@@ -864,6 +982,13 @@ test('S3Engine.hydrate(model)', async t => {
         Key: 'test/CircularManyModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 6);
-    t.deepEqual(hydratedModel, model);
+    assertions.calledWith(t, patchedClient.send, new DeleteObjectsCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/MainModel/000000000000.json',
+    }));
+
+    t.is(client.send.getCalls().length, 10);
+    t.is(patchedClient.send.getCalls().length, 11);
+
+    t.truthy(Object.keys(patchedClient.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });

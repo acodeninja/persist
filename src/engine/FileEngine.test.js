@@ -1,5 +1,5 @@
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
-import {EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
 import FileEngine from './FileEngine.js';
 import {Models} from '../../test/fixtures/ModelCollection.js';
 import assertions from '../../test/assertions.js';
@@ -111,8 +111,8 @@ test('FileEngine.put(model) updates existing search indexes', async t => {
         filesystem,
     }).put(model));
 
-    t.is(filesystem.readFile.getCalls().length, 7);
-    t.is(filesystem.writeFile.getCalls().length, 14);
+    t.is(filesystem.readFile.getCalls().length, 8);
+    t.is(filesystem.writeFile.getCalls().length, 16);
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_search_index_raw.json');
 
@@ -161,8 +161,8 @@ test('FileEngine.put(model) updates existing indexes', async t => {
         filesystem,
     }).put(model));
 
-    t.is(filesystem.readFile.getCalls().length, 7);
-    t.is(filesystem.writeFile.getCalls().length, 14);
+    t.is(filesystem.readFile.getCalls().length, 8);
+    t.is(filesystem.writeFile.getCalls().length, 16);
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_index.json');
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_index.json', JSON.stringify(models.getIndex(
@@ -447,11 +447,88 @@ test('FileEngine.hydrate(model)', async t => {
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularRequiredModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000000.json');
 
-    t.is(filesystem.readFile.getCalls().length, 6);
+    t.is(filesystem.readFile.getCalls().length, 7);
     t.deepEqual(hydratedModel, model);
+});
+
+test('FileEngine.delete(model)', async t => {
+    const models = new Models();
+    models.createFullTestModel();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const filesystem = stubFs({}, Object.values(models.models));
+
+    await FileEngine.configure({
+        path: '/tmp/fileEngine',
+        filesystem,
+    }).delete(modelToBeDeleted);
+
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularRequiredModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000002.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000003.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000001.json');
+
+    t.is(filesystem.readFile.getCalls().length, 17);
+
+    const searchIndexWithout = models.getRawSearchIndex(MainModel);
+    delete searchIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index_raw.json', JSON.stringify(searchIndexWithout));
+
+    const mainModelIndexWithout = models.getIndex(MainModel);
+    delete mainModelIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_index.json', JSON.stringify(mainModelIndexWithout));
+
+    const globalModelIndexWithout = models.getIndex();
+    delete globalModelIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/_index.json', JSON.stringify(globalModelIndexWithout));
+
+    const circularModelWithout = modelToBeDeleted.circular.toData();
+    delete circularModelWithout.linked;
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/CircularModel/000000000001.json', JSON.stringify(circularModelWithout));
+
+    const circularMany1ModelWithout = modelToBeDeleted.circularMany[0].toData();
+    circularMany1ModelWithout.linked = [];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/CircularManyModel/000000000001.json', JSON.stringify(circularMany1ModelWithout));
+
+    t.falsy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
+
+    assertions.calledWith(t, filesystem.rm, '/tmp/fileEngine/MainModel/000000000001.json');
+    assertions.calledWith(t, filesystem.rm, '/tmp/fileEngine/CircularRequiredModel/000000000001.json');
+
+    t.is(filesystem.rm.getCalls().length, 2);
+});
+
+test('FileEngine.delete(model) when rm throws an error', async t => {
+    const models = new Models();
+    const model = models.createFullTestModel();
+    const modelToBeDeleted = models.createFullTestModel();
+
+    const filesystem = stubFs({}, [model, modelToBeDeleted]);
+
+    modelToBeDeleted.id = 'MainModel/999999999999';
+
+    await t.throwsAsync(() => FileEngine.configure({
+        path: '/tmp/fileEngine',
+        filesystem,
+    }).delete(modelToBeDeleted), {
+        instanceOf: CannotDeleteEngineError,
+        message: 'FileEngine.delete(MainModel/999999999999) model cannot be deleted',
+    });
+
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/999999999999.json');
+
+    t.is(filesystem.readFile.getCalls().length, 1);
+
+    t.truthy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
+
+    t.is(filesystem.rm.getCalls().length, 0);
 });

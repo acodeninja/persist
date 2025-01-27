@@ -45,6 +45,21 @@ export class CircularModel extends Type.Model {
 }
 
 /**
+ * Represents a model with a required circular reference to the `MainModel`.
+ *
+ * @class CircularRequiredModel
+ * @extends {Type.Model}
+ * @property {MainModel} linked - A circular reference to the `MainModel`.
+ */
+export class CircularRequiredModel extends Type.Model {
+    static {
+        this.setMinifiedName('CircularRequiredModel');
+        this.linked = () => MainModel.required;
+        this.other = CircularModel.required;
+    }
+}
+
+/**
  * Represents a model with an array of circular references to the `MainModel`.
  *
  * @class CircularManyModel
@@ -129,6 +144,7 @@ export class MainModel extends Type.Model {
         this.requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
         this.requiredArrayOfDate = Type.Array.of(Type.Date).required;
         this.circular = CircularModel;
+        this.circularRequired = CircularRequiredModel.required;
         this.circularMany = Type.Array.of(CircularManyModel);
         this.linked = LinkedModel;
         this.requiredLinked = () => LinkedModel.required;

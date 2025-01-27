@@ -297,6 +297,7 @@ test('.compile(MainModel) has the given schema associated with it', t => {
             'requiredArrayOfNumber',
             'requiredArrayOfBoolean',
             'requiredArrayOfDate',
+            'circularRequired',
             'requiredLinked',
         ],
         properties: {
@@ -397,6 +398,17 @@ test('.compile(MainModel) has the given schema associated with it', t => {
                     type: 'object',
                 },
                 type: 'array',
+            },
+            circularRequired: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['id'],
+                properties: {
+                    id: {
+                        type: 'string',
+                        pattern: '^CircularRequiredModel/[A-Z0-9]+$',
+                    },
+                },
             },
         },
     });
