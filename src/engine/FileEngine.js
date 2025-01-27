@@ -109,19 +109,20 @@ class FileEngine extends Engine {
     /**
      * Saves the index for multiple models to the file system.
      *
-     * @param {Object} index - An object where keys are locations and values are arrays of models.
+     * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
      * @throws {FailedWriteFileEngineError} Throws if the index cannot be written to the file system.
      */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
-            const modelIndex = Object.fromEntries(models.map((m) => [m.id, m.toIndexData()]));
             const filePath = join(this.configuration.path, location, '_index.json');
             const currentIndex = JSON.parse((await this.configuration.filesystem.readFile(filePath).catch(() => '{}')).toString());
 
             try {
                 await this.configuration.filesystem.writeFile(filePath, JSON.stringify({
                     ...currentIndex,
-                    ...modelIndex,
+                    ...Object.fromEntries(
+                        Object.entries(models).map(([k, v]) => [k, v?.toIndexData?.() || v]),
+                    ),
                 }));
             } catch (error) {
                 throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
@@ -132,7 +133,12 @@ class FileEngine extends Engine {
             await processIndex(location, models);
         }
 
-        await processIndex('', Object.values(index).flat());
+        await processIndex('', Object.values(index).reduce((accumulator, currentValue) => {
+            Object.keys(currentValue).forEach(key => {
+                accumulator[key] = currentValue[key];
+            });
+            return accumulator;
+        }, {}));
     }
 
     /**

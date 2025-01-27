@@ -841,7 +841,7 @@ test('HTTPEngine.delete(model)', async t => {
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}, method: 'DELETE'});
 
-    t.is(fetch.getCalls().length, 7);
+    t.is(fetch.getCalls().length, 28);
 
     t.falsy(Object.keys(fetch.resolvedFiles).includes('MainModel/000000000000.json'));
 });
@@ -877,8 +877,8 @@ test('HTTPEngine.delete(model) when fetch(method=DELETE) throws an error', async
 
     assertions.calledWith(t, patchedFetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}, method: 'DELETE'});
 
-    t.is(fetch.getCalls().length, 6);
-    t.is(patchedFetch.getCalls().length, 7);
+    t.is(fetch.getCalls().length, 19);
+    t.is(patchedFetch.getCalls().length, 20);
 
     t.falsy(Object.keys(fetch.resolvedFiles).includes('MainModel/000000000000.json'));
 });

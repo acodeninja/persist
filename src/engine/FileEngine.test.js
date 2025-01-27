@@ -458,10 +458,10 @@ test('FileEngine.hydrate(model)', async t => {
 
 test('FileEngine.delete(model)', async t => {
     const models = new Models();
-    const model = models.createFullTestModel();
+    models.createFullTestModel();
     const modelToBeDeleted = models.createFullTestModel();
 
-    const filesystem = stubFs({}, [model, modelToBeDeleted]);
+    const filesystem = stubFs({}, Object.values(models.models));
 
     await FileEngine.configure({
         path: '/tmp/fileEngine',
@@ -475,7 +475,27 @@ test('FileEngine.delete(model)', async t => {
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000001.json');
 
-    t.is(filesystem.readFile.getCalls().length, 6);
+    t.is(filesystem.readFile.getCalls().length, 15);
+
+    const searchIndexWithout = models.getRawSearchIndex(MainModel);
+    delete searchIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index_raw.json', JSON.stringify(searchIndexWithout));
+
+    const mainModelIndexWithout = models.getIndex(MainModel);
+    delete mainModelIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_index.json', JSON.stringify(mainModelIndexWithout));
+
+    const globalModelIndexWithout = models.getIndex();
+    delete globalModelIndexWithout[modelToBeDeleted.id];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/_index.json', JSON.stringify(globalModelIndexWithout));
+
+    const circularModelWithout = modelToBeDeleted.circular.toData();
+    delete circularModelWithout.linked;
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/CircularModel/000000000001.json', JSON.stringify(circularModelWithout));
+
+    const circularMany1ModelWithout = modelToBeDeleted.circularMany[0].toData();
+    circularMany1ModelWithout.linked = [];
+    assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/CircularManyModel/000000000001.json', JSON.stringify(circularMany1ModelWithout));
 
     t.falsy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
 

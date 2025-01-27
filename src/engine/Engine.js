@@ -193,7 +193,10 @@ class Engine {
                 await this.putModel(m);
 
                 uploadedModels.push(m.id);
-                indexUpdates[m.constructor.name] = (indexUpdates[m.constructor.name] ?? []).concat([m]);
+                indexUpdates[m.constructor.name] = {
+                    ...indexUpdates[m.constructor.name] || {},
+                    [m.id]: m,
+                };
 
                 if (m.constructor.searchProperties().length > 0) {
                     const rawSearchIndex = {
@@ -265,9 +268,84 @@ class Engine {
     static async delete(model) {
         this.checkConfiguration();
 
+        const modelUpdates = [];
+        const processedModels = [];
+        const indexUpdates = {};
+
+        const deleteModel = async (m) => {
+            if (m.constructor.searchProperties().length > 0) {
+                const rawSearchIndex = await this.getSearchIndexRaw(m.constructor);
+
+                delete rawSearchIndex[m.id];
+
+                await this.putSearchIndexRaw(m.constructor, rawSearchIndex);
+
+                const compiledIndex = lunr(function () {
+                    this.ref('id');
+
+                    for (const field of m.constructor.searchProperties()) {
+                        this.field(field);
+                    }
+
+                    Object.values(rawSearchIndex).forEach(function (doc) {
+                        this.add(doc);
+                    }, this);
+                });
+
+                await this.putSearchIndexCompiled(m.constructor, compiledIndex);
+            }
+
+            if (m.constructor.indexedProperties().length > 0) {
+                indexUpdates[m.constructor.name] = {
+                    ...indexUpdates[m.constructor.name] || {},
+                    [m.id]: undefined,
+                };
+            }
+
+            await this.deleteById(m.id);
+        };
+
+        const processModelUpdates = async (m) => {
+            if (!processedModels.includes(m.id)) {
+                processedModels.push(m.id);
+
+                for (const [key, property] of Object.entries(m)) {
+                    if (Type.Model.isModel(property)) {
+                        if (property.id === model.id) {
+                            m[key] = undefined;
+                            indexUpdates[m.constructor.name] = {
+                                ...indexUpdates[m.constructor.name] || {},
+                                [m.id]: m,
+                            };
+                            modelUpdates.push(m);
+                        }
+                        await processModelUpdates(property);
+                    }
+                    if (Array.isArray(property) && Type.Model.isModel(property[0])) {
+                        for (const [index, subModel] of property.entries()) {
+                            if (subModel.id === model.id) {
+                                m[key].splice(index, 1);
+                                indexUpdates[m.constructor.name] = {
+                                    ...indexUpdates[m.constructor.name] || {},
+                                    [m.id]: m,
+                                };
+                                modelUpdates.push(m);
+                            }
+                            await processModelUpdates(subModel);
+                        }
+                    }
+                }
+            }
+        };
+
         try {
             const hydrated = await this.hydrate(model);
-            await this.deleteById(hydrated.id);
+            await processModelUpdates(hydrated);
+            for (const model of modelUpdates) {
+                await this.put(model);
+            }
+            await deleteModel(hydrated);
+            await this.putIndex(indexUpdates);
         } catch (error) {
             if (error.constructor === NotImplementedError) throw error;
             throw new CannotDeleteEngineError(`${this.name}.delete(${model.id}) model cannot be deleted`, error);

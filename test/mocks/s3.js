@@ -113,6 +113,10 @@ function stubS3Client(filesystem = {}, models = {}) {
                 }
                 return Promise.reject(new NoSuchKey({}));
             case 'PutObjectCommand':
+                resolvedBuckets[command.input.Bucket] = {
+                    ...resolvedBuckets[command.input.Bucket] || {},
+                    [command.input.Key]: command.input.Value,
+                };
                 return Promise.resolve(null);
             case 'DeleteObjectCommand':
                 if (resolvedBuckets[command.input.Bucket]) {

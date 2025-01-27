@@ -181,14 +181,12 @@ class HTTPEngine extends Engine {
     /**
      * Uploads (puts) an index object to the server.
      *
-     * @param {Object} index - The index data to upload, organized by location.
+     * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
      * @returns {Promise<void>}
-     *
      * @throws {HTTPRequestFailedError} Thrown if the PUT request fails.
      */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
-            const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
             const url = new URL([
                 this.configuration.host,
                 this.configuration.prefix,
@@ -200,7 +198,9 @@ class HTTPEngine extends Engine {
                 ...this._getWriteOptions(),
                 body: JSON.stringify({
                     ...await this.getIndex(location),
-                    ...modelIndex,
+                    ...Object.fromEntries(
+                        Object.entries(models).map(([k, v]) => [k, v?.toIndexData?.() || v]),
+                    ),
                 }),
             });
         };
@@ -209,7 +209,12 @@ class HTTPEngine extends Engine {
             await processIndex(location, models);
         }
 
-        await processIndex(null, Object.values(index).flat());
+        await processIndex(null, Object.values(index).reduce((accumulator, currentValue) => {
+            Object.keys(currentValue).forEach(key => {
+                accumulator[key] = currentValue[key];
+            });
+            return accumulator;
+        }, {}));
     }
 
     /**

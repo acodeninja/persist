@@ -910,7 +910,7 @@ test('S3Engine.delete(model)', async t => {
         Key: 'test/CircularManyModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 7);
+    t.is(client.send.getCalls().length, 28);
 
     t.falsy(Object.keys(client.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });
@@ -968,8 +968,8 @@ test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t
         Key: 'test/CircularManyModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 6);
-    t.is(patchedClient.send.getCalls().length, 7);
+    t.is(client.send.getCalls().length, 19);
+    t.is(patchedClient.send.getCalls().length, 20);
 
     t.truthy(Object.keys(patchedClient.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });

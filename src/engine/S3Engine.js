@@ -131,16 +131,13 @@ class S3Engine extends Engine {
     /**
      * Puts (uploads) an index object to S3.
      *
-     * @param {Object} index - The index data to upload, organized by location.
+     * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
      * @returns {Promise<void>}
-     *
      * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
-            const modelIndex = Object.fromEntries(models.map(m => [m.id, m.toIndexData()]));
             const Key = [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/');
-
             const currentIndex = await this.getIndex(location);
 
             try {
@@ -150,7 +147,9 @@ class S3Engine extends Engine {
                     ContentType: 'application/json',
                     Body: JSON.stringify({
                         ...currentIndex,
-                        ...modelIndex,
+                        ...Object.fromEntries(
+                            Object.entries(models).map(([k, v]) => [k, v?.toIndexData?.() || v]),
+                        ),
                     }),
                 }));
             } catch (error) {
@@ -162,7 +161,12 @@ class S3Engine extends Engine {
             await processIndex(location, models);
         }
 
-        await processIndex(null, Object.values(index).flat());
+        await processIndex(null, Object.values(index).reduce((accumulator, currentValue) => {
+            Object.keys(currentValue).forEach(key => {
+                accumulator[key] = currentValue[key];
+            });
+            return accumulator;
+        }, {}));
     }
 
     /**
