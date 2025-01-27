@@ -271,8 +271,11 @@ class Engine {
         const modelUpdates = [];
         const processedModels = [];
         const indexUpdates = {};
+        const additionalDeletions = [];
+        const deletedModels = [];
 
         const deleteModel = async (m) => {
+            if (deletedModels.includes(m.id)) return;
             if (m.constructor.searchProperties().length > 0) {
                 const rawSearchIndex = await this.getSearchIndexRaw(m.constructor);
 
@@ -303,6 +306,7 @@ class Engine {
             }
 
             await this.deleteById(m.id);
+            deletedModels.push(m.id);
         };
 
         const processModelUpdates = async (m) => {
@@ -319,6 +323,11 @@ class Engine {
                             };
                             modelUpdates.push(m);
                         }
+
+                        if (m.id !== model.id && (Type.Model.isModel(m.constructor[key]) ? m.constructor[key] : m.constructor[key]())._required) {
+                            additionalDeletions.push(m);
+                        }
+
                         await processModelUpdates(property);
                     }
                     if (Array.isArray(property) && Type.Model.isModel(property[0])) {
@@ -341,10 +350,15 @@ class Engine {
         try {
             const hydrated = await this.hydrate(model);
             await processModelUpdates(hydrated);
-            for (const model of modelUpdates) {
-                await this.put(model);
-            }
             await deleteModel(hydrated);
+            for (const model of modelUpdates) {
+                if (!additionalDeletions.map(m => m.id).includes(model.id)) {
+                    await this.put(model);
+                }
+            }
+            for (const model of additionalDeletions) {
+                await deleteModel(model);
+            }
             await this.putIndex(indexUpdates);
         } catch (error) {
             if (error.constructor === NotImplementedError) throw error;

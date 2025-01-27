@@ -404,7 +404,7 @@ test('HTTPEngine.put(model) when putting an index fails', async t => {
         message: 'Failed to put https://example.com/test/MainModel/_index.json',
     });
 
-    t.is(fetch.getCalls().length, 11);
+    t.is(fetch.getCalls().length, 12);
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {
         headers: {
@@ -810,12 +810,13 @@ test('HTTPEngine.hydrate(model)', async t => {
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularModel/000000000000.json'), {headers: {Accept: 'application/json'}});
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularRequiredModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000001.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
 
-    t.is(fetch.getCalls().length, 6);
+    t.is(fetch.getCalls().length, 7);
 
     t.deepEqual(hydratedModel, model);
 });
@@ -834,14 +835,16 @@ test('HTTPEngine.delete(model)', async t => {
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularModel/000000000000.json'), {headers: {Accept: 'application/json'}});
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularRequiredModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000001.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
 
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularRequiredModel/000000000000.json'), {headers: {Accept: 'application/json'}, method: 'DELETE'});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}, method: 'DELETE'});
 
-    t.is(fetch.getCalls().length, 28);
+    t.is(fetch.getCalls().length, 32);
 
     t.falsy(Object.keys(fetch.resolvedFiles).includes('MainModel/000000000000.json'));
 });
@@ -870,6 +873,7 @@ test('HTTPEngine.delete(model) when fetch(method=DELETE) throws an error', async
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularModel/000000000000.json'), {headers: {Accept: 'application/json'}});
+    assertions.calledWith(t, fetch, new URL('https://example.com/test/CircularRequiredModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000000.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedModel/000000000001.json'), {headers: {Accept: 'application/json'}});
     assertions.calledWith(t, fetch, new URL('https://example.com/test/LinkedManyModel/000000000000.json'), {headers: {Accept: 'application/json'}});
@@ -877,8 +881,8 @@ test('HTTPEngine.delete(model) when fetch(method=DELETE) throws an error', async
 
     assertions.calledWith(t, patchedFetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}, method: 'DELETE'});
 
-    t.is(fetch.getCalls().length, 19);
-    t.is(patchedFetch.getCalls().length, 20);
+    t.is(fetch.getCalls().length, 10);
+    t.is(patchedFetch.getCalls().length, 11);
 
     t.falsy(Object.keys(fetch.resolvedFiles).includes('MainModel/000000000000.json'));
 });

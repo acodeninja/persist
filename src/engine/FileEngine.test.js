@@ -111,8 +111,8 @@ test('FileEngine.put(model) updates existing search indexes', async t => {
         filesystem,
     }).put(model));
 
-    t.is(filesystem.readFile.getCalls().length, 7);
-    t.is(filesystem.writeFile.getCalls().length, 14);
+    t.is(filesystem.readFile.getCalls().length, 8);
+    t.is(filesystem.writeFile.getCalls().length, 16);
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_search_index_raw.json');
 
@@ -161,8 +161,8 @@ test('FileEngine.put(model) updates existing indexes', async t => {
         filesystem,
     }).put(model));
 
-    t.is(filesystem.readFile.getCalls().length, 7);
-    t.is(filesystem.writeFile.getCalls().length, 14);
+    t.is(filesystem.readFile.getCalls().length, 8);
+    t.is(filesystem.writeFile.getCalls().length, 16);
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/_index.json');
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_index.json', JSON.stringify(models.getIndex(
@@ -447,12 +447,13 @@ test('FileEngine.hydrate(model)', async t => {
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000000.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularRequiredModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000000.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000000.json');
 
-    t.is(filesystem.readFile.getCalls().length, 6);
+    t.is(filesystem.readFile.getCalls().length, 7);
     t.deepEqual(hydratedModel, model);
 });
 
@@ -470,12 +471,13 @@ test('FileEngine.delete(model)', async t => {
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularModel/000000000001.json');
+    assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularRequiredModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000002.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedModel/000000000003.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/LinkedManyModel/000000000001.json');
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/CircularManyModel/000000000001.json');
 
-    t.is(filesystem.readFile.getCalls().length, 15);
+    t.is(filesystem.readFile.getCalls().length, 17);
 
     const searchIndexWithout = models.getRawSearchIndex(MainModel);
     delete searchIndexWithout[modelToBeDeleted.id];
@@ -500,8 +502,9 @@ test('FileEngine.delete(model)', async t => {
     t.falsy(Object.keys(filesystem.resolvedFiles).includes('MainModel/000000000001.json'));
 
     assertions.calledWith(t, filesystem.rm, '/tmp/fileEngine/MainModel/000000000001.json');
+    assertions.calledWith(t, filesystem.rm, '/tmp/fileEngine/CircularRequiredModel/000000000001.json');
 
-    t.is(filesystem.rm.getCalls().length, 1);
+    t.is(filesystem.rm.getCalls().length, 2);
 });
 
 test('FileEngine.delete(model) when rm throws an error', async t => {

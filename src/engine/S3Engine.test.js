@@ -531,7 +531,7 @@ test('S3Engine.put(model) when putting an index fails', async t => {
         message: 'Failed to put s3://test-bucket/test/MainModel/_index.json',
     });
 
-    t.is(client.send.getCalls().length, 11);
+    t.is(client.send.getCalls().length, 12);
 
     assertions.calledWith(t, client.send, new PutObjectCommand({
         Key: 'test/MainModel/000000000000.json',
@@ -595,6 +595,13 @@ test('S3Engine.put(model) when putting an index fails', async t => {
     assertions.calledWith(t, client.send, new PutObjectCommand({
         Key: 'test/CircularModel/000000000000.json',
         Body: JSON.stringify(model.circular.toData()),
+        Bucket: 'test-bucket',
+        ContentType: 'application/json',
+    }));
+
+    assertions.calledWith(t, client.send, new PutObjectCommand({
+        Key: 'test/CircularRequiredModel/000000000000.json',
+        Body: JSON.stringify(model.circularRequired.toData()),
         Bucket: 'test-bucket',
         ContentType: 'application/json',
     }));
@@ -845,6 +852,10 @@ test('S3Engine.hydrate(model)', async t => {
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
         Key: 'test/CircularModel/000000000000.json',
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
@@ -861,10 +872,10 @@ test('S3Engine.hydrate(model)', async t => {
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
-        Key: 'test/CircularManyModel/000000000000.json',
+        Key: 'test/MainModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 6);
+    t.is(client.send.getCalls().length, 7);
     t.deepEqual(hydratedModel, model);
 });
 
@@ -890,6 +901,10 @@ test('S3Engine.delete(model)', async t => {
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
         Key: 'test/LinkedModel/000000000000.json',
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
@@ -910,7 +925,7 @@ test('S3Engine.delete(model)', async t => {
         Key: 'test/CircularManyModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 28);
+    t.is(client.send.getCalls().length, 32);
 
     t.falsy(Object.keys(client.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });
@@ -924,7 +939,7 @@ test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t
 
     patchedClient.send.callsFake(command => {
         if (command?.constructor?.name === 'DeleteObjectCommand') {
-            return Promise.reject(new NoSuchKey({}));
+            return Promise.reject(new NoSuchKey({message: `${command.input.Key} does not exist`}));
         }
         return client.send(command);
     });
@@ -941,6 +956,10 @@ test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
         Key: 'test/MainModel/000000000000.json',
+    }));
+    assertions.calledWith(t, client.send, new GetObjectCommand({
+        Bucket: 'test-bucket',
+        Key: 'test/CircularRequiredModel/000000000000.json',
     }));
     assertions.calledWith(t, client.send, new GetObjectCommand({
         Bucket: 'test-bucket',
@@ -965,11 +984,11 @@ test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t
 
     assertions.calledWith(t, patchedClient.send, new DeleteObjectsCommand({
         Bucket: 'test-bucket',
-        Key: 'test/CircularManyModel/000000000000.json',
+        Key: 'test/MainModel/000000000000.json',
     }));
 
-    t.is(client.send.getCalls().length, 19);
-    t.is(patchedClient.send.getCalls().length, 20);
+    t.is(client.send.getCalls().length, 10);
+    t.is(patchedClient.send.getCalls().length, 11);
 
     t.truthy(Object.keys(patchedClient.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });
