@@ -1,6 +1,6 @@
-name: 🔬 quality checks
+name: ⚗️ branch workflow
 
-run-name: 🔬 @${{ github.triggering_actor }} is checking quality on ${{ github.ref_name }}
+run-name: ⚗️ @${{ github.triggering_actor }} triggered branch workflow on ${{ github.ref_name }}
 
 on:
   pull_request:
@@ -38,3 +38,26 @@ jobs:
             --analyzer test-coverage \
             --key javascript \
             --value-file "$(realpath ./coverage/lcov.info)"
+
+  publish-release:
+    name: 📋 publish release
+    if: github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
+    needs:
+      - lint
+      - test-with-coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: asdf-vm/actions/install@v3
+      - run: npm clean-install
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
