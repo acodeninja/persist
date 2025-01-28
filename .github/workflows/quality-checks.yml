@@ -5,7 +5,9 @@ run-name: 🔬 @${{ github.triggering_actor }} is checking quality on ${{ github
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+      - next
 
 jobs:
   lint:
