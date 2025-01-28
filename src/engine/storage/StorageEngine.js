@@ -1,14 +1,14 @@
-import Query from '../Query.js';
-import Type from '../type/index.js';
+import Query from '../../Query.js';
+import Type from '../../type/index.js';
 import lunr from 'lunr';
 
 /**
- * The `Engine` class provides a base interface for implementing data storage and retrieval engines.
+ * The `StorageEngine` class provides a base interface for implementing data storage and retrieval engines.
  * It includes methods for handling models, indexes, and search functionality.
  *
- * @class Engine
+ * @class StorageEngine
  */
-class Engine {
+class StorageEngine {
     static configuration = undefined;
     static _searchCache = undefined;
 
@@ -457,7 +457,7 @@ class Engine {
      * Configures the engine with specific settings.
      *
      * @param {Object} configuration - The configuration settings for the engine.
-     * @returns {Engine} A new engine instance with the applied configuration.
+     * @returns {StorageEngine} A new engine instance with the applied configuration.
      */
     static configure(configuration) {
         class ConfiguredStore extends this {
@@ -476,7 +476,7 @@ class Engine {
      * @abstract
      */
     static checkConfiguration() {
-        // Implemented in extending Engine class
+        // Implemented in extending StorageEngine class
     }
 
     /**
@@ -568,9 +568,9 @@ export class MissConfiguredError extends EngineError {
      * @param {Object} configuration - The configuration object that caused the misconfiguration.
      */
     constructor(configuration) {
-        super('Engine is miss-configured');
+        super('StorageEngine is miss-configured');
         this.configuration = configuration;
     }
 }
 
-export default Engine;
+export default StorageEngine;

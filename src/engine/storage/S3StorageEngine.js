@@ -1,28 +1,28 @@
 import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
-import Engine, {EngineError, MissConfiguredError} from './Engine.js';
+import StorageEngine, {EngineError, MissConfiguredError} from './StorageEngine.js';
 
 /**
  * Represents an error specific to the S3 engine operations.
- * @class S3EngineError
+ * @class S3StorageEngineError
  * @extends EngineError
  */
-class S3EngineError extends EngineError {}
+class S3StorageEngineError extends EngineError {}
 
 /**
  * Error indicating a failure when putting an object to S3.
- * @class FailedPutS3EngineError
- * @extends S3EngineError
+ * @class FailedPutS3StorageEngineError
+ * @extends S3StorageEngineError
  */
-class FailedPutS3EngineError extends S3EngineError {}
+class FailedPutS3StorageEngineError extends S3StorageEngineError {}
 
 /**
- * S3Engine is an extension of the Engine class that provides methods for interacting with AWS S3.
+ * S3StorageEngine is an extension of the StorageEngine class that provides methods for interacting with AWS S3.
  * It allows for storing, retrieving, and managing model data in an S3 bucket.
  *
- * @class S3Engine
- * @extends Engine
+ * @class S3StorageEngine
+ * @extends StorageEngine
  */
-class S3Engine extends Engine {
+class S3StorageEngine extends StorageEngine {
     /**
      * Configures the S3 engine with additional options.
      *
@@ -92,7 +92,7 @@ class S3Engine extends Engine {
      * @param {Model} model - The model object to upload.
      * @returns {Promise<void>}
      *
-     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putModel(model) {
         const Key = [this.configuration.prefix, `${model.id}.json`].join('/');
@@ -105,7 +105,7 @@ class S3Engine extends Engine {
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 
@@ -133,7 +133,7 @@ class S3Engine extends Engine {
      *
      * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
      * @returns {Promise<void>}
-     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
@@ -153,7 +153,7 @@ class S3Engine extends Engine {
                     }),
                 }));
             } catch (error) {
-                throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+                throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
             }
         };
 
@@ -205,7 +205,7 @@ class S3Engine extends Engine {
      * @param {Object} compiledIndex - The compiled search index data.
      * @returns {Promise<void>}
      *
-     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putSearchIndexCompiled(model, compiledIndex) {
         const Key = [this.configuration.prefix, model.toString(), '_search_index.json'].join('/');
@@ -218,7 +218,7 @@ class S3Engine extends Engine {
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 
@@ -229,7 +229,7 @@ class S3Engine extends Engine {
      * @param {Object} rawIndex - The raw search index data.
      * @returns {Promise<void>}
      *
-     * @throws {FailedPutS3EngineError} Thrown if there is an error during the S3 PutObject operation.
+     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putSearchIndexRaw(model, rawIndex) {
         const Key = [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/');
@@ -242,9 +242,9 @@ class S3Engine extends Engine {
                 ContentType: 'application/json',
             }));
         } catch (error) {
-            throw new FailedPutS3EngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
         }
     }
 }
 
-export default S3Engine;
+export default S3StorageEngine;

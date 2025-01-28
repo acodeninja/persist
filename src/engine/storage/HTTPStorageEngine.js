@@ -1,22 +1,22 @@
-import Engine, {EngineError, MissConfiguredError} from './Engine.js';
+import StorageEngine, {EngineError, MissConfiguredError} from './StorageEngine.js';
 
 /**
  * Represents an error specific to HTTP engine operations.
- * @class HTTPEngineError
+ * @class HTTPStorageEngineError
  * @extends EngineError
  */
-export class HTTPEngineError extends EngineError {}
+export class HTTPStorageEngineError extends EngineError {}
 
 /**
  * Error indicating a failed HTTP request.
  * @class HTTPRequestFailedError
- * @extends HTTPEngineError
+ * @extends HTTPStorageEngineError
  *
  * @param {string} url - The URL of the failed request.
  * @param {Object} options - The options used in the fetch request.
  * @param {Response} response - The HTTP response object.
  */
-export class HTTPRequestFailedError extends HTTPEngineError {
+export class HTTPRequestFailedError extends HTTPStorageEngineError {
     constructor(url, options, response) {
         const method = options.method?.toLowerCase() || 'get';
         super(`Failed to ${method} ${url}`);
@@ -27,13 +27,13 @@ export class HTTPRequestFailedError extends HTTPEngineError {
 }
 
 /**
- * HTTPEngine is an extension of the Engine class that provides methods for interacting with HTTP-based APIs.
+ * HTTPStorageEngine is an extension of the StorageEngine class that provides methods for interacting with HTTP-based APIs.
  * It uses the Fetch API for sending and receiving data.
  *
- * @class HTTPEngine
- * @extends Engine
+ * @class HTTPStorageEngine
+ * @extends StorageEngine
  */
-class HTTPEngine extends Engine {
+class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Configures the HTTP engine with additional fetch options.
@@ -315,4 +315,4 @@ class HTTPEngine extends Engine {
     }
 }
 
-export default HTTPEngine;
+export default HTTPStorageEngine;

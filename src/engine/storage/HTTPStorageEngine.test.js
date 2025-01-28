@@ -1,14 +1,14 @@
-import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
-import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
-import HTTPEngine from './HTTPEngine.js';
-import {Models} from '../../test/fixtures/ModelCollection.js';
-import assertions from '../../test/assertions.js';
-import stubFetch from '../../test/mocks/fetch.js';
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './StorageEngine.js';
+import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../../test/fixtures/Models.js';
+import HTTPStorageEngine from './HTTPStorageEngine.js';
+import {Models} from '../../../test/fixtures/ModelCollection.js';
+import assertions from '../../../test/assertions.js';
+import stubFetch from '../../../test/mocks/fetch.js';
 import test from 'ava';
 
-test('HTTPEngine.configure(configuration) returns a new engine without altering the exising one', t => {
+test('HTTPStorageEngine.configure(configuration) returns a new engine without altering the exising one', t => {
     const fetch = stubFetch();
-    const originalStore = HTTPEngine;
+    const originalStore = HTTPStorageEngine;
     const configuredStore = originalStore.configure({
         host: 'https://example.com',
         prefix: 'test',
@@ -23,9 +23,9 @@ test('HTTPEngine.configure(configuration) returns a new engine without altering 
     t.assert(originalStore.configuration === undefined);
 });
 
-test('HTTPEngine.configure(configuration) with additional headers returns a new engine with the headers', t => {
+test('HTTPStorageEngine.configure(configuration) with additional headers returns a new engine with the headers', t => {
     const fetch = stubFetch();
-    const originalStore = HTTPEngine;
+    const originalStore = HTTPStorageEngine;
     const configuredStore = originalStore.configure({
         host: 'https://example.com',
         prefix: 'test',
@@ -51,24 +51,24 @@ test('HTTPEngine.configure(configuration) with additional headers returns a new 
     });
 });
 
-test('HTTPEngine.get(MainModel, id) when engine is not configured', async t => {
+test('HTTPStorageEngine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        () =>  HTTPEngine.get(MainModel, 'MainModel/000000000000'),
+        () =>  HTTPStorageEngine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
     );
 
-    t.is(error.message, 'Engine is miss-configured');
+    t.is(error.message, 'StorageEngine is miss-configured');
 });
 
-test('HTTPEngine.get(MainModel, id) when id exists', async t => {
+test('HTTPStorageEngine.get(MainModel, id) when id exists', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    const got = await HTTPEngine.configure({
+    const got = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -81,7 +81,7 @@ test('HTTPEngine.get(MainModel, id) when id exists', async t => {
     t.like(got.toData(), model.toData());
 });
 
-test('HTTPEngine.get(MainModel, id) when id does not exist', async t => {
+test('HTTPStorageEngine.get(MainModel, id) when id does not exist', async t => {
     const models = new Models();
     models.createFullTestModel();
 
@@ -89,27 +89,27 @@ test('HTTPEngine.get(MainModel, id) when id does not exist', async t => {
 
     await t.throwsAsync(
         () =>
-            HTTPEngine.configure({
+            HTTPStorageEngine.configure({
                 host: 'https://example.com',
                 prefix: 'test',
                 fetch,
             }).get(MainModel, 'MainModel/999999999999'),
         {
             instanceOf: NotFoundEngineError,
-            message: 'HTTPEngine.get(MainModel/999999999999) model not found',
+            message: 'HTTPStorageEngine.get(MainModel/999999999999) model not found',
         },
     );
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/999999999999.json'), {headers: {Accept: 'application/json'}});
 });
 
-test('HTTPEngine.put(model)', async t => {
+test('HTTPStorageEngine.put(model)', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    await HTTPEngine.configure({
+    await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -256,7 +256,7 @@ test('HTTPEngine.put(model)', async t => {
     });
 });
 
-test('HTTPEngine.put(model) when the engine fails to put a compiled search index', async t => {
+test('HTTPStorageEngine.put(model) when the engine fails to put a compiled search index', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -278,7 +278,7 @@ test('HTTPEngine.put(model) when the engine fails to put a compiled search index
         });
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -319,7 +319,7 @@ test('HTTPEngine.put(model) when the engine fails to put a compiled search index
     });
 });
 
-test('HTTPEngine.put(model) when the engine fails to put a raw search index', async t => {
+test('HTTPStorageEngine.put(model) when the engine fails to put a raw search index', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -341,7 +341,7 @@ test('HTTPEngine.put(model) when the engine fails to put a raw search index', as
         });
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -373,7 +373,7 @@ test('HTTPEngine.put(model) when the engine fails to put a raw search index', as
     });
 });
 
-test('HTTPEngine.put(model) when putting an index fails', async t => {
+test('HTTPStorageEngine.put(model) when putting an index fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -395,7 +395,7 @@ test('HTTPEngine.put(model) when putting an index fails', async t => {
         });
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -427,7 +427,7 @@ test('HTTPEngine.put(model) when putting an index fails', async t => {
     });
 });
 
-test('HTTPEngine.put(model) when the initial model put fails', async t => {
+test('HTTPStorageEngine.put(model) when the initial model put fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -449,7 +449,7 @@ test('HTTPEngine.put(model) when the initial model put fails', async t => {
         });
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -470,7 +470,7 @@ test('HTTPEngine.put(model) when the initial model put fails', async t => {
     });
 });
 
-test('HTTPEngine.put(model) when the engine fails to put a linked model', async t => {
+test('HTTPStorageEngine.put(model) when the engine fails to put a linked model', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -492,7 +492,7 @@ test('HTTPEngine.put(model) when the engine fails to put a linked model', async 
         });
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -542,7 +542,7 @@ test('HTTPEngine.put(model) when the engine fails to put a linked model', async 
     });
 });
 
-test('HTTPEngine.put(model) updates existing search indexes', async t => {
+test('HTTPStorageEngine.put(model) updates existing search indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -555,7 +555,7 @@ test('HTTPEngine.put(model) updates existing search indexes', async t => {
         },
     }, Object.values(models.models));
 
-    await HTTPEngine.configure({
+    await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -592,7 +592,7 @@ test('HTTPEngine.put(model) updates existing search indexes', async t => {
     });
 });
 
-test('HTTPEngine.put(model) updates existing indexes', async t => {
+test('HTTPStorageEngine.put(model) updates existing indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -605,7 +605,7 @@ test('HTTPEngine.put(model) updates existing indexes', async t => {
         },
     }, Object.values(models.models));
 
-    await HTTPEngine.configure({
+    await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -683,13 +683,13 @@ test('HTTPEngine.put(model) updates existing indexes', async t => {
     });
 });
 
-test('HTTPEngine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
+test('HTTPStorageEngine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    const found = await HTTPEngine.configure({
+    const found = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -700,13 +700,13 @@ test('HTTPEngine.find(MainModel, {string: "test"}) when a matching model exists'
     t.like(found, [model.toIndexData()]);
 });
 
-test('HTTPEngine.find(MainModel, {string: "not-even-close-to-a-match"}) when a matching model does not exist', async t => {
+test('HTTPStorageEngine.find(MainModel, {string: "not-even-close-to-a-match"}) when a matching model does not exist', async t => {
     const models = new Models();
     models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    const found = await HTTPEngine.configure({
+    const found = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -717,10 +717,10 @@ test('HTTPEngine.find(MainModel, {string: "not-even-close-to-a-match"}) when a m
     t.deepEqual(found, []);
 });
 
-test('HTTPEngine.find(MainModel, {string: "test"}) when no search index exists', async t => {
+test('HTTPStorageEngine.find(MainModel, {string: "test"}) when no search index exists', async t => {
     const fetch = stubFetch({}, []);
 
-    const models = await HTTPEngine.configure({
+    const models = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -731,7 +731,7 @@ test('HTTPEngine.find(MainModel, {string: "test"}) when no search index exists',
     t.deepEqual(models, []);
 });
 
-test('HTTPEngine.search(MainModel, "test") when a matching model exists', async t => {
+test('HTTPStorageEngine.search(MainModel, "test") when a matching model exists', async t => {
     const models = new Models();
     const model1 = models.createFullTestModel();
     const model2 = models.createFullTestModel();
@@ -740,7 +740,7 @@ test('HTTPEngine.search(MainModel, "test") when a matching model exists', async 
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    const found = await HTTPEngine.configure({
+    const found = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -761,13 +761,13 @@ test('HTTPEngine.search(MainModel, "test") when a matching model exists', async 
     }]);
 });
 
-test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
+test('HTTPStorageEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
     const models = new Models();
     models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    const found = await HTTPEngine.configure({
+    const found = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -778,10 +778,10 @@ test('HTTPEngine.search(MainModel, "not-even-close-to-a-match") when no matching
     t.deepEqual(found, []);
 });
 
-test('HTTPEngine.search(MainModel, "tes") when no index exists for the model', async t => {
+test('HTTPStorageEngine.search(MainModel, "tes") when no index exists for the model', async t => {
     const fetch = stubFetch({}, []);
 
-    await t.throwsAsync(() =>  HTTPEngine.configure({
+    await t.throwsAsync(() =>  HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -793,7 +793,7 @@ test('HTTPEngine.search(MainModel, "tes") when no index exists for the model', a
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/_search_index.json'), {headers: {Accept: 'application/json'}});
 });
 
-test('HTTPEngine.hydrate(model)', async t => {
+test('HTTPStorageEngine.hydrate(model)', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -802,7 +802,7 @@ test('HTTPEngine.hydrate(model)', async t => {
     const dryModel = new MainModel();
     dryModel.id = 'MainModel/000000000000';
 
-    const hydratedModel = await HTTPEngine.configure({
+    const hydratedModel = await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -821,13 +821,13 @@ test('HTTPEngine.hydrate(model)', async t => {
     t.deepEqual(hydratedModel, model);
 });
 
-test('HTTPEngine.delete(model)', async t => {
+test('HTTPStorageEngine.delete(model)', async t => {
     const models = new Models();
     const modelToBeDeleted = models.createFullTestModel();
 
     const fetch = stubFetch({}, Object.values(models.models));
 
-    await HTTPEngine.configure({
+    await HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch,
@@ -849,7 +849,7 @@ test('HTTPEngine.delete(model)', async t => {
     t.falsy(Object.keys(fetch.resolvedFiles).includes('MainModel/000000000000.json'));
 });
 
-test('HTTPEngine.delete(model) when fetch(method=DELETE) throws an error', async t => {
+test('HTTPStorageEngine.delete(model) when fetch(method=DELETE) throws an error', async t => {
     const models = new Models();
     const modelToBeDeleted = models.createFullTestModel();
 
@@ -862,13 +862,13 @@ test('HTTPEngine.delete(model) when fetch(method=DELETE) throws an error', async
         return fetch(url, opts);
     });
 
-    await t.throwsAsync(() => HTTPEngine.configure({
+    await t.throwsAsync(() => HTTPStorageEngine.configure({
         host: 'https://example.com',
         prefix: 'test',
         fetch: patchedFetch,
     }).delete(modelToBeDeleted), {
         instanceOf: CannotDeleteEngineError,
-        message: 'HTTPEngine.delete(MainModel/000000000000) model cannot be deleted',
+        message: 'HTTPStorageEngine.delete(MainModel/000000000000) model cannot be deleted',
     });
 
     assertions.calledWith(t, fetch, new URL('https://example.com/test/MainModel/000000000000.json'), {headers: {Accept: 'application/json'}});

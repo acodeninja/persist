@@ -1,12 +1,12 @@
-import {MissConfiguredError, NotFoundEngineError} from './Engine.js';
-import FileEngine from './FileEngine.js';
-import HTTPEngine from './HTTPEngine.js';
-import {MainModel} from '../../test/fixtures/Models.js';
-import {Models} from '../../test/fixtures/ModelCollection.js';
-import S3Engine from './S3Engine.js';
-import stubFetch from '../../test/mocks/fetch.js';
-import stubFs from '../../test/mocks/fs.js';
-import stubS3Client from '../../test/mocks/s3.js';
+import {MissConfiguredError, NotFoundEngineError} from './StorageEngine.js';
+import FileStorageEngine from './FileStorageEngine.js';
+import HTTPStorageEngine from './HTTPStorageEngine.js';
+import {MainModel} from '../../../test/fixtures/Models.js';
+import {Models} from '../../../test/fixtures/ModelCollection.js';
+import S3StorageEngine from './S3StorageEngine.js';
+import stubFetch from '../../../test/mocks/fetch.js';
+import stubFs from '../../../test/mocks/fs.js';
+import stubS3Client from '../../../test/mocks/s3.js';
 import test from 'ava';
 
 const models = new Models();
@@ -14,7 +14,7 @@ const model = models.createFullTestModel();
 
 const engines = [
     {
-        engine: S3Engine,
+        engine: S3StorageEngine,
         configuration: () => ({
             bucket: 'test-bucket',
             prefix: 'test',
@@ -23,7 +23,7 @@ const engines = [
         configurationIgnores: ['client'],
     },
     {
-        engine: FileEngine,
+        engine: FileStorageEngine,
         configuration: () => ({
             path: '/tmp/fileEngine',
             filesystem: stubFs({}, Object.values(models.models)),
@@ -31,7 +31,7 @@ const engines = [
         configurationIgnores: ['filesystem'],
     },
     {
-        engine: HTTPEngine,
+        engine: HTTPStorageEngine,
         configuration: () => {
             const fetch = stubFetch({}, Object.values(models.models));
 
@@ -70,7 +70,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             },
         );
 
-        t.is(error.message, 'Engine is miss-configured');
+        t.is(error.message, 'StorageEngine is miss-configured');
     });
 
     test(`${engine.toString()}.get(MainModel, id) returns a model when one exists`, async t => {
@@ -108,7 +108,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             },
         );
 
-        t.is(error.message, 'Engine is miss-configured');
+        t.is(error.message, 'StorageEngine is miss-configured');
     });
 
     test(`${engine.toString()}.put(model) puts a new model`, async t => {
@@ -126,7 +126,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             },
         );
 
-        t.is(error.message, 'Engine is miss-configured');
+        t.is(error.message, 'StorageEngine is miss-configured');
     });
 
     test(`${engine.toString()}.find(MainModel, parameters) returns an array of matching models`, async t => {
@@ -145,7 +145,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             },
         );
 
-        t.is(error.message, 'Engine is miss-configured');
+        t.is(error.message, 'StorageEngine is miss-configured');
     });
 
     test(`${engine.toString()}.search(MainModel, 'test') returns an array of matching models`, async t => {
@@ -168,7 +168,7 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             },
         );
 
-        t.is(error.message, 'Engine is miss-configured');
+        t.is(error.message, 'StorageEngine is miss-configured');
     });
 
     test(`${engine.toString()}.hydrate(model) returns a hydrated model when the input model comes from ${engine.toString()}.find(MainModel, parameters)`, async t => {

@@ -1,19 +1,19 @@
 import {LinkedModel, MainModel} from '../test/fixtures/Models.js';
 import enableTransactions, {TransactionCommittedError} from './Transactions.js';
-import {EngineError} from './engine/Engine.js';
+import {EngineError} from './engine/storage/StorageEngine.js';
 import {Models} from '../test/fixtures/ModelCollection.js';
 import assertions from '../test/assertions.js';
 import {getTestEngine} from '../test/mocks/engine.js';
 import test from 'ava';
 
-test('enableTransactions(Engine) returns a copy of the engine', t => {
+test('enableTransactions(StorageEngine) returns a copy of the engine', t => {
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 
     t.deepEqual(transactionalEngine.prototype, testEngine.prototype);
 });
 
-test('enableTransactions(Engine) leaves the original engine intact', t => {
+test('enableTransactions(StorageEngine) leaves the original engine intact', t => {
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 

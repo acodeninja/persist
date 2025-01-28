@@ -37,9 +37,9 @@ To search for any `Person` who lives on station road, the following search query
 ```javascript
 import Persist from "@acodeninja/persist";
 import Person from "./Person";
-import FileEngine from "@acodeninja/persist/engine/file"
+import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileEngine
+FileStorageEngine
     .configure(configuration)
     .search(Person, 'station road');
 ```
