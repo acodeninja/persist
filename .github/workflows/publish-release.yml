@@ -1,0 +1,34 @@
+name: 📋 publish release
+
+run-name: 📋 @${{ github.triggering_actor }} is publishing a release
+
+on:
+  workflow_run:
+    workflows:
+      - "🔬 quality checks"
+    branches:
+      - main
+      - next
+    types:
+      - completed
+
+jobs:
+  publish-release:
+    name: 📋 publish release
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: asdf-vm/actions/install@v3
+      - run: npm clean-install
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
