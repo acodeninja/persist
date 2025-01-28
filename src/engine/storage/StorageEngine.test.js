@@ -1,17 +1,17 @@
-import Engine, {NotFoundEngineError, NotImplementedError} from './Engine.js';
-import {MainModel} from '../../test/fixtures/Models.js';
-import {Models} from '../../test/fixtures/ModelCollection.js';
-import Type from '../type/index.js';
+import StorageEngine, {NotFoundEngineError, NotImplementedError} from './StorageEngine.js';
+import {MainModel} from '../../../test/fixtures/Models.js';
+import {Models} from '../../../test/fixtures/ModelCollection.js';
+import Type from '../../type/index.js';
 import sinon from 'sinon';
 import test from 'ava';
 
-class UnimplementedEngine extends Engine {
+class UnimplementedEngine extends StorageEngine {
 
 }
 
-test('Engine.configure returns a new store without altering the exising one', t => {
-    const originalStore = Engine;
-    const configuredStore = Engine.configure({});
+test('StorageEngine.configure returns a new store without altering the exising one', t => {
+    const originalStore = StorageEngine;
+    const configuredStore = StorageEngine.configure({});
 
     t.deepEqual(configuredStore.configuration, {});
     t.assert(originalStore.configuration === undefined);
@@ -42,7 +42,7 @@ test('UnimplementedEngine.delete(model) raises a getById not implemented error',
 });
 
 test('UnimplementedEngine.delete(model) raises a deleteById not implemented error when getById is implemented', async t => {
-    class WithGetById extends Engine {
+    class WithGetById extends StorageEngine {
         static getById() {
             return Promise.resolve(new Type.Model());
         }
@@ -104,7 +104,7 @@ test('UnimplementedEngine.putSearchIndexRaw(Model, {param: value}) raises a putS
 });
 
 test('ImplementedEngine.get(MainModel, id) when id does not exist', async t => {
-    class ImplementedEngine extends Engine {
+    class ImplementedEngine extends StorageEngine {
         static getById(_id) {
             return null;
         }
@@ -120,7 +120,7 @@ test('ImplementedEngine.get(MainModel, id) when id does not exist', async t => {
 });
 
 test('ImplementedEngine.search(MainModel, "test") when caching is off calls ImplementedEngine.getSearchIndexCompiled every time', async t => {
-    class ImplementedEngine extends Engine {
+    class ImplementedEngine extends StorageEngine {
         static getById(id) {
             const models = new Models();
             models.createFullTestModel();
@@ -146,7 +146,7 @@ test('ImplementedEngine.search(MainModel, "test") when caching is on calls Imple
     const models = new Models();
     models.createFullTestModel();
 
-    class ImplementedEngine extends Engine {
+    class ImplementedEngine extends StorageEngine {
         static getById(id) {
             return models.models[id];
         }
@@ -170,7 +170,7 @@ test('ImplementedEngine.put(partialModel) does not put dry models', async t => {
 
     const partialModel = MainModel.fromData(model.toData());
 
-    class ImplementedEngine extends Engine {
+    class ImplementedEngine extends StorageEngine {
         static getById(id) {
             return models.models[id];
         }

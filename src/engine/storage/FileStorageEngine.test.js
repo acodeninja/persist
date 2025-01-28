@@ -1,38 +1,38 @@
-import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
-import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
-import FileEngine from './FileEngine.js';
-import {Models} from '../../test/fixtures/ModelCollection.js';
-import assertions from '../../test/assertions.js';
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './StorageEngine.js';
+import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../../test/fixtures/Models.js';
+import FileStorageEngine from './FileStorageEngine.js';
+import {Models} from '../../../test/fixtures/ModelCollection.js';
+import assertions from '../../../test/assertions.js';
 import fs from 'node:fs/promises';
-import stubFs from '../../test/mocks/fs.js';
+import stubFs from '../../../test/mocks/fs.js';
 import test from 'ava';
 
-test('FileEngine.configure(configuration) returns a new engine without altering the exising one', t => {
-    const originalStore = FileEngine;
+test('FileStorageEngine.configure(configuration) returns a new engine without altering the exising one', t => {
+    const originalStore = FileStorageEngine;
     const configuredStore = originalStore.configure({path: '/tmp/fileEngine'});
 
     t.deepEqual(configuredStore.configuration, {path: '/tmp/fileEngine', filesystem: fs});
     t.assert(originalStore.configuration === undefined);
 });
 
-test('FileEngine.get(MainModel, id) when engine is not configured', async t => {
+test('FileStorageEngine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        () =>  FileEngine.get(MainModel, 'MainModel/000000000000'),
+        () =>  FileStorageEngine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
     );
 
-    t.is(error.message, 'Engine is miss-configured');
+    t.is(error.message, 'StorageEngine is miss-configured');
 });
 
-test('FileEngine.get(MainModel, id) when id exists', async t => {
+test('FileStorageEngine.get(MainModel, id) when id exists', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
     const filesystem = stubFs({}, Object.values(models.models));
 
-    const got = await FileEngine.configure({
+    const got = await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).get(MainModel, 'MainModel/000000000000');
@@ -43,28 +43,28 @@ test('FileEngine.get(MainModel, id) when id exists', async t => {
     t.like(got.toData(), model.toData());
 });
 
-test('FileEngine.get(MainModel, id) when id does not exist', async t => {
+test('FileStorageEngine.get(MainModel, id) when id does not exist', async t => {
     const filesystem = stubFs();
 
     await t.throwsAsync(
-        () => FileEngine.configure({
+        () => FileStorageEngine.configure({
             path: '/tmp/fileEngine',
             filesystem,
         }).get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: NotFoundEngineError,
-            message: 'FileEngine.get(MainModel/000000000000) model not found',
+            message: 'FileStorageEngine.get(MainModel/000000000000) model not found',
         },
     );
 });
 
-test('FileEngine.put(model)', async t => {
+test('FileStorageEngine.put(model)', async t => {
     const filesystem = stubFs();
 
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.notThrowsAsync(() => FileEngine.configure({
+    await t.notThrowsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model));
@@ -93,7 +93,7 @@ test('FileEngine.put(model)', async t => {
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/_index.json', JSON.stringify(models.getIndex()));
 });
 
-test('FileEngine.put(model) updates existing search indexes', async t => {
+test('FileStorageEngine.put(model) updates existing search indexes', async t => {
     const filesystem = stubFs({
         'MainModel/_search_index_raw.json': {
             'MainModel/111111111111': {
@@ -106,7 +106,7 @@ test('FileEngine.put(model) updates existing search indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.notThrowsAsync(() => FileEngine.configure({
+    await t.notThrowsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model));
@@ -137,7 +137,7 @@ test('FileEngine.put(model) updates existing search indexes', async t => {
     )));
 });
 
-test('FileEngine.put(model) updates existing indexes', async t => {
+test('FileStorageEngine.put(model) updates existing indexes', async t => {
     const filesystem = stubFs({
         'MainModel/_index.json': {
             'MainModel/111111111111': {
@@ -156,7 +156,7 @@ test('FileEngine.put(model) updates existing indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.notThrowsAsync(() => FileEngine.configure({
+    await t.notThrowsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model));
@@ -184,7 +184,7 @@ test('FileEngine.put(model) updates existing indexes', async t => {
     })));
 });
 
-test('FileEngine.put(model) when putting an index fails', async t => {
+test('FileStorageEngine.put(model) when putting an index fails', async t => {
     const filesystem = stubFs({
         'MainModel/_index.json': {
             'MainModel/111111111111': {
@@ -203,7 +203,7 @@ test('FileEngine.put(model) when putting an index fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model), {
@@ -225,7 +225,7 @@ test('FileEngine.put(model) when putting an index fails', async t => {
     )));
 });
 
-test('FileEngine.put(model) when the engine fails to put a compiled search index', async t => {
+test('FileStorageEngine.put(model) when the engine fails to put a compiled search index', async t => {
     const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
@@ -237,7 +237,7 @@ test('FileEngine.put(model) when the engine fails to put a compiled search index
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model), {
@@ -251,7 +251,7 @@ test('FileEngine.put(model) when the engine fails to put a compiled search index
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index.json', JSON.stringify(models.getSearchIndex(MainModel)));
 });
 
-test('FileEngine.put(model) when the engine fails to put a raw search index', async t => {
+test('FileStorageEngine.put(model) when the engine fails to put a raw search index', async t => {
     const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
@@ -263,7 +263,7 @@ test('FileEngine.put(model) when the engine fails to put a raw search index', as
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model), {
@@ -277,7 +277,7 @@ test('FileEngine.put(model) when the engine fails to put a raw search index', as
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/MainModel/_search_index_raw.json', JSON.stringify(models.getRawSearchIndex(MainModel)));
 });
 
-test('FileEngine.put(model) when the initial model put fails', async t => {
+test('FileStorageEngine.put(model) when the initial model put fails', async t => {
     const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
@@ -289,7 +289,7 @@ test('FileEngine.put(model) when the initial model put fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model), {
@@ -302,7 +302,7 @@ test('FileEngine.put(model) when the initial model put fails', async t => {
     t.is(filesystem.writeFile.callCount, 1);
 });
 
-test('FileEngine.put(model) when the engine fails to put a linked model', async t => {
+test('FileStorageEngine.put(model) when the engine fails to put a linked model', async t => {
     const filesystem = stubFs();
 
     filesystem.writeFile.callsFake(path => {
@@ -314,7 +314,7 @@ test('FileEngine.put(model) when the engine fails to put a linked model', async 
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).put(model), {
@@ -336,13 +336,13 @@ test('FileEngine.put(model) when the engine fails to put a linked model', async 
     assertions.calledWith(t, filesystem.writeFile, '/tmp/fileEngine/LinkedModel/000000000000.json', JSON.stringify(model.linked.toData()));
 });
 
-test('FileEngine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
+test('FileStorageEngine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
     const filesystem = stubFs({}, Object.values(models.models));
 
-    const found = await FileEngine.configure({
+    const found = await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).find(MainModel, {string: 'test'});
@@ -350,10 +350,10 @@ test('FileEngine.find(MainModel, {string: "test"}) when a matching model exists'
     t.like(found, [model.toIndexData()]);
 });
 
-test('FileEngine.find(MainModel, {string: "test"}) when a matching model does not exist', async t => {
+test('FileStorageEngine.find(MainModel, {string: "test"}) when a matching model does not exist', async t => {
     const filesystem = stubFs({'MainModel/_index.json': {}});
 
-    const models = await FileEngine.configure({
+    const models = await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).find(MainModel, {string: 'test'});
@@ -363,10 +363,10 @@ test('FileEngine.find(MainModel, {string: "test"}) when a matching model does no
     t.deepEqual(models, []);
 });
 
-test('FileEngine.find(MainModel, {string: "test"}) when no index exists', async t => {
+test('FileStorageEngine.find(MainModel, {string: "test"}) when no index exists', async t => {
     const filesystem = stubFs({}, []);
 
-    const models = await FileEngine.configure({
+    const models = await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).find(MainModel, {string: 'String'});
@@ -374,7 +374,7 @@ test('FileEngine.find(MainModel, {string: "test"}) when no index exists', async 
     t.deepEqual(models, []);
 });
 
-test('FileEngine.search(MainModel, "test") when matching models exist', async t => {
+test('FileStorageEngine.search(MainModel, "test") when matching models exist', async t => {
     const models = new Models();
     const model1 = models.createFullTestModel();
     const model2 = models.createFullTestModel();
@@ -388,7 +388,7 @@ test('FileEngine.search(MainModel, "test") when matching models exist', async t 
         filesystem,
     };
 
-    const found = await FileEngine.configure(configuration).search(MainModel, 'test');
+    const found = await FileStorageEngine.configure(configuration).search(MainModel, 'test');
 
     t.like(found, [{
         ref: 'MainModel/000000000000',
@@ -401,7 +401,7 @@ test('FileEngine.search(MainModel, "test") when matching models exist', async t 
     }]);
 });
 
-test('FileEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
+test('FileStorageEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
     const models = new Models();
     models.createFullTestModel();
 
@@ -412,12 +412,12 @@ test('FileEngine.search(MainModel, "not-even-close-to-a-match") when no matching
         filesystem,
     };
 
-    const found = await FileEngine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
+    const found = await FileStorageEngine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
 
     t.deepEqual(found, []);
 });
 
-test('FileEngine.search(MainModel, "test") when no index exists for the model', async t => {
+test('FileStorageEngine.search(MainModel, "test") when no index exists for the model', async t => {
     const filesystem = stubFs({}, []);
 
     const configuration = {
@@ -425,13 +425,13 @@ test('FileEngine.search(MainModel, "test") when no index exists for the model', 
         filesystem,
     };
 
-    await t.throwsAsync(() =>  FileEngine.configure(configuration).search(MainModel, 'test'), {
+    await t.throwsAsync(() =>  FileStorageEngine.configure(configuration).search(MainModel, 'test'), {
         instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });
 });
 
-test('FileEngine.hydrate(model)', async t => {
+test('FileStorageEngine.hydrate(model)', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -440,7 +440,7 @@ test('FileEngine.hydrate(model)', async t => {
 
     const filesystem = stubFs({}, [model]);
 
-    const hydratedModel = await FileEngine.configure({
+    const hydratedModel = await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).hydrate(dryModel);
@@ -457,14 +457,14 @@ test('FileEngine.hydrate(model)', async t => {
     t.deepEqual(hydratedModel, model);
 });
 
-test('FileEngine.delete(model)', async t => {
+test('FileStorageEngine.delete(model)', async t => {
     const models = new Models();
     models.createFullTestModel();
     const modelToBeDeleted = models.createFullTestModel();
 
     const filesystem = stubFs({}, Object.values(models.models));
 
-    await FileEngine.configure({
+    await FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).delete(modelToBeDeleted);
@@ -507,7 +507,7 @@ test('FileEngine.delete(model)', async t => {
     t.is(filesystem.rm.getCalls().length, 2);
 });
 
-test('FileEngine.delete(model) when rm throws an error', async t => {
+test('FileStorageEngine.delete(model) when rm throws an error', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
     const modelToBeDeleted = models.createFullTestModel();
@@ -516,12 +516,12 @@ test('FileEngine.delete(model) when rm throws an error', async t => {
 
     modelToBeDeleted.id = 'MainModel/999999999999';
 
-    await t.throwsAsync(() => FileEngine.configure({
+    await t.throwsAsync(() => FileStorageEngine.configure({
         path: '/tmp/fileEngine',
         filesystem,
     }).delete(modelToBeDeleted), {
         instanceOf: CannotDeleteEngineError,
-        message: 'FileEngine.delete(MainModel/999999999999) model cannot be deleted',
+        message: 'FileStorageEngine.delete(MainModel/999999999999) model cannot be deleted',
     });
 
     assertions.calledWith(t, filesystem.readFile, '/tmp/fileEngine/MainModel/999999999999.json');

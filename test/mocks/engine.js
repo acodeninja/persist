@@ -1,4 +1,4 @@
-import Engine from '../../src/engine/Engine.js';
+import StorageEngine from '../../src/engine/storage/StorageEngine.js';
 import _ from 'lodash';
 import sinon from 'sinon';
 
@@ -18,9 +18,9 @@ export function getTestEngine(models = []) {
 
     /**
      * @class TestEngine
-     * @extends Engine
+     * @extends StorageEngine
      */
-    class TestEngine extends Engine {
+    class TestEngine extends StorageEngine {
     }
 
     TestEngine.getById = sinon.stub().callsFake((id) => {

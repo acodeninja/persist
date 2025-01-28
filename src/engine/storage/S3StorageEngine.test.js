@@ -1,14 +1,14 @@
-import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './Engine.js';
-import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../test/fixtures/Models.js';
+import {CannotDeleteEngineError, EngineError, MissConfiguredError, NotFoundEngineError} from './StorageEngine.js';
+import {CircularManyModel, CircularModel, LinkedManyModel, LinkedModel, MainModel} from '../../../test/fixtures/Models.js';
 import {DeleteObjectsCommand, GetObjectCommand, NoSuchKey, PutObjectCommand} from '@aws-sdk/client-s3';
-import {Models} from '../../test/fixtures/ModelCollection.js';
-import S3Engine from './S3Engine.js';
-import assertions from '../../test/assertions.js';
-import stubS3Client from '../../test/mocks/s3.js';
+import {Models} from '../../../test/fixtures/ModelCollection.js';
+import S3StorageEngine from './S3StorageEngine.js';
+import assertions from '../../../test/assertions.js';
+import stubS3Client from '../../../test/mocks/s3.js';
 import test from 'ava';
 
-test('S3Engine.configure(configuration) returns a new engine without altering the exising one', t => {
-    const originalStore = S3Engine;
+test('S3StorageEngine.configure(configuration) returns a new engine without altering the exising one', t => {
+    const originalStore = S3StorageEngine;
     const configuredStore = originalStore.configure({
         bucket: 'test-bucket',
         prefix: 'test',
@@ -22,18 +22,18 @@ test('S3Engine.configure(configuration) returns a new engine without altering th
     t.assert(originalStore.configuration === undefined);
 });
 
-test('S3Engine.get(MainModel, id) when engine is not configured', async t => {
+test('S3StorageEngine.get(MainModel, id) when engine is not configured', async t => {
     const error = await t.throwsAsync(
-        () =>  S3Engine.get(MainModel, 'MainModel/000000000000'),
+        () =>  S3StorageEngine.get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: MissConfiguredError,
         },
     );
 
-    t.is(error.message, 'Engine is miss-configured');
+    t.is(error.message, 'StorageEngine is miss-configured');
 });
 
-test('S3Engine.get(MainModel, id) when id exists', async t => {
+test('S3StorageEngine.get(MainModel, id) when id exists', async t => {
     const models = new Models();
     models.createFullTestModel();
 
@@ -41,7 +41,7 @@ test('S3Engine.get(MainModel, id) when id exists', async t => {
         'test-bucket': Object.values(models.models),
     });
 
-    const model = await S3Engine.configure({
+    const model = await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -56,28 +56,28 @@ test('S3Engine.get(MainModel, id) when id exists', async t => {
     t.like(model.toData(), models.models['MainModel/000000000000'].toData());
 });
 
-test('S3Engine.get(MainModel, id) when id does not exist', async t => {
+test('S3StorageEngine.get(MainModel, id) when id does not exist', async t => {
     const client = stubS3Client();
 
     await t.throwsAsync(
-        () => S3Engine.configure({
+        () => S3StorageEngine.configure({
             bucket: 'test-bucket',
             prefix: 'test',
             client,
         }).get(MainModel, 'MainModel/000000000000'),
         {
             instanceOf: NotFoundEngineError,
-            message: 'S3Engine.get(MainModel/000000000000) model not found',
+            message: 'S3StorageEngine.get(MainModel/000000000000) model not found',
         },
     );
 });
 
-test('S3Engine.put(model)', async t => {
+test('S3StorageEngine.put(model)', async t => {
     const client = stubS3Client();
 
     const models = new Models();
     const model = models.createFullTestModel();
-    await t.notThrowsAsync(() => S3Engine.configure({
+    await t.notThrowsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -217,7 +217,7 @@ test('S3Engine.put(model)', async t => {
     }));
 });
 
-test('S3Engine.put(model) updates existing search indexes', async t => {
+test('S3StorageEngine.put(model) updates existing search indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -232,7 +232,7 @@ test('S3Engine.put(model) updates existing search indexes', async t => {
         },
     });
 
-    await t.notThrowsAsync(() => S3Engine.configure({
+    await t.notThrowsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -271,7 +271,7 @@ test('S3Engine.put(model) updates existing search indexes', async t => {
     }));
 });
 
-test('S3Engine.put(model) updates existing indexes', async t => {
+test('S3StorageEngine.put(model) updates existing indexes', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'test/MainModel/_index.json': {
@@ -292,7 +292,7 @@ test('S3Engine.put(model) updates existing indexes', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.notThrowsAsync(() => S3Engine.configure({
+    await t.notThrowsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -387,7 +387,7 @@ test('S3Engine.put(model) updates existing indexes', async t => {
     }));
 });
 
-test('S3Engine.put(model) when the engine fails to put a compiled search index', async t => {
+test('S3StorageEngine.put(model) when the engine fails to put a compiled search index', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'MainModel/_index.json': {
@@ -409,7 +409,7 @@ test('S3Engine.put(model) when the engine fails to put a compiled search index',
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -447,7 +447,7 @@ test('S3Engine.put(model) when the engine fails to put a compiled search index',
     }));
 });
 
-test('S3Engine.put(model) when the engine fails to put a raw search index', async t => {
+test('S3StorageEngine.put(model) when the engine fails to put a raw search index', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'MainModel/_index.json': {
@@ -469,7 +469,7 @@ test('S3Engine.put(model) when the engine fails to put a raw search index', asyn
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -500,7 +500,7 @@ test('S3Engine.put(model) when the engine fails to put a raw search index', asyn
     }));
 });
 
-test('S3Engine.put(model) when putting an index fails', async t => {
+test('S3StorageEngine.put(model) when putting an index fails', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'MainModel/_index.json': {
@@ -522,7 +522,7 @@ test('S3Engine.put(model) when putting an index fails', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -614,7 +614,7 @@ test('S3Engine.put(model) when putting an index fails', async t => {
     }));
 });
 
-test('S3Engine.put(model) when the initial model put fails', async t => {
+test('S3StorageEngine.put(model) when the initial model put fails', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'MainModel/_index.json': {
@@ -635,7 +635,7 @@ test('S3Engine.put(model) when the initial model put fails', async t => {
         return Promise.resolve();
     });
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -654,7 +654,7 @@ test('S3Engine.put(model) when the initial model put fails', async t => {
     }));
 });
 
-test('S3Engine.put(model) when the engine fails to put a linked model', async t => {
+test('S3StorageEngine.put(model) when the engine fails to put a linked model', async t => {
     const client = stubS3Client({
         'test-bucket': {
             'MainModel/_index.json': {
@@ -675,7 +675,7 @@ test('S3Engine.put(model) when the engine fails to put a linked model', async t 
         return Promise.resolve();
     });
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -720,7 +720,7 @@ test('S3Engine.put(model) when the engine fails to put a linked model', async t 
     }));
 });
 
-test('S3Engine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
+test('S3StorageEngine.find(MainModel, {string: "test"}) when a matching model exists', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -728,7 +728,7 @@ test('S3Engine.find(MainModel, {string: "test"}) when a matching model exists', 
         'test-bucket': Object.values(models.models),
     });
 
-    const found = await S3Engine.configure({
+    const found = await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -737,10 +737,10 @@ test('S3Engine.find(MainModel, {string: "test"}) when a matching model exists', 
     t.like(found, [model.toIndexData()]);
 });
 
-test('S3Engine.find(MainModel, {string: "test"}) when a matching model does not exist', async t => {
+test('S3StorageEngine.find(MainModel, {string: "test"}) when a matching model does not exist', async t => {
     const client = stubS3Client({'test-bucket': {'MainModel/_index.json': {}}});
 
-    const models = await S3Engine.configure({
+    const models = await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -754,10 +754,10 @@ test('S3Engine.find(MainModel, {string: "test"}) when a matching model does not 
     t.deepEqual(models, []);
 });
 
-test('S3Engine.find(MainModel, {string: "test"}) when no index exists', async t => {
+test('S3StorageEngine.find(MainModel, {string: "test"}) when no index exists', async t => {
     const client = stubS3Client();
 
-    const models = await S3Engine.configure({
+    const models = await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -766,7 +766,7 @@ test('S3Engine.find(MainModel, {string: "test"}) when no index exists', async t 
     t.deepEqual(models, []);
 });
 
-test('S3Engine.search(MainModel, "test") when matching models exist', async t => {
+test('S3StorageEngine.search(MainModel, "test") when matching models exist', async t => {
     const models = new Models();
     const model1 = models.createFullTestModel();
     const model2 = models.createFullTestModel();
@@ -783,7 +783,7 @@ test('S3Engine.search(MainModel, "test") when matching models exist', async t =>
         client,
     };
 
-    const found = await S3Engine.configure(configuration).search(MainModel, 'test');
+    const found = await S3StorageEngine.configure(configuration).search(MainModel, 'test');
 
     t.like(found, [{
         ref: 'MainModel/000000000000',
@@ -796,7 +796,7 @@ test('S3Engine.search(MainModel, "test") when matching models exist', async t =>
     }]);
 });
 
-test('S3Engine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
+test('S3StorageEngine.search(MainModel, "not-even-close-to-a-match") when no matching model exists', async t => {
     const models = new Models();
     models.createFullTestModel();
     models.createFullTestModel();
@@ -811,12 +811,12 @@ test('S3Engine.search(MainModel, "not-even-close-to-a-match") when no matching m
         client,
     };
 
-    const found = await S3Engine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
+    const found = await S3StorageEngine.configure(configuration).search(MainModel, 'not-even-close-to-a-match');
 
     t.deepEqual(found, []);
 });
 
-test('S3Engine.search(MainModel, "test") when no search index exists for the model', async t => {
+test('S3StorageEngine.search(MainModel, "test") when no search index exists for the model', async t => {
     const client = stubS3Client({}, {});
 
     const configuration = {
@@ -825,13 +825,13 @@ test('S3Engine.search(MainModel, "test") when no search index exists for the mod
         client,
     };
 
-    await t.throwsAsync(() =>  S3Engine.configure(configuration).search(MainModel, 'test'), {
+    await t.throwsAsync(() =>  S3StorageEngine.configure(configuration).search(MainModel, 'test'), {
         instanceOf: EngineError,
         message: 'The model MainModel does not have a search index available.',
     });
 });
 
-test('S3Engine.hydrate(model)', async t => {
+test('S3StorageEngine.hydrate(model)', async t => {
     const models = new Models();
     const model = models.createFullTestModel();
 
@@ -840,7 +840,7 @@ test('S3Engine.hydrate(model)', async t => {
 
     const client = stubS3Client({}, {'test-bucket': Object.values(models.models)});
 
-    const hydratedModel = await S3Engine.configure({
+    const hydratedModel = await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -879,13 +879,13 @@ test('S3Engine.hydrate(model)', async t => {
     t.deepEqual(hydratedModel, model);
 });
 
-test('S3Engine.delete(model)', async t => {
+test('S3StorageEngine.delete(model)', async t => {
     const models = new Models();
     const modelToBeDeleted = models.createFullTestModel();
 
     const client = stubS3Client({}, {'test-bucket': Object.values(models.models)});
 
-    await S3Engine.configure({
+    await S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client,
@@ -930,7 +930,7 @@ test('S3Engine.delete(model)', async t => {
     t.falsy(Object.keys(client.resolvedBuckets['test-bucket']).includes('MainModel/000000000000.json'));
 });
 
-test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t => {
+test('S3StorageEngine.delete(model) when DeleteObjectsCommand throws an error', async t => {
     const models = new Models();
     const modelToBeDeleted = models.createFullTestModel();
 
@@ -944,13 +944,13 @@ test('S3Engine.delete(model) when DeleteObjectsCommand throws an error', async t
         return client.send(command);
     });
 
-    await t.throwsAsync(() => S3Engine.configure({
+    await t.throwsAsync(() => S3StorageEngine.configure({
         bucket: 'test-bucket',
         prefix: 'test',
         client: patchedClient,
     }).delete(modelToBeDeleted), {
         instanceOf: CannotDeleteEngineError,
-        message: 'S3Engine.delete(MainModel/000000000000) model cannot be deleted',
+        message: 'S3StorageEngine.delete(MainModel/000000000000) model cannot be deleted',
     });
 
     assertions.calledWith(t, client.send, new GetObjectCommand({

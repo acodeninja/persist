@@ -1,35 +1,35 @@
-import Engine, { EngineError, MissConfiguredError } from './Engine.js';
+import StorageEngine, { EngineError, MissConfiguredError } from './StorageEngine.js';
 import { dirname, join } from 'node:path';
 import fs from 'node:fs/promises';
 
 /**
- * Custom error class for FileEngine-related errors.
+ * Custom error class for FileStorageEngine-related errors.
  * Extends the base `EngineError` class.
  */
-class FileEngineError extends EngineError {}
+class FileStorageEngineError extends EngineError {}
 
 /**
- * Error thrown when writing to a file fails in `FileEngine`.
- * Extends the `FileEngineError` class.
+ * Error thrown when writing to a file fails in `FileStorageEngine`.
+ * Extends the `FileStorageEngineError` class.
  */
-class FailedWriteFileEngineError extends FileEngineError {}
+class FailedWriteFileStorageEngineError extends FileStorageEngineError {}
 
 /**
- * `FileEngine` class extends the base `Engine` class to implement
+ * `FileStorageEngine` class extends the base `StorageEngine` class to implement
  * file system-based storage and retrieval of model data.
  *
- * @class FileEngine
- * @extends Engine
+ * @class FileStorageEngine
+ * @extends StorageEngine
  */
-class FileEngine extends Engine {
+class FileStorageEngine extends StorageEngine {
     /**
-     * Configures the FileEngine with a given configuration object.
+     * Configures the FileStorageEngine with a given configuration object.
      * Adds default `filesystem` configuration if not provided.
      *
-     * @param {Object} configuration - Configuration settings for FileEngine.
+     * @param {Object} configuration - Configuration settings for FileStorageEngine.
      * @param {Object} [configuration.filesystem] - Custom filesystem module (default: Node.js fs/promises).
      * @param {Object} [configuration.path] - The absolute path on the filesystem to write models to.
-     * @returns {FileEngine} A configured instance of FileEngine.
+     * @returns {FileStorageEngine} A configured instance of FileStorageEngine.
      */
     static configure(configuration) {
         if (!configuration.filesystem) {
@@ -39,7 +39,7 @@ class FileEngine extends Engine {
     }
 
     /**
-     * Checks if the FileEngine has been configured correctly.
+     * Checks if the FileStorageEngine has been configured correctly.
      * Ensures that `path` and `filesystem` settings are present.
      *
      * @throws {MissConfiguredError} Throws if required configuration is missing.
@@ -94,7 +94,7 @@ class FileEngine extends Engine {
      * Saves a model to the file system.
      *
      * @param {Model} model - The model to save.
-     * @throws {FailedWriteFileEngineError} Throws if the model cannot be written to the file system.
+     * @throws {FailedWriteFileStorageEngineError} Throws if the model cannot be written to the file system.
      */
     static async putModel(model) {
         const filePath = join(this.configuration.path, `${model.id}.json`);
@@ -102,7 +102,7 @@ class FileEngine extends Engine {
             await this.configuration.filesystem.mkdir(dirname(filePath), { recursive: true });
             await this.configuration.filesystem.writeFile(filePath, JSON.stringify(model.toData()));
         } catch (error) {
-            throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
+            throw new FailedWriteFileStorageEngineError(`Failed to put file://${filePath}`, error);
         }
     }
 
@@ -110,7 +110,7 @@ class FileEngine extends Engine {
      * Saves the index for multiple models to the file system.
      *
      * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
-     * @throws {FailedWriteFileEngineError} Throws if the index cannot be written to the file system.
+     * @throws {FailedWriteFileStorageEngineError} Throws if the index cannot be written to the file system.
      */
     static async putIndex(index) {
         const processIndex = async (location, models) => {
@@ -125,7 +125,7 @@ class FileEngine extends Engine {
                     ),
                 }));
             } catch (error) {
-                throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
+                throw new FailedWriteFileStorageEngineError(`Failed to put file://${filePath}`, error);
             }
         };
 
@@ -175,14 +175,14 @@ class FileEngine extends Engine {
      *
      * @param {Model.constructor} model - The model for which the compiled search index is saved.
      * @param {Object} compiledIndex - The compiled search index to save.
-     * @throws {FailedWriteFileEngineError} Throws if the compiled index cannot be written to the file system.
+     * @throws {FailedWriteFileStorageEngineError} Throws if the compiled index cannot be written to the file system.
      */
     static async putSearchIndexCompiled(model, compiledIndex) {
         const filePath = join(this.configuration.path, model.toString(), '_search_index.json');
         try {
             await this.configuration.filesystem.writeFile(filePath, JSON.stringify(compiledIndex));
         } catch (error) {
-            throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
+            throw new FailedWriteFileStorageEngineError(`Failed to put file://${filePath}`, error);
         }
     }
 
@@ -191,16 +191,16 @@ class FileEngine extends Engine {
      *
      * @param {Model.constructor} model - The model for which the raw search index is saved.
      * @param {Object} rawIndex - The raw search index to save.
-     * @throws {FailedWriteFileEngineError} Throws if the raw index cannot be written to the file system.
+     * @throws {FailedWriteFileStorageEngineError} Throws if the raw index cannot be written to the file system.
      */
     static async putSearchIndexRaw(model, rawIndex) {
         const filePath = join(this.configuration.path, model.toString(), '_search_index_raw.json');
         try {
             await this.configuration.filesystem.writeFile(filePath, JSON.stringify(rawIndex));
         } catch (error) {
-            throw new FailedWriteFileEngineError(`Failed to put file://${filePath}`, error);
+            throw new FailedWriteFileStorageEngineError(`Failed to put file://${filePath}`, error);
         }
     }
 }
 
-export default FileEngine;
+export default FileStorageEngine;
