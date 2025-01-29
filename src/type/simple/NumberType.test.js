@@ -11,11 +11,11 @@ describe('NumberType', () => {
     });
 
     test('NumberType does not have properties', () => {
-        expect(NumberType._properties).toBe(undefined);
+        expect(NumberType._properties).toBeUndefined();
     });
 
     test('NumberType does not have items', () => {
-        expect(NumberType._items).toBe(undefined);
+        expect(NumberType._items).toBeUndefined();
     });
 
     test('NumberType is not a resolved type', () => {
@@ -33,11 +33,11 @@ describe('RequiredNumberType', () => {
     });
 
     test('RequiredNumberType does not have properties', () => {
-        expect(NumberType.required._properties).toBe(undefined);
+        expect(NumberType.required._properties).toBeUndefined();
     });
 
     test('RequiredNumberType does not have items', () => {
-        expect(NumberType.required._items).toBe(undefined);
+        expect(NumberType.required._items).toBeUndefined();
     });
 
     test('RequiredNumberType is not a resolved type', () => {

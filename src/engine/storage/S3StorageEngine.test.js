@@ -25,7 +25,7 @@ describe('S3StorageEngine.configure', () => {
             bucket: 'test-bucket',
             prefix: 'test',
         }));
-        expect(originalStore.configuration).toBe(undefined);
+        expect(originalStore.configuration).toBeUndefined();
     });
 });
 

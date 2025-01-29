@@ -65,7 +65,7 @@ describe.each(
         }
 
         expect(configuredStore.configuration).toStrictEqual(expect.objectContaining(checkConfiguration));
-        expect(originalStore.configuration).toBe(undefined);
+        expect(originalStore.configuration).toBeUndefined();
     });
 
     test(`${engine}.get(MainModel, id) throws MissConfiguredError when engine is not configured`, async () => {
@@ -119,7 +119,7 @@ describe.each(
             id: 'MainModel/111111111111',
         }));
 
-        expect(response).toBe(undefined);
+        expect(response).toBeUndefined();
     });
 
     test(`${engine}.find(MainModel, parameters) throws MissConfiguredError when engine is not configured`, async () => {

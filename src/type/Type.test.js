@@ -11,11 +11,11 @@ describe('Type', () => {
     });
 
     test('Type does not have properties', () => {
-        expect(Type._properties).toBe(undefined);
+        expect(Type._properties).toBeUndefined();
     });
 
     test('Type does not have items', () => {
-        expect(Type._items).toBe(undefined);
+        expect(Type._items).toBeUndefined();
     });
 
     test('Type is not a resolved type', () => {
@@ -33,11 +33,11 @@ describe('RequiredType', () => {
     });
 
     test('RequiredType does not have properties', () => {
-        expect(Type.required._properties).toBe(undefined);
+        expect(Type.required._properties).toBeUndefined();
     });
 
     test('RequiredType does not have items', () => {
-        expect(Type.required._items).toBe(undefined);
+        expect(Type.required._items).toBeUndefined();
     });
 
     test('RequiredType is not a resolved type', () => {

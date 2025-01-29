@@ -13,7 +13,7 @@ test('StorageEngine.configure returns a new store without altering the exising o
     const configuredStore = StorageEngine.configure({});
 
     expect(configuredStore.configuration).toEqual({});
-    expect(originalStore.configuration).toBe(undefined);
+    expect(originalStore.configuration).toBeUndefined();
 });
 
 describe('UnimplementedEngine', () => {

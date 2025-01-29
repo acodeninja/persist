@@ -14,11 +14,11 @@ test('SlugType is not required', () => {
 });
 
 test('SlugType does not have properties', () => {
-    expect(SlugType._properties).toBe(undefined);
+    expect(SlugType._properties).toBeUndefined();
 });
 
 test('SlugType does not have items', () => {
-    expect(SlugType._items).toBe(undefined);
+    expect(SlugType._items).toBeUndefined();
 });
 
 test('SlugType is a resolved type', () => {

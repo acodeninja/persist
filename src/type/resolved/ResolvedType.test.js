@@ -18,11 +18,11 @@ test('UnimplementedResolvedType is not required', () => {
 });
 
 test('UnimplementedResolvedType does not have properties', () => {
-    expect(UnimplementedResolvedType._properties).toBe(undefined);
+    expect(UnimplementedResolvedType._properties).toBeUndefined();
 });
 
 test('UnimplementedResolvedType does not have items', () => {
-    expect(UnimplementedResolvedType._items).toBe(undefined);
+    expect(UnimplementedResolvedType._items).toBeUndefined();
 });
 
 test('UnimplementedResolvedType is a resolved type', () => {

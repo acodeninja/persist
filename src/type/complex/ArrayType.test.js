@@ -17,7 +17,7 @@ describe.each(typesToTest)('ArrayType.of(%s)', (type) => {
     });
 
     test(`ArrayType.of(${type}) does not have properties`, () => {
-        expect(ArrayType.of(type)._properties).toBe(undefined);
+        expect(ArrayType.of(type)._properties).toBeUndefined();
     });
 
     test(`ArrayType.of(${type}) has items of type String`, () => {
@@ -37,7 +37,7 @@ describe.each(typesToTest)('ArrayType.of(%s)', (type) => {
     });
 
     test(`RequiredArrayType.of(${type}) does not have properties`, () => {
-        expect(ArrayType.of(type).required._properties).toBe(undefined);
+        expect(ArrayType.of(type).required._properties).toBeUndefined();
     });
 
     test(`RequiredArrayType.of(${type}) has items of type String`, () => {
