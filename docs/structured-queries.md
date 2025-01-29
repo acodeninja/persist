@@ -40,9 +40,9 @@ To query for a `Person` called `Joe Bloggs` an exact query can be written:
 ```javascript
 import Persist from "@acodeninja/persist";
 import Person from "./Person";
-import FileEngine from "@acodeninja/persist/engine/file"
+import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileEngine
+FileStorageEngine
     .configure(configuration)
     .find(Person, {
         name: {$is: 'Joe Bloggs'},
@@ -56,9 +56,9 @@ To query for a `Person` with name `Joe` a contains query can be written:
 ```javascript
 import Persist from "@acodeninja/persist";
 import Person from "./Person";
-import FileEngine from "@acodeninja/persist/engine/file"
+import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileEngine
+FileStorageEngine
     .configure(configuration)
     .find(Person, {
         name: {$contains: 'Joe'},
@@ -72,9 +72,9 @@ To query for a `Person` who lives at `SW1 1AA` a combination of contains and exa
 ```javascript
 import Persist from "@acodeninja/persist";
 import Person from "./Person";
-import FileEngine from "@acodeninja/persist/engine/file"
+import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileEngine
+FileStorageEngine
     .configure(configuration)
     .find(Person, {
         address: {
@@ -92,9 +92,9 @@ To query for anyone called `Joe Bloggs` who lives in the `SW1` postcode area, we
 ```javascript
 import Persist from "@acodeninja/persist";
 import Person from "./Person";
-import FileEngine from "@acodeninja/persist/engine/file"
+import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileEngine
+FileStorageEngine
     .configure(configuration)
     .find(Person, {
         name: {$is: 'Joe Bloggs'},

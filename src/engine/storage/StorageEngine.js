@@ -1,14 +1,14 @@
-import Query from '../Query.js';
-import Type from '../type/index.js';
+import Query from '../../Query.js';
+import Type from '../../type/index.js';
 import lunr from 'lunr';
 
 /**
- * The `Engine` class provides a base interface for implementing data storage and retrieval engines.
+ * The `StorageEngine` class provides a base interface for implementing data storage and retrieval engines.
  * It includes methods for handling models, indexes, and search functionality.
  *
- * @class Engine
+ * @class StorageEngine
  */
-class Engine {
+class StorageEngine {
     static configuration = undefined;
     static _searchCache = undefined;
 
@@ -186,6 +186,11 @@ class Engine {
         const uploadedModels = [];
         const indexUpdates = {};
 
+        /**
+         * Process a model, putting updates to the model and all linked models.
+         * @param {Model} m
+         * @return {Promise<void>}
+         */
         const processModel = async (m) => {
             if (!uploadedModels.includes(m.id)) {
                 m.validate();
@@ -389,6 +394,11 @@ class Engine {
         this.checkConfiguration();
         const hydratedModels = {};
 
+        /**
+         * Hydrate a model
+         * @param {Model} modelToProcess
+         * @return {Promise<Model>}
+         */
         const hydrateModel = async (modelToProcess) => {
             hydratedModels[modelToProcess.id] = modelToProcess;
 
@@ -405,6 +415,13 @@ class Engine {
             return modelToProcess;
         };
 
+        /**
+         * Hydrate a dry sub model
+         * @param property
+         * @param modelToProcess
+         * @param name
+         * @return {Promise<Model>}
+         */
         const hydrateSubModel = async (property, modelToProcess, name) => {
             if (hydratedModels[property.id]) {
                 return hydratedModels[property.id];
@@ -418,6 +435,13 @@ class Engine {
             return hydratedSubModel;
         };
 
+        /**
+         * Hydrate an array of dry models
+         * @param property
+         * @param modelToProcess
+         * @param name
+         * @return {Promise<Awaited<*>[]>}
+         */
         const hydrateModelList = async (property, modelToProcess, name) => {
             const subModelClass = getSubModelClass(modelToProcess, name, true);
 
@@ -440,6 +464,13 @@ class Engine {
             }));
         };
 
+        /**
+         * Get the class of a sub model
+         * @param modelToProcess
+         * @param name
+         * @param isArray
+         * @return {Model.constructor|Type}
+         */
         function getSubModelClass(modelToProcess, name, isArray = false) {
             const constructorField = modelToProcess.constructor[name];
 
@@ -457,9 +488,13 @@ class Engine {
      * Configures the engine with specific settings.
      *
      * @param {Object} configuration - The configuration settings for the engine.
-     * @returns {Engine} A new engine instance with the applied configuration.
+     * @returns {StorageEngine} A new engine instance with the applied configuration.
      */
     static configure(configuration) {
+        /**
+         * @class ConfiguredStore
+         * @extends StorageEngine
+         */
         class ConfiguredStore extends this {
             static configuration = configuration;
         }
@@ -476,7 +511,7 @@ class Engine {
      * @abstract
      */
     static checkConfiguration() {
-        // Implemented in extending Engine class
+        // Implemented in extending StorageEngine class
     }
 
     /**
@@ -568,9 +603,9 @@ export class MissConfiguredError extends EngineError {
      * @param {Object} configuration - The configuration object that caused the misconfiguration.
      */
     constructor(configuration) {
-        super('Engine is miss-configured');
+        super('StorageEngine is miss-configured');
         this.configuration = configuration;
     }
 }
 
-export default Engine;
+export default StorageEngine;

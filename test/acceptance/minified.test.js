@@ -1,7 +1,7 @@
 import {dirname, resolve} from 'node:path';
+import {expect, test} from '@jest/globals';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
-import test from 'ava';
 
 const run = (command, ...args) =>
     new Promise((done, failed) => {
@@ -31,43 +31,41 @@ const run = (command, ...args) =>
         });
     });
 
-test('model and type names are not mangled when minified', async t => {
-    t.timeout(30 * 1000);
-
+test('model and type names are not mangled when minified', async () => {
     await run('npm', 'i');
     await run('npm', 'run', 'webpack');
 
     const {getModel} = await import('../fixtures/minified/main.bundle.js');
     const model = getModel();
 
-    t.is(model.name, 'MainModel');
+    expect(model.name).toBe('MainModel');
 
-    t.is(model.custom.name, 'Custom');
+    expect(model.custom.name).toBe('Custom');
 
-    t.is(model.string.name, 'String');
-    t.is(model.stringSlug.name, 'SlugOf(string)');
-    t.is(model.requiredString.name, 'RequiredString');
-    t.is(model.arrayOfString.name, 'ArrayOf(String)');
-    t.is(model.requiredArrayOfString.name, 'RequiredArrayOf(String)');
+    expect(model.string.name).toBe('String');
+    expect(model.stringSlug.name).toBe('SlugOf(string)');
+    expect(model.requiredString.name).toBe('RequiredString');
+    expect(model.arrayOfString.name).toBe('ArrayOf(String)');
+    expect(model.requiredArrayOfString.name).toBe('RequiredArrayOf(String)');
 
-    t.is(model.boolean.name, 'Boolean');
-    t.is(model.requiredBoolean.name, 'RequiredBoolean');
-    t.is(model.arrayOfBoolean.name, 'ArrayOf(Boolean)');
-    t.is(model.requiredArrayOfBoolean.name, 'RequiredArrayOf(Boolean)');
+    expect(model.boolean.name).toBe('Boolean');
+    expect(model.requiredBoolean.name).toBe('RequiredBoolean');
+    expect(model.arrayOfBoolean.name).toBe('ArrayOf(Boolean)');
+    expect(model.requiredArrayOfBoolean.name).toBe('RequiredArrayOf(Boolean)');
 
-    t.is(model.number.name, 'Number');
-    t.is(model.requiredNumber.name, 'RequiredNumber');
-    t.is(model.arrayOfNumber.name, 'ArrayOf(Number)');
-    t.is(model.requiredArrayOfNumber.name, 'RequiredArrayOf(Number)');
+    expect(model.number.name).toBe('Number');
+    expect(model.requiredNumber.name).toBe('RequiredNumber');
+    expect(model.arrayOfNumber.name).toBe('ArrayOf(Number)');
+    expect(model.requiredArrayOfNumber.name).toBe('RequiredArrayOf(Number)');
 
-    t.is(model.date.name, 'Date');
-    t.is(model.requiredDate.name, 'RequiredDate');
-    t.is(model.arrayOfDate.name, 'ArrayOf(Date)');
-    t.is(model.requiredArrayOfDate.name, 'RequiredArrayOf(Date)');
+    expect(model.date.name).toBe('Date');
+    expect(model.requiredDate.name).toBe('RequiredDate');
+    expect(model.arrayOfDate.name).toBe('ArrayOf(Date)');
+    expect(model.requiredArrayOfDate.name).toBe('RequiredArrayOf(Date)');
 
-    t.is(model.linked.name, 'LinkedModel');
-    t.is(model.linkedMany.name, 'ArrayOf(LinkedManyModel)');
+    expect(model.linked.name).toBe('LinkedModel');
+    expect(model.linkedMany.name).toBe('ArrayOf(LinkedManyModel)');
 
-    t.is(model.circular.name, 'CircularModel');
-    t.is(model.circularMany.name, 'ArrayOf(CircularManyModel)');
-});
+    expect(model.circular.name).toBe('CircularModel');
+    expect(model.circularMany.name).toBe('ArrayOf(CircularManyModel)');
+}, 30 * 1000);

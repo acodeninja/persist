@@ -1,15 +1,15 @@
-import SimpleType from './SimpleType.js';
+import Type from '../Type.js';
 
 /**
  * Class representing a number type.
  *
  * This class is used to define and handle data of the number type.
- * It extends the {@link SimpleType} class to represent string-specific behavior.
+ * It extends the {@link Type} class to represent string-specific behavior.
  *
  * @class NumberType
- * @extends SimpleType
+ * @extends Type
  */
-class NumberType extends SimpleType {
+class NumberType extends Type {
     static {
         /**
          * @static

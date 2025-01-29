@@ -1,15 +1,15 @@
-import SimpleType from './SimpleType.js';
+import Type from '../Type.js';
 
 /**
  * Class representing a boolean type.
  *
  * This class is used to define and handle data of the boolean type.
- * It extends the {@link SimpleType} class to represent string-specific behavior.
+ * It extends the {@link Type} class to represent string-specific behavior.
  *
  * @class BooleanType
- * @extends SimpleType
+ * @extends Type
  */
-class BooleanType extends SimpleType {
+class BooleanType extends Type {
     static {
         /**
          * @static

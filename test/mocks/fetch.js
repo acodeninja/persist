@@ -1,6 +1,6 @@
 import Model from '../../src/type/Model.js';
+import {jest} from '@jest/globals';
 import lunr from 'lunr';
-import sinon from 'sinon';
 
 /**
  * @param filesystem
@@ -81,7 +81,7 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         }
     }
 
-    const stubbedFetch = sinon.stub().callsFake((url, opts) => {
+    const stubbedFetch = jest.fn().mockImplementation((url, opts) => {
         if (opts.method === 'PUT') {
             resolvedFiles[url.pathname ?? url] = JSON.parse(opts.body);
             return Promise.resolve({

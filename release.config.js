@@ -10,7 +10,10 @@ export default {
         [
             '@semantic-release/commit-analyzer',
             {
-              preset: 'conventionalcommits',
+                preset: 'conventionalcommits',
+                parserOpts: {
+                    noteKeywords: ['BREAKING CHANGE', 'BREAKING CHANGES'],
+                },
             },
         ],
         '@semantic-release/release-notes-generator',

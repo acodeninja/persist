@@ -15,23 +15,18 @@ import StringType from './simple/StringType.js';
  * @property {DateType} Date
  * @property {ArrayType} Array
  * @property {CustomType} Custom
- * @property {ResolvedType} Resolved
+ * @property {{Slug: SlugType}} Resolved
  * @property {Model} Model
  */
-const Type = {};
-
-Type.String = StringType;
-Type.Number = NumberType;
-Type.Boolean = BooleanType;
-Type.Date = DateType;
-Type.Array = ArrayType;
-Type.Custom = CustomType;
-
-/**
- * @class ResolvedType
- * @property {SlugType} Slug
- */
-Type.Resolved = {Slug: SlugType};
-Type.Model = Model;
+class Type {
+    static Model = Model;
+    static String = StringType;
+    static Number = NumberType;
+    static Boolean = BooleanType;
+    static Date = DateType;
+    static Array = ArrayType;
+    static Custom = CustomType;
+    static Resolved = {Slug: SlugType};
+}
 
 export default Type;

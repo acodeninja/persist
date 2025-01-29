@@ -54,15 +54,15 @@ export class Address extends Persist.Type.Model {
 
 By doing this, you ensure that model references are evaluated lazily, after all models have been initialized, preventing `ReferenceError` issues.
 
-## Using `HTTP` Engine in Browser
+## Using `HTTP` StorageEngine in Browser
 
 When implementing thee `HTTP` engine for code that runs in the web browser, you must pass `fetch` into the engine configuration and bind it to the `window` object.
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import HTTPEngine from "@acodeninja/persist/engine/http";
+import HTTPStorageEngine from "@acodeninja/persist/engine/storage/http";
 
-Persist.addEngine('remote', HTTPEngine, {
+Persist.addEngine('remote', HTTPStorageEngine, {
     host: 'https://api.example.com',
     fetch: fetch.bind(window),
 });
