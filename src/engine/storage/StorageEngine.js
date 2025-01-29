@@ -186,6 +186,11 @@ class StorageEngine {
         const uploadedModels = [];
         const indexUpdates = {};
 
+        /**
+         * Process a model, putting updates to the model and all linked models.
+         * @param {Model} m
+         * @return {Promise<void>}
+         */
         const processModel = async (m) => {
             if (!uploadedModels.includes(m.id)) {
                 m.validate();
@@ -389,6 +394,11 @@ class StorageEngine {
         this.checkConfiguration();
         const hydratedModels = {};
 
+        /**
+         * Hydrate a model
+         * @param {Model} modelToProcess
+         * @return {Promise<Model>}
+         */
         const hydrateModel = async (modelToProcess) => {
             hydratedModels[modelToProcess.id] = modelToProcess;
 
@@ -405,6 +415,13 @@ class StorageEngine {
             return modelToProcess;
         };
 
+        /**
+         * Hydrate a dry sub model
+         * @param property
+         * @param modelToProcess
+         * @param name
+         * @return {Promise<Model>}
+         */
         const hydrateSubModel = async (property, modelToProcess, name) => {
             if (hydratedModels[property.id]) {
                 return hydratedModels[property.id];
@@ -418,6 +435,13 @@ class StorageEngine {
             return hydratedSubModel;
         };
 
+        /**
+         * Hydrate an array of dry models
+         * @param property
+         * @param modelToProcess
+         * @param name
+         * @return {Promise<Awaited<*>[]>}
+         */
         const hydrateModelList = async (property, modelToProcess, name) => {
             const subModelClass = getSubModelClass(modelToProcess, name, true);
 
@@ -440,6 +464,13 @@ class StorageEngine {
             }));
         };
 
+        /**
+         * Get the class of a sub model
+         * @param modelToProcess
+         * @param name
+         * @param isArray
+         * @return {Model.constructor|Type}
+         */
         function getSubModelClass(modelToProcess, name, isArray = false) {
             const constructorField = modelToProcess.constructor[name];
 
@@ -460,6 +491,10 @@ class StorageEngine {
      * @returns {StorageEngine} A new engine instance with the applied configuration.
      */
     static configure(configuration) {
+        /**
+         * @class ConfiguredStore
+         * @extends StorageEngine
+         */
         class ConfiguredStore extends this {
             static configuration = configuration;
         }
