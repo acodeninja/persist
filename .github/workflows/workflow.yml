@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: asdf-vm/actions/install@v3
       - run: make init
-      - run: make test/coverage/report
+      - run: make test/coverage
       - run: curl https://deepsource.io/cli | sh
       - name: deepsource report
         env:

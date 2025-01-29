@@ -1,8 +1,8 @@
+import {expect, test} from '@jest/globals';
 import Persist from './default.js';
-import test from 'ava';
 
-test('default exports Persist class', async t => {
+test('default exports Persist class', async () => {
     const imported = await import('./default.js');
 
-    t.is(imported.default, Persist);
+    expect(imported.default).toBe(Persist);
 });

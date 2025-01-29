@@ -1,42 +1,46 @@
+import {describe, expect, test} from '@jest/globals';
 import BooleanType from './BooleanType.js';
-import test from 'ava';
 
-test('BooleanType is Boolean', t => {
-    t.is(BooleanType.toString(), 'Boolean');
+describe('BooleanType', () => {
+    test('BooleanType is Boolean', () => {
+        expect(BooleanType.toString()).toBe('Boolean');
+    });
+
+    test('BooleanType is not required', () => {
+        expect(BooleanType._required).toBe(false);
+    });
+
+    test('BooleanType does not have properties', () => {
+        expect(BooleanType._properties).toBe(undefined);
+    });
+
+    test('BooleanType does not have items', () => {
+        expect(BooleanType._items).toBe(undefined);
+    });
+
+    test('BooleanType is not a resolved type', () => {
+        expect(BooleanType._resolved).toBe(false);
+    });
 });
 
-test('BooleanType is not required', t => {
-    t.is(BooleanType._required, false);
-});
+describe('RequiredBooleanType', () => {
+    test('RequiredBooleanType is Boolean', () => {
+        expect(BooleanType.required.toString()).toBe('RequiredBoolean');
+    });
 
-test('BooleanType does not have properties', t => {
-    t.assert(BooleanType._properties === undefined);
-});
+    test('RequiredBooleanType is required', () => {
+        expect(BooleanType.required._required).toBe(true);
+    });
 
-test('BooleanType does not have items', t => {
-    t.assert(BooleanType._items === undefined);
-});
+    test('RequiredBooleanType does not have properties', () => {
+        expect(BooleanType.required._properties).toBe(undefined);
+    });
 
-test('BooleanType is not a resolved type', t => {
-    t.is(BooleanType._resolved, false);
-});
+    test('RequiredBooleanType does not have items', () => {
+        expect(BooleanType.required._items).toBe(undefined);
+    });
 
-test('RequiredBooleanType is Boolean', t => {
-    t.is(BooleanType.required.toString(), 'RequiredBoolean');
-});
-
-test('RequiredBooleanType is required', t => {
-    t.is(BooleanType.required._required, true);
-});
-
-test('RequiredBooleanType does not have properties', t => {
-    t.assert(BooleanType.required._properties === undefined);
-});
-
-test('RequiredBooleanType does not have items', t => {
-    t.assert(BooleanType.required._items === undefined);
-});
-
-test('RequiredBooleanType is not a resolved type', t => {
-    t.is(BooleanType.required._resolved, false);
+    test('RequiredBooleanType is not a resolved type', () => {
+        expect(BooleanType.required._resolved).toBe(false);
+    });
 });

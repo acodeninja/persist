@@ -1,26 +1,25 @@
 import {LinkedModel, MainModel} from '../test/fixtures/Models.js';
 import enableTransactions, {TransactionCommittedError} from './Transactions.js';
+import {expect, test} from '@jest/globals';
 import {EngineError} from './engine/storage/StorageEngine.js';
 import {Models} from '../test/fixtures/ModelCollection.js';
-import assertions from '../test/assertions.js';
 import {getTestEngine} from '../test/mocks/engine.js';
-import test from 'ava';
 
-test('enableTransactions(StorageEngine) returns a copy of the engine', t => {
+test('enableTransactions(StorageEngine) returns a copy of the engine', () => {
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 
-    t.deepEqual(transactionalEngine.prototype, testEngine.prototype);
+    expect(transactionalEngine.prototype).toEqual(testEngine.prototype);
 });
 
-test('enableTransactions(StorageEngine) leaves the original engine intact', t => {
+test('enableTransactions(StorageEngine) leaves the original engine intact', () => {
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
 
-    t.not(transactionalEngine, testEngine);
+    expect(transactionalEngine).not.toBe(testEngine);
 });
 
-test('transaction.put(model) calls putModel(model) on transaction.commit()', async t => {
+test('transaction.put(model) calls putModel(model) on transaction.commit()', async () => {
     const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
@@ -29,14 +28,14 @@ test('transaction.put(model) calls putModel(model) on transaction.commit()', asy
 
     await transaction.put(model);
 
-    t.false(testEngine.putModel.calledWith(model));
+    expect(testEngine.putModel).not.toHaveBeenCalled();
 
     await transaction.commit();
 
-    t.true(testEngine.putModel.calledWith(model));
+    expect(testEngine.putModel).toHaveBeenCalledWith(model);
 });
 
-test('transaction.commit() throws an exception if the transaction was successfully commited before', async t => {
+test('transaction.commit() throws an exception if the transaction was successfully commited before', async () => {
     const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
     const transactionalEngine = enableTransactions(testEngine);
@@ -47,19 +46,17 @@ test('transaction.commit() throws an exception if the transaction was successful
 
     await transaction.commit();
 
-    await t.throwsAsync(() => transaction.commit(), {
+    await expect(() => transaction.commit()).rejects.toThrowError({
         instanceOf: TransactionCommittedError,
         message: 'Transaction was already committed.',
     });
 });
 
-test('transaction.commit() throws an exception if the transaction fails', async t => {
+test('transaction.commit() throws an exception if the transaction fails', async () => {
     const model = new Models().createFullTestModel();
     const testEngine = getTestEngine();
 
-    testEngine.putModel.callsFake(async () => {
-        return Promise.reject(new EngineError('Failed to put model'));
-    });
+    testEngine.putModel.mockImplementation(() => Promise.reject(new EngineError('Failed to put model')));
 
     const transactionalEngine = enableTransactions(testEngine);
 
@@ -67,16 +64,13 @@ test('transaction.commit() throws an exception if the transaction fails', async 
 
     await transaction.put(model);
 
-    await t.throwsAsync(
-        () =>  transaction.commit(),
-        {
-            instanceOf: EngineError,
-            message: 'Failed to put model',
-        },
-    );
+    await expect(() => transaction.commit()).rejects.toThrowError({
+        instanceOf: EngineError,
+        message: 'Failed to put model',
+    });
 });
 
-test('transaction.commit() reverts already commited changes if the transaction fails', async t => {
+test('transaction.commit() reverts already commited changes if the transaction fails', async () => {
     const model = LinkedModel.fromData({string: 'original'});
     model.id = 'LinkedModel/000000000000';
     const original = LinkedModel.fromData(model.toData());
@@ -85,7 +79,7 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     model.string = 'updated';
 
-    testEngine.putModel.callsFake(subject => {
+    testEngine.putModel.mockImplementation(subject => {
         if (subject.string === 'updated') {
             return Promise.reject(new EngineError(`Failed to put model ${subject.id}`));
         }
@@ -98,25 +92,23 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     await transaction.put(model);
 
-    await t.throwsAsync(
-        () =>  transaction.commit(),
-        {
+    await expect(() => transaction.commit())
+        .rejects.toThrowError({
             instanceOf: EngineError,
             message: 'Failed to put model LinkedModel/000000000000',
-        },
-    );
+        });
 
-    assertions.calledWith(t, testEngine.putModel, model);
-    assertions.calledWith(t, testEngine.putModel, original);
+    expect(testEngine.putModel).toHaveBeenCalledWith(model);
+    expect(testEngine.putModel).toHaveBeenCalledWith(original);
 });
 
-test('transaction.commit() reverts already commited changes if the transaction fails for complex models', async t => {
+test('transaction.commit() reverts already commited changes if the transaction fails for complex models', async () => {
     const models = new Models();
     models.createFullTestModel();
 
     const testEngine = getTestEngine([...Object.values(models.models)]);
 
-    testEngine.putModel.callsFake(subject => {
+    testEngine.putModel.mockImplementation(subject => {
         if (subject.string === 'updated') {
             return Promise.reject(new EngineError(`Failed to put model ${subject.id}`));
         }
@@ -133,20 +125,17 @@ test('transaction.commit() reverts already commited changes if the transaction f
 
     await transaction.put(model);
 
-    await t.throwsAsync(
-        () =>  transaction.commit(),
-        {
-            instanceOf: EngineError,
-            message: 'Failed to put model LinkedModel/000000000000',
-        },
-    );
+    await expect(() => transaction.commit()).rejects.toThrowError({
+        instanceOf: EngineError,
+        message: 'Failed to put model LinkedModel/000000000000',
+    });
 
-    assertions.calledWith(t, testEngine.putModel, {
+    expect(testEngine.putModel).toHaveBeenCalledWith({
         id: 'LinkedModel/000000000000',
         string: 'updated',
         boolean: true,
     });
-    assertions.calledWith(t, testEngine.putModel, {
+    expect(testEngine.putModel).toHaveBeenCalledWith({
         id: 'LinkedModel/000000000000',
         string: 'test',
         boolean: true,

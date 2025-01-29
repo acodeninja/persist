@@ -1,43 +1,58 @@
-import HTTPStorageEngine from '@acodeninja/persist/engine/storage/http';
-import Persist from '@acodeninja/persist';
-import test from 'ava';
+import {expect, test} from '@jest/globals';
+import HTTPStorageEngine from '../../../../exports/engine/storage/http.js';
+import Persist from '../../../../exports/default.js';
 
-test('Persist allows adding the HTTPStorageEngine', t => {
+test('Persist allows adding the HTTPStorageEngine', () => {
     Persist.addEngine('http', HTTPStorageEngine, {
         host: 'https://example.com',
         prefix: 'test',
     });
 
-    t.like(Persist._engine.http.HTTPStorageEngine.configuration, {
+    expect(Persist._engine.http.HTTPStorageEngine.configuration).toStrictEqual({
         host: 'https://example.com',
         prefix: 'test',
+        fetchOptions: {
+            headers: {
+                Accept: 'application/json',
+            },
+        },
     });
 });
 
-test('Persist allows adding the HTTPStorageEngine with transactions', t => {
+test('Persist allows adding the HTTPStorageEngine with transactions', () => {
     Persist.addEngine('http', HTTPStorageEngine, {
         host: 'https://example.com',
         prefix: 'test',
         transactions: true,
     });
 
-    t.like(Persist._engine.http.HTTPStorageEngine.configuration, {
+    expect(Persist._engine.http.HTTPStorageEngine.configuration).toStrictEqual({
         host: 'https://example.com',
         prefix: 'test',
         transactions: true,
+        fetchOptions: {
+            headers: {
+                Accept: 'application/json',
+            },
+        },
     });
 
-    t.is(typeof Persist._engine.http.HTTPStorageEngine.start, 'function');
+    expect(typeof Persist._engine.http.HTTPStorageEngine.start).toBe('function');
 });
 
-test('Persist allows retrieving a HTTPStorageEngine', t => {
+test('Persist allows retrieving a HTTPStorageEngine', () => {
     Persist.addEngine('http', HTTPStorageEngine, {
         host: 'https://example.com',
         prefix: 'test',
     });
 
-    t.like(Persist.getEngine('http', HTTPStorageEngine).configuration, {
+    expect(Persist.getEngine('http', HTTPStorageEngine).configuration).toStrictEqual({
         host: 'https://example.com',
         prefix: 'test',
+        fetchOptions: {
+            headers: {
+                Accept: 'application/json',
+            },
+        },
     });
 });

@@ -1,6 +1,6 @@
 import Model from '../../src/type/Model.js';
+import {jest} from '@jest/globals';
 import lunr from 'lunr';
-import sinon from 'sinon';
 
 /**
  * @param filesystem
@@ -81,7 +81,7 @@ function stubFs(filesystem = {}, models = []) {
         ...Object.fromEntries(models.map(m => ([m.id, m.toIndexData()]))),
     };
 
-    const readFile = sinon.stub().callsFake((filePath) => {
+    const readFile = jest.fn().mockImplementation((filePath) => {
         const path = filePath.replace('/tmp/fileEngine/', '');
         if (resolvedFiles[path]) {
             if (typeof resolvedFiles[path] === 'string') {
@@ -96,7 +96,7 @@ function stubFs(filesystem = {}, models = []) {
         return Promise.reject(err);
     });
 
-    const rm = sinon.stub().callsFake((filePath) => {
+    const rm = jest.fn().mockImplementation((filePath) => {
         for (const [filename, _] of Object.entries(resolvedFiles)) {
             if (filePath.endsWith(filename)) {
                 delete resolvedFiles[filename];
@@ -110,7 +110,7 @@ function stubFs(filesystem = {}, models = []) {
         return Promise.reject(err);
     });
 
-    const writeFile = sinon.stub().callsFake((filePath, contents) => {
+    const writeFile = jest.fn().mockImplementation((filePath, contents) => {
         const path = filePath.replace('/tmp/fileEngine/', '');
         if (resolvedFiles[path]) {
             resolvedFiles[path] = contents;
@@ -118,7 +118,7 @@ function stubFs(filesystem = {}, models = []) {
         return Promise.resolve();
     });
 
-    const mkdir = sinon.stub();
+    const mkdir = jest.fn();
 
     return {readFile, rm, writeFile, mkdir, resolvedFiles};
 }

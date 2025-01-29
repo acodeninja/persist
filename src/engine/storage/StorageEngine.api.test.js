@@ -1,4 +1,5 @@
 import {MissConfiguredError, NotFoundEngineError} from './StorageEngine.js';
+import {describe, expect, test} from '@jest/globals';
 import FileStorageEngine from './FileStorageEngine.js';
 import HTTPStorageEngine from './HTTPStorageEngine.js';
 import {MainModel} from '../../../test/fixtures/Models.js';
@@ -7,7 +8,6 @@ import S3StorageEngine from './S3StorageEngine.js';
 import stubFetch from '../../../test/mocks/fetch.js';
 import stubFs from '../../../test/mocks/fs.js';
 import stubS3Client from '../../../test/mocks/s3.js';
-import test from 'ava';
 
 const models = new Models();
 const model = models.createFullTestModel();
@@ -45,8 +45,14 @@ const engines = [
     },
 ];
 
-for (const {engine, configuration, configurationIgnores} of engines) {
-    test(`${engine.toString()}.configure(options) returns a new engine without altering the exising one`, t => {
+describe.each(
+    engines.map(({
+                     engine,
+                     configuration,
+                     configurationIgnores,
+                 }) => [engine, configuration, configurationIgnores]),
+)('%s API', (engine, configuration, configurationIgnores) => {
+    test(`${engine}.configure(options) returns a new engine without altering the exising one`, () => {
         const originalStore = engine;
         const configuredStore = originalStore.configure(configuration());
 
@@ -58,27 +64,24 @@ for (const {engine, configuration, configurationIgnores} of engines) {
             }
         }
 
-        t.like(configuredStore.configuration, checkConfiguration);
-        t.assert(originalStore.configuration === undefined);
+        expect(configuredStore.configuration).toStrictEqual(expect.objectContaining(checkConfiguration));
+        expect(originalStore.configuration).toBe(undefined);
     });
 
-    test(`${engine.toString()}.get(MainModel, id) throws MissConfiguredError when engine is not configured`, async t => {
-        const error = await t.throwsAsync(
-            () =>  engine.get(MainModel, 'MainModel/000000000000'),
-            {
+    test(`${engine}.get(MainModel, id) throws MissConfiguredError when engine is not configured`, async () => {
+        await expect(() => engine.get(MainModel, 'MainModel/000000000000'))
+            .rejects.toThrowError({
                 instanceOf: MissConfiguredError,
-            },
-        );
-
-        t.is(error.message, 'StorageEngine is miss-configured');
+                message: 'StorageEngine is miss-configured',
+            });
     });
 
-    test(`${engine.toString()}.get(MainModel, id) returns a model when one exists`, async t => {
+    test(`${engine}.get(MainModel, id) returns a model when one exists`, async () => {
         const store = engine.configure(configuration());
 
         const got = await store.get(MainModel, 'MainModel/000000000000');
 
-        t.deepEqual(got, MainModel.fromData({
+        expect(got).toEqual(MainModel.fromData({
             ...model.toData(),
             date: new Date(model.date),
             requiredDate: new Date(model.requiredDate),
@@ -87,107 +90,107 @@ for (const {engine, configuration, configurationIgnores} of engines) {
         }));
     });
 
-    test(`${engine.toString()}.get(MainModel, id) throws NotFoundEngineError when no model exists`, async t => {
+    test(`${engine}.get(MainModel, id) throws NotFoundEngineError when no model exists`, async () => {
         const store = engine.configure(configuration());
 
-        const error = await t.throwsAsync(
-            () =>  store.get(MainModel, 'MainModel/999999999999'),
-            {
-                instanceOf: NotFoundEngineError,
-            },
-        );
-
-        t.is(error.message, `${engine.toString()}.get(MainModel/999999999999) model not found`);
+        await expect(() => store.get(MainModel, 'MainModel/999999999999'))
+            .rejects.toThrowError(
+                {
+                    instanceOf: NotFoundEngineError,
+                    message: `${engine}.get(MainModel/999999999999) model not found`,
+                },
+            );
     });
 
-    test(`${engine.toString()}.put(model) throws MissConfiguredError when engine is not configured`, async t => {
-        const error = await t.throwsAsync(
-            () =>  engine.put(MainModel, {string: 'string'}),
-            {
-                instanceOf: MissConfiguredError,
-            },
-        );
-
-        t.is(error.message, 'StorageEngine is miss-configured');
+    test(`${engine}.put(model) throws MissConfiguredError when engine is not configured`, async () => {
+        await expect(() => engine.put(MainModel, {string: 'string'}))
+            .rejects.toThrowError(
+                {
+                    instanceOf: MissConfiguredError,
+                    message: 'StorageEngine is miss-configured',
+                },
+            );
     });
 
-    test(`${engine.toString()}.put(model) puts a new model`, async t => {
+    test(`${engine}.put(model) puts a new model`, async () => {
         const store = engine.configure(configuration());
-        const response = await store.put(MainModel.fromData({...model.toData(), id: 'MainModel/111111111111'}));
+        const response = await store.put(MainModel.fromData({
+            ...model.toData(),
+            id: 'MainModel/111111111111',
+        }));
 
-        t.assert(response === undefined);
+        expect(response).toBe(undefined);
     });
 
-    test(`${engine.toString()}.find(MainModel, parameters) throws MissConfiguredError when engine is not configured`, async t => {
-        const error = await t.throwsAsync(
-            () =>  engine.find(MainModel, {string: 'string'}),
-            {
-                instanceOf: MissConfiguredError,
-            },
-        );
-
-        t.is(error.message, 'StorageEngine is miss-configured');
+    test(`${engine}.find(MainModel, parameters) throws MissConfiguredError when engine is not configured`, async () => {
+        await expect(() => engine.find(MainModel, {string: 'string'}))
+            .rejects.toThrowError(
+                {
+                    instanceOf: MissConfiguredError,
+                    message: 'StorageEngine is miss-configured',
+                },
+            );
     });
 
-    test(`${engine.toString()}.find(MainModel, parameters) returns an array of matching models`, async t => {
+    test(`${engine}.find(MainModel, parameters) returns an array of matching models`, async () => {
         const store = engine.configure(configuration());
 
         const found = await store.find(MainModel, {string: 'test'});
 
-        t.deepEqual(found, [MainModel.fromData(model.toIndexData())]);
+        expect(found).toEqual([MainModel.fromData(model.toIndexData())]);
     });
 
-    test(`${engine.toString()}.search(MainModel, 'string') throws MissConfiguredError when engine is not configured`, async t => {
-        const error = await t.throwsAsync(
-            () =>  engine.search(MainModel, 'string'),
-            {
-                instanceOf: MissConfiguredError,
-            },
-        );
-
-        t.is(error.message, 'StorageEngine is miss-configured');
+    test(`${engine}.search(MainModel, 'string') throws MissConfiguredError when engine is not configured`, async () => {
+        await expect(() => engine.search(MainModel, 'string'))
+            .rejects.toThrowError(
+                {
+                    instanceOf: MissConfiguredError,
+                    message: 'StorageEngine is miss-configured',
+                },
+            );
     });
 
-    test(`${engine.toString()}.search(MainModel, 'test') returns an array of matching models`, async t => {
+    test(`${engine}.search(MainModel, 'test') returns an array of matching models`, async () => {
         const store = engine.configure(configuration());
 
         const found = await store.search(MainModel, 'test');
 
-        t.like(found, [{
-            model: MainModel.fromData(model.toData(false)),
-            ref: 'MainModel/000000000000',
-            score: 0.364,
-        }]);
+        expect(found).toStrictEqual([
+            expect.objectContaining({
+                model: MainModel.fromData(model.toData(false)),
+                ref: 'MainModel/000000000000',
+                score: 0.364,
+            }),
+        ]);
     });
 
-    test(`${engine.toString()}.hydrate(model) throws MissConfiguredError when engine is not configured`, async t => {
-        const error = await t.throwsAsync(
-            () =>  engine.hydrate(new Models().createFullTestModel().toData()),
-            {
-                instanceOf: MissConfiguredError,
-            },
-        );
-
-        t.is(error.message, 'StorageEngine is miss-configured');
+    test(`${engine}.hydrate(model) throws MissConfiguredError when engine is not configured`, async () => {
+        await expect(() => engine.hydrate(new Models().createFullTestModel().toData()))
+            .rejects.toThrowError(
+                {
+                    instanceOf: MissConfiguredError,
+                    message: 'StorageEngine is miss-configured',
+                },
+            );
     });
 
-    test(`${engine.toString()}.hydrate(model) returns a hydrated model when the input model comes from ${engine.toString()}.find(MainModel, parameters)`, async t => {
+    test(`${engine}.hydrate(model) returns a hydrated model when the input model comes from ${engine}.find(MainModel, parameters)`, async () => {
         const store = engine.configure(configuration());
 
         const [found] = await store.find(MainModel, {string: 'test'});
 
         const hydrated = await store.hydrate(found);
 
-        t.is(hydrated.linked.string, 'test');
+        expect(hydrated.linked.string).toBe('test');
     });
 
-    test(`${engine.toString()}.hydrate(model) returns a hydrated model when the input model comes from ${engine.toString()}.search(MainModel, 'test')`, async t => {
+    test(`${engine}.hydrate(model) returns a hydrated model when the input model comes from ${engine}.search(MainModel, 'test')`, async () => {
         const store = engine.configure(configuration());
 
         const [found] = await store.search(MainModel, 'test');
 
         const hydrated = await store.hydrate(found.model);
 
-        t.is(hydrated.linked.string, 'test');
+        expect(hydrated.linked.string).toBe('test');
     });
-}
+});

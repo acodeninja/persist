@@ -69,10 +69,10 @@ class Query {
      *
      * @private
      * @param {*} subject - The subject to be matched.
-     * @param {Object} [inputQuery=this.query] - The query to match against. Defaults to `this.query` if not provided.
+     * @param {Object} inputQuery - The query to match against.
      * @returns {boolean} True if the subject matches the query, otherwise false.
      */
-    _matchesQuery(subject, inputQuery = this.query) {
+    _matchesQuery(subject, inputQuery) {
         if (['string', 'number', 'boolean'].includes(typeof inputQuery)) return subject === inputQuery;
 
         if (inputQuery?.$is !== undefined && subject === inputQuery.$is) return true;

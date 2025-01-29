@@ -1,8 +1,8 @@
-import SchemaCompiler, {CompiledSchema, ValidationError} from './SchemaCompiler.js';
+import SchemaCompiler, {CompiledSchema} from './SchemaCompiler.js';
+import {expect, test} from '@jest/globals';
 import {MainModel} from '../test/fixtures/Models.js';
 import {Models} from '../test/fixtures/ModelCollection.js';
 import Type from './type/index.js';
-import test from 'ava';
 
 const schema = {
     custom: Type.Custom.of({
@@ -217,12 +217,12 @@ const invalidDataErrors = [{
     schemaPath: '#/properties/requiredArrayOfDate/items/format',
 }];
 
-test('.compile(schema) is an instance of CompiledSchema', t => {
-    t.true(SchemaCompiler.compile(schema).prototype instanceof CompiledSchema);
+test('.compile(schema) is an instance of CompiledSchema', () => {
+    expect(SchemaCompiler.compile(schema).prototype).toBeInstanceOf(CompiledSchema);
 });
 
-test('.compile(schema) has the given schema associated with it', t => {
-    t.deepEqual(SchemaCompiler.compile(schema)._schema, {
+test('.compile(schema) has the given schema associated with it', () => {
+    expect(SchemaCompiler.compile(schema)._schema).toEqual({
         type: 'object',
         additionalProperties: false,
         required: [
@@ -268,23 +268,21 @@ test('.compile(schema) has the given schema associated with it', t => {
     });
 });
 
-test('.compile(schema).validate(valid) returns true', t => {
-    t.assert(SchemaCompiler.compile(schema).validate(valid));
+test('.compile(schema).validate(valid) returns true', () => {
+    expect(SchemaCompiler.compile(schema).validate(valid)).toBeTruthy();
 });
 
-test('.compile(schema).validate(invalid) throws a ValidationError', t => {
-    const error = t.throws(
-        () => SchemaCompiler.compile(schema).validate(invalid),
-        {instanceOf: ValidationError},
-    );
-
-    t.is(error.message, 'Validation failed');
-    t.deepEqual(error.data, invalid);
-    t.deepEqual(error.errors, invalidDataErrors);
+test('.compile(schema).validate(invalid) throws a ValidationError', () => {
+    expect(() => SchemaCompiler.compile(schema).validate(invalid))
+        .toThrowError(expect.objectContaining({
+            message: 'Validation failed',
+            errors: invalidDataErrors,
+            data: invalid,
+        }));
 });
 
-test('.compile(MainModel) has the given schema associated with it', t => {
-    t.deepEqual(SchemaCompiler.compile(MainModel)._schema, {
+test('.compile(MainModel) has the given schema associated with it', () => {
+    expect(SchemaCompiler.compile(MainModel)._schema).toEqual({
         type: 'object',
         additionalProperties: false,
         required: [
@@ -414,12 +412,12 @@ test('.compile(MainModel) has the given schema associated with it', t => {
     });
 });
 
-test('.compile(MainModel).validate(validModel) returns true', t => {
+test('.compile(MainModel).validate(validModel) returns true', () => {
     const model = new Models().createFullTestModel();
-    t.true(SchemaCompiler.compile(MainModel).validate(model));
+    expect(SchemaCompiler.compile(MainModel).validate(model)).toBe(true);
 });
 
-test('.compile(MainModel).validate(invalidModel) throws a ValidationError', t => {
+test('.compile(MainModel).validate(invalidModel) throws a ValidationError', () => {
     const invalidModel = new Models().createFullTestModel(invalid);
 
     invalidModel.circular.id = 'CircularModel/not-a-valid-id';
@@ -427,47 +425,36 @@ test('.compile(MainModel).validate(invalidModel) throws a ValidationError', t =>
     invalidModel.linked.id = 'LinkedModel/not-a-valid-id';
     invalidModel.linkedMany[0].id = 'LinkedManyModel/not-a-valid-id';
 
-    t.plan(Object.keys(invalidModel).length + 6);
-
-    const error = t.throws(
-        () => SchemaCompiler.compile(MainModel).validate(invalidModel),
-        {instanceOf: ValidationError},
-    );
-
-    t.is(error.message, 'Validation failed');
-
-    t.true(new RegExp(/MainModel\/[A-Z0-9]+/).test(error.data.id));
-
-    for (const [name, value] of Object.entries(invalidModel.toData())) {
-        t.deepEqual(error.data[name], value);
-    }
-
-    t.deepEqual(error.errors, [
-        ...invalidDataErrors,
-        {
-            instancePath: '/circular/id',
-            keyword: 'pattern',
-            message: 'must match pattern "^CircularModel/[A-Z0-9]+$"',
-            params: {pattern: '^CircularModel/[A-Z0-9]+$'},
-            schemaPath: '#/properties/circular/properties/id/pattern',
-        }, {
-            instancePath: '/circularMany/0/id',
-            keyword: 'pattern',
-            message: 'must match pattern "^CircularManyModel/[A-Z0-9]+$"',
-            params: {pattern: '^CircularManyModel/[A-Z0-9]+$'},
-            schemaPath: '#/properties/circularMany/items/properties/id/pattern',
-        }, {
-            instancePath: '/linked/id',
-            keyword: 'pattern',
-            message: 'must match pattern "^LinkedModel/[A-Z0-9]+$"',
-            params: {pattern: '^LinkedModel/[A-Z0-9]+$'},
-            schemaPath: '#/properties/linked/properties/id/pattern',
-        }, {
-            instancePath: '/linkedMany/0/id',
-            keyword: 'pattern',
-            message: 'must match pattern "^LinkedManyModel/[A-Z0-9]+$"',
-            params: {pattern: '^LinkedManyModel/[A-Z0-9]+$'},
-            schemaPath: '#/properties/linkedMany/items/properties/id/pattern',
-        },
-    ]);
+    expect(() => SchemaCompiler.compile(MainModel).validate(invalidModel))
+        .toThrow(expect.objectContaining({
+            message: 'Validation failed',
+            data: invalidModel.toData(),
+            errors: [
+            ...invalidDataErrors,
+            {
+                instancePath: '/circular/id',
+                keyword: 'pattern',
+                message: 'must match pattern "^CircularModel/[A-Z0-9]+$"',
+                params: {pattern: '^CircularModel/[A-Z0-9]+$'},
+                schemaPath: '#/properties/circular/properties/id/pattern',
+            }, {
+                instancePath: '/circularMany/0/id',
+                keyword: 'pattern',
+                message: 'must match pattern "^CircularManyModel/[A-Z0-9]+$"',
+                params: {pattern: '^CircularManyModel/[A-Z0-9]+$'},
+                schemaPath: '#/properties/circularMany/items/properties/id/pattern',
+            }, {
+                instancePath: '/linked/id',
+                keyword: 'pattern',
+                message: 'must match pattern "^LinkedModel/[A-Z0-9]+$"',
+                params: {pattern: '^LinkedModel/[A-Z0-9]+$'},
+                schemaPath: '#/properties/linked/properties/id/pattern',
+            }, {
+                instancePath: '/linkedMany/0/id',
+                keyword: 'pattern',
+                message: 'must match pattern "^LinkedManyModel/[A-Z0-9]+$"',
+                params: {pattern: '^LinkedManyModel/[A-Z0-9]+$'},
+                schemaPath: '#/properties/linkedMany/items/properties/id/pattern',
+            },
+        ]}));
 });

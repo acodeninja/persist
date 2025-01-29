@@ -1,54 +1,59 @@
+import {describe, expect, test} from '@jest/globals';
 import DateType from './DateType.js';
-import test from 'ava';
 
-test('DateType is Date', t => {
-    t.is(DateType.toString(), 'Date');
+describe('DateType', () => {
+    test('DateType is Date', () => {
+        expect(DateType.toString()).toBe('Date');
+    });
+
+    test('DateType.isDate(not-a-date) returns false', () => {
+        expect(DateType.isDate('not-a-date')).toBe(false);
+    });
+
+    test('DateType.isDate(date) returns true', () => {
+        expect(DateType.isDate(new Date())).toBe(true);
+    });
+
+    test('DateType.isDate(date-string) returns true', () => {
+        expect(DateType.isDate('2024-09-21T09:25:34.595Z')).toBe(true);
+    });
+
+    test('DateType is not required', () => {
+        expect(DateType._required).toBe(false);
+    });
+
+    test('DateType does not have properties', () => {
+        expect(DateType._properties).toBe(undefined);
+    });
+
+    test('DateType does not have items', () => {
+        expect(DateType._items).toBe(undefined);
+    });
+
+    test('DateType is not a resolved type', () => {
+        expect(DateType._resolved).toBe(false);
+    });
+
 });
 
-test('DateType.isDate(not-a-date) returns false', t => {
-    t.false(DateType.isDate('not-a-date'));
-});
+describe('RequiredDateType', () => {
+    test('RequiredDateType is RequiredDate', () => {
+        expect(DateType.required.toString()).toBe('RequiredDate');
+    });
 
-test('DateType.isDate(date) returns true', t => {
-    t.true(DateType.isDate(new Date()));
-});
+    test('RequiredDateType is required', () => {
+        expect(DateType.required._required).toBe(true);
+    });
 
-test('DateType.isDate(date-string) returns true', t => {
-    t.true(DateType.isDate('2024-09-21T09:25:34.595Z'));
-});
+    test('RequiredDateType does not have properties', () => {
+        expect(DateType.required._properties).toBe(undefined);
+    });
 
-test('DateType is not required', t => {
-    t.is(DateType._required, false);
-});
+    test('RequiredDateType does not have items', () => {
+        expect(DateType.required._items).toBe(undefined);
+    });
 
-test('DateType does not have properties', t => {
-    t.assert(DateType._properties === undefined);
-});
-
-test('DateType does not have items', t => {
-    t.assert(DateType._items === undefined);
-});
-
-test('DateType is not a resolved type', t => {
-    t.is(DateType._resolved, false);
-});
-
-test('RequiredDateType is RequiredDate', t => {
-    t.is(DateType.required.toString(), 'RequiredDate');
-});
-
-test('RequiredDateType is required', t => {
-    t.is(DateType.required._required, true);
-});
-
-test('RequiredDateType does not have properties', t => {
-    t.assert(DateType.required._properties === undefined);
-});
-
-test('RequiredDateType does not have items', t => {
-    t.assert(DateType.required._items === undefined);
-});
-
-test('RequiredDateType is not a resolved type', t => {
-    t.is(DateType.required._resolved, false);
+    test('RequiredDateType is not a resolved type', () => {
+        expect(DateType.required._resolved).toBe(false);
+    });
 });

@@ -1,42 +1,44 @@
+import {expect, test} from '@jest/globals';
 import SlugType from './SlugType.js';
-import test from 'ava';
 
-test('SlugType is of type Slug', t => {
-    t.is(SlugType.toString(), 'Slug');
+test('SlugType is of type Slug', () => {
+    expect(SlugType.toString()).toBe('Slug');
 });
 
-test('SlugType.of(name) is of type SlugOf', t => {
-    t.is(SlugType.of('name').toString(), 'SlugOf(name)');
+test('SlugType.of(name) is of type SlugOf', () => {
+    expect(SlugType.of('name').toString()).toBe('SlugOf(name)');
 });
 
-test('SlugType is not required', t => {
-    t.is(SlugType._required, false);
+test('SlugType is not required', () => {
+    expect(SlugType._required).toBe(false);
 });
 
-test('SlugType does not have properties', t => {
-    t.assert(SlugType._properties === undefined);
+test('SlugType does not have properties', () => {
+    expect(SlugType._properties).toBe(undefined);
 });
 
-test('SlugType does not have items', t => {
-    t.assert(SlugType._items === undefined);
+test('SlugType does not have items', () => {
+    expect(SlugType._items).toBe(undefined);
 });
 
-test('SlugType is a resolved type', t => {
-    t.is(SlugType._resolved, true);
+test('SlugType is a resolved type', () => {
+    expect(SlugType._resolved).toBe(true);
 });
 
-test('SlugType.of(name).resolve({name: \'Testing the Slug\')) returns \'testing-the-slug\'', t => {
-    t.is(SlugType.of('name').resolve({name: 'Testing the Slug'}), 'testing-the-slug');
+test('SlugType.of(name).resolve({name: \'Testing the Slug\')) returns \'testing-the-slug\'', () => {
+    expect(SlugType.of('name').resolve({name: 'Testing the Slug'})).toBe('testing-the-slug');
 });
 
-test('SlugType.of(name).resolve({name: \' Trimming whitespace \')) returns \'trimming-whitespace\'', t => {
-    t.is(SlugType.of('name').resolve({name: ' Trimming whitespace '}), 'trimming-whitespace');
+test('SlugType.of(name).resolve({name: \' Trimming whitespace \')) returns \'trimming-whitespace\'', () => {
+    expect(SlugType.of('name').resolve({name: ' Trimming whitespace '})).toBe('trimming-whitespace');
 });
 
-test('SlugType.of(name).resolve()) returns \'\'', t => {
-    t.is(SlugType.of('name').resolve(), '');
+test('SlugType.of(name).resolve()) returns \'\'', () => {
+    expect(SlugType.of('name').resolve()).toBe('');
 });
 
-test('SlugType.of(special).resolve({special: \'don\'t include special characters\')) returns \'dont-include-special-characters\'', t => {
-    t.is(SlugType.of('special').resolve({special: 'don\'t include special characters'}), 'dont-include-special-characters');
+test('SlugType.of(special).resolve({special: \'don\'t include special characters\')) returns \'dont-include-special-characters\'', () => {
+    expect(
+        SlugType.of('special').resolve({special: 'don\'t include special characters'}),
+    ).toBe('dont-include-special-characters');
 });

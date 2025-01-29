@@ -1,42 +1,46 @@
+import {describe, expect, test} from '@jest/globals';
 import StringType from './StringType.js';
-import test from 'ava';
 
-test('StringType is String', t => {
-    t.is(StringType.toString(), 'String');
+describe('StringType', () => {
+    test('StringType is String', () => {
+        expect(StringType.toString()).toBe('String');
+    });
+
+    test('StringType is not required', () => {
+        expect(StringType._required).toBe(false);
+    });
+
+    test('StringType does not have properties', () => {
+        expect(StringType._properties).toBe(undefined);
+    });
+
+    test('StringType does not have items', () => {
+        expect(StringType._items).toBe(undefined);
+    });
+
+    test('StringType is not a resolved type', () => {
+        expect(StringType._resolved).toBe(false);
+    });
 });
 
-test('StringType is not required', t => {
-    t.is(StringType._required, false);
-});
+describe('RequiredStringType', () => {
+    test('RequiredStringType is RequiredString', () => {
+        expect(StringType.required.toString()).toBe('RequiredString');
+    });
 
-test('StringType does not have properties', t => {
-    t.assert(StringType._properties === undefined);
-});
+    test('RequiredStringType is required', () => {
+        expect(StringType.required._required).toBe(true);
+    });
 
-test('StringType does not have items', t => {
-    t.assert(StringType._items === undefined);
-});
+    test('RequiredStringType does not have properties', () => {
+        expect(StringType.required._properties).toBe(undefined);
+    });
 
-test('StringType is not a resolved type', t => {
-    t.is(StringType._resolved, false);
-});
+    test('RequiredStringType does not have items', () => {
+        expect(StringType.required._items).toBe(undefined);
+    });
 
-test('RequiredStringType is RequiredString', t => {
-    t.is(StringType.required.toString(), 'RequiredString');
-});
-
-test('RequiredStringType is required', t => {
-    t.is(StringType.required._required, true);
-});
-
-test('RequiredStringType does not have properties', t => {
-    t.assert(StringType.required._properties === undefined);
-});
-
-test('RequiredStringType does not have items', t => {
-    t.assert(StringType.required._items === undefined);
-});
-
-test('RequiredStringType is not a resolved type', t => {
-    t.is(StringType.required._resolved, false);
+    test('RequiredStringType is not a resolved type', () => {
+        expect(StringType.required._resolved).toBe(false);
+    });
 });

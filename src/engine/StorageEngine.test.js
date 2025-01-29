@@ -1,6 +1,6 @@
+import {expect, test} from '@jest/globals';
 import StorageEngine from './StorageEngine.js';
 import Type from '../type/index.js';
-import test from 'ava';
 
 /**
  * @class TestModel
@@ -16,22 +16,21 @@ function getUnimplementedStorageEngine(configuration = {}, models = [TestModel])
     return new StorageEngine(configuration, models);
 }
 
-test('StorageEngine keeps configuration', t => {
+test('StorageEngine keeps configuration', () => {
     const configuration = {test: true};
     const engine = getUnimplementedStorageEngine(configuration);
 
-    t.is(engine.configuration, configuration);
+    expect(engine.configuration).toBe(configuration);
 });
 
-test('StorageEngine allows registering models', t => {
+test('StorageEngine allows registering models', () => {
     const engine = getUnimplementedStorageEngine();
 
-    t.deepEqual(engine.models, {TestModel});
+    expect(engine.models).toEqual({TestModel});
 });
 
-test('StorageEngine without any models', t => {
+test('StorageEngine without any models', () => {
     const engine = new StorageEngine({});
 
-    t.deepEqual(engine.models, {});
+    expect(engine.models).toEqual({});
 });
-
