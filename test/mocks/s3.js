@@ -1,7 +1,7 @@
 import Model from '../../src/type/Model.js';
 import {NoSuchKey} from '@aws-sdk/client-s3';
+import {jest} from '@jest/globals';
 import lunr from 'lunr';
-import sinon from 'sinon';
 
 /**
  * @param data
@@ -98,7 +98,7 @@ function stubS3Client(filesystem = {}, models = {}) {
         };
     }
 
-    const send = sinon.stub().callsFake((command) => {
+    const send = jest.fn().mockImplementation((command) => {
         switch (command?.constructor?.name) {
             case 'GetObjectCommand':
                 if (resolvedBuckets[command.input.Bucket]) {

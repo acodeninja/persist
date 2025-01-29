@@ -1,15 +1,15 @@
-import SimpleType from './SimpleType.js';
+import Type from '../Type.js';
 
 /**
  * Class representing a date type with ISO date-time format.
  *
  * This class is used to define and handle data of the date type.
- * It extends the {@link SimpleType} class to represent string-specific behavior.
+ * It extends the {@link Type} class to represent string-specific behavior.
  *
  * @class DateType
- * @extends SimpleType
+ * @extends Type
  */
-class DateType extends SimpleType {
+class DateType extends Type {
     static {
         /**
          * @static
