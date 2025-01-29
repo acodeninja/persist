@@ -136,6 +136,13 @@ class S3StorageEngine extends StorageEngine {
      * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
      */
     static async putIndex(index) {
+        /**
+         * Process an index of models
+         * @param {string} location
+         * @param {Array<Model>} models
+         * @throws FailedPutS3StorageEngineError
+         * @return {Promise<void>}
+         */
         const processIndex = async (location, models) => {
             const Key = [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/');
             const currentIndex = await this.getIndex(location);

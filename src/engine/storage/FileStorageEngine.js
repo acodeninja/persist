@@ -113,6 +113,13 @@ class FileStorageEngine extends StorageEngine {
      * @throws {FailedWriteFileStorageEngineError} Throws if the index cannot be written to the file system.
      */
     static async putIndex(index) {
+        /**
+         * Process an index of models
+         * @param {string} location
+         * @param {Array<Model>} models
+         * @throws FailedWriteFileStorageEngineError
+         * @return {Promise<void>}
+         */
         const processIndex = async (location, models) => {
             const filePath = join(this.configuration.path, location, '_index.json');
             const currentIndex = JSON.parse((await this.configuration.filesystem.readFile(filePath).catch(() => '{}')).toString());

@@ -186,6 +186,12 @@ class HTTPStorageEngine extends StorageEngine {
      * @throws {HTTPRequestFailedError} Thrown if the PUT request fails.
      */
     static async putIndex(index) {
+        /**
+         * Process an index of models
+         * @param {string} location
+         * @param {Array<Model>} models
+         * @return {Promise<void>}
+         */
         const processIndex = async (location, models) => {
             const url = new URL([
                 this.configuration.host,
