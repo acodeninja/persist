@@ -38,7 +38,7 @@ describe('HTTPStorageEngine.configure', () => {
             fetch,
         });
 
-        expect(originalStore.configuration).toBe(undefined);
+        expect(originalStore.configuration).toBeUndefined();
         expect(configuredStore.configuration).toStrictEqual({
             host: 'https://example.com',
             prefix: 'test',
@@ -63,7 +63,7 @@ describe('HTTPStorageEngine.configure', () => {
             fetch,
         });
 
-        expect(originalStore.configuration).toBe(undefined);
+        expect(originalStore.configuration).toBeUndefined();
         expect(configuredStore._getReadOptions()).toStrictEqual({
             headers: {
                 Authorization: 'Bearer some-bearer-token-for-authentication',

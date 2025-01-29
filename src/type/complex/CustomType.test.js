@@ -21,11 +21,11 @@ describe('CustomType', () => {
     });
 
     test('CustomType.of(validSchema) does not have properties', () => {
-        expect(CustomType.of(validSchema)._properties).toBe(undefined);
+        expect(CustomType.of(validSchema)._properties).toBeUndefined();
     });
 
     test('CustomType.of(validSchema) has items of type String', () => {
-        expect(CustomType.of(validSchema)._items).toBe(undefined);
+        expect(CustomType.of(validSchema)._items).toBeUndefined();
     });
 
     test('CustomType.of(validSchema) is not a resolved type', () => {
@@ -64,11 +64,11 @@ describe('RequiredCustomType', () => {
     });
 
     test('RequiredCustomType.of(validSchema) does not have properties', () => {
-        expect(CustomType.of(validSchema).required._properties).toBe(undefined);
+        expect(CustomType.of(validSchema).required._properties).toBeUndefined();
     });
 
     test('RequiredCustomType.of(validSchema) has items of type String', () => {
-        expect(CustomType.of(validSchema).required._items).toBe(undefined);
+        expect(CustomType.of(validSchema).required._items).toBeUndefined();
     });
 
     test('RequiredCustomType.of(validSchema) is not a resolved type', () => {

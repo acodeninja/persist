@@ -11,11 +11,11 @@ describe('StringType', () => {
     });
 
     test('StringType does not have properties', () => {
-        expect(StringType._properties).toBe(undefined);
+        expect(StringType._properties).toBeUndefined();
     });
 
     test('StringType does not have items', () => {
-        expect(StringType._items).toBe(undefined);
+        expect(StringType._items).toBeUndefined();
     });
 
     test('StringType is not a resolved type', () => {
@@ -33,11 +33,11 @@ describe('RequiredStringType', () => {
     });
 
     test('RequiredStringType does not have properties', () => {
-        expect(StringType.required._properties).toBe(undefined);
+        expect(StringType.required._properties).toBeUndefined();
     });
 
     test('RequiredStringType does not have items', () => {
-        expect(StringType.required._items).toBe(undefined);
+        expect(StringType.required._items).toBeUndefined();
     });
 
     test('RequiredStringType is not a resolved type', () => {

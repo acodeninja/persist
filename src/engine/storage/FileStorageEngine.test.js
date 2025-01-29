@@ -11,7 +11,7 @@ test('FileStorageEngine.configure(configuration) returns a new engine without al
     const configuredStore = originalStore.configure({path: '/tmp/fileEngine'});
 
     expect(configuredStore.configuration).toEqual({path: '/tmp/fileEngine', filesystem: fs});
-    expect(originalStore.configuration).toBe(undefined);
+    expect(originalStore.configuration).toBeUndefined();
 });
 
 describe('FileStorageEngine.get', () => {

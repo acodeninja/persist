@@ -23,11 +23,11 @@ describe('DateType', () => {
     });
 
     test('DateType does not have properties', () => {
-        expect(DateType._properties).toBe(undefined);
+        expect(DateType._properties).toBeUndefined();
     });
 
     test('DateType does not have items', () => {
-        expect(DateType._items).toBe(undefined);
+        expect(DateType._items).toBeUndefined();
     });
 
     test('DateType is not a resolved type', () => {
@@ -46,11 +46,11 @@ describe('RequiredDateType', () => {
     });
 
     test('RequiredDateType does not have properties', () => {
-        expect(DateType.required._properties).toBe(undefined);
+        expect(DateType.required._properties).toBeUndefined();
     });
 
     test('RequiredDateType does not have items', () => {
-        expect(DateType.required._items).toBe(undefined);
+        expect(DateType.required._items).toBeUndefined();
     });
 
     test('RequiredDateType is not a resolved type', () => {

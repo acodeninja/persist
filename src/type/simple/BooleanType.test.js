@@ -11,11 +11,11 @@ describe('BooleanType', () => {
     });
 
     test('BooleanType does not have properties', () => {
-        expect(BooleanType._properties).toBe(undefined);
+        expect(BooleanType._properties).toBeUndefined();
     });
 
     test('BooleanType does not have items', () => {
-        expect(BooleanType._items).toBe(undefined);
+        expect(BooleanType._items).toBeUndefined();
     });
 
     test('BooleanType is not a resolved type', () => {
@@ -33,11 +33,11 @@ describe('RequiredBooleanType', () => {
     });
 
     test('RequiredBooleanType does not have properties', () => {
-        expect(BooleanType.required._properties).toBe(undefined);
+        expect(BooleanType.required._properties).toBeUndefined();
     });
 
     test('RequiredBooleanType does not have items', () => {
-        expect(BooleanType.required._items).toBe(undefined);
+        expect(BooleanType.required._items).toBeUndefined();
     });
 
     test('RequiredBooleanType is not a resolved type', () => {
