@@ -3,13 +3,10 @@ import StorageEngine from './StorageEngine.js';
 import Type from '../type/index.js';
 
 /**
- * @class TestModel
+ * @class EmptyModel
  * @extends Type.Model
  */
-class TestModel extends Type.Model {
-    static {
-        this.setMinifiedName('TestModel');
-    }
+class EmptyModel extends Type.Model {
 }
 
 describe('new StorageEngine', () => {
@@ -38,11 +35,11 @@ describe('new StorageEngine', () => {
     });
 
     describe('when both models and configuration are given', () => {
-        const engine = new StorageEngine({test: true}, [TestModel]);
+        const engine = new StorageEngine({test: true}, [EmptyModel]);
 
         test('the model is registered', () => {
             expect(engine.models).toStrictEqual({
-                TestModel: TestModel,
+                EmptyModel: EmptyModel,
             });
         });
 
