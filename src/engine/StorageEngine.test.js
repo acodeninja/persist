@@ -1,4 +1,4 @@
-import {expect, test} from '@jest/globals';
+import {describe, expect, test} from '@jest/globals';
 import StorageEngine from './StorageEngine.js';
 import Type from '../type/index.js';
 
@@ -12,25 +12,42 @@ class TestModel extends Type.Model {
     }
 }
 
-function getUnimplementedStorageEngine(configuration = {}, models = [TestModel]) {
-    return new StorageEngine(configuration, models);
-}
+describe('new StorageEngine', () => {
+    describe('when no arguments are given', () => {
+        const engine = new StorageEngine();
 
-test('StorageEngine keeps configuration', () => {
-    const configuration = {test: true};
-    const engine = getUnimplementedStorageEngine(configuration);
+        test('no models are registered', () => {
+            expect(engine.models).toStrictEqual({});
+        });
 
-    expect(engine.configuration).toBe(configuration);
-});
+        test('no configuration is set', () => {
+            expect(engine.configuration).toStrictEqual({});
+        });
+    });
 
-test('StorageEngine allows registering models', () => {
-    const engine = getUnimplementedStorageEngine();
+    describe('when only a configuration is given', () => {
+        const engine = new StorageEngine({test: true});
 
-    expect(engine.models).toEqual({TestModel});
-});
+        test('no models are registered', () => {
+            expect(engine.models).toStrictEqual({});
+        });
 
-test('StorageEngine without any models', () => {
-    const engine = new StorageEngine({});
+        test('the given configuration is set', () => {
+            expect(engine.configuration).toStrictEqual({test: true});
+        });
+    });
 
-    expect(engine.models).toEqual({});
+    describe('when both models and configuration are given', () => {
+        const engine = new StorageEngine({test: true}, [TestModel]);
+
+        test('the model is registered', () => {
+            expect(engine.models).toStrictEqual({
+                TestModel: TestModel,
+            });
+        });
+
+        test('the given configuration is set', () => {
+            expect(engine.configuration).toStrictEqual({test: true});
+        });
+    });
 });
