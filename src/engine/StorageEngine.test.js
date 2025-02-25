@@ -1,8 +1,9 @@
 import StorageEngine, {
-    MethodNotImplementedStorageEngineError, ModelNotFoundStorageEngineError,
+    MethodNotImplementedStorageEngineError,
+    ModelNotFoundStorageEngineError,
     ModelNotRegisteredStorageEngineError,
 } from './StorageEngine.js';
-import {beforeAll, beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {beforeAll, describe, expect, jest, test} from '@jest/globals';
 import Type from '../type/index.js';
 
 /**
@@ -95,20 +96,15 @@ function LinkedModelWithIndexFactory() {
 }
 
 class TestStorageEngine extends StorageEngine {
-    _deleteModel = jest.fn();
-    _putIndex = jest.fn();
-    _getIndex = jest.fn();
-    _putModel = jest.fn();
-    _getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
+    constructor(configuration = {}, models = null) {
+        super(configuration, models);
+        this._deleteModel = jest.fn();
+        this._putIndex = jest.fn();
+        this._getIndex = jest.fn();
+        this._putModel = jest.fn();
+        this._getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
+    }
 }
-
-beforeEach(() => {
-    TestStorageEngine._deleteModel = jest.fn();
-    TestStorageEngine._putIndex = jest.fn();
-    TestStorageEngine._getIndex = jest.fn();
-    TestStorageEngine._putModel = jest.fn();
-    TestStorageEngine._getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
-});
 
 describe('StorageEngine.get(modelId)', () => {
     describe('when the model is not registered', () => {
@@ -124,7 +120,7 @@ describe('StorageEngine.get(modelId)', () => {
         });
     });
 
-    describe('when the model does not exist', () => {
+    describe('when a model does not exist', () => {
         const model = SimpleModelFactory();
         const engine = new TestStorageEngine({}, [SimpleModel]);
 
@@ -142,7 +138,7 @@ describe('StorageEngine.get(modelId)', () => {
         const engine = new TestStorageEngine({}, [SimpleModel]);
 
         beforeAll(() => {
-            engine._getModel.mockResolvedValueOnce(model);
+            engine._getModel.mockResolvedValue(model);
         });
 
         test('.get(modelId) returns the expected model', async () => {
@@ -172,21 +168,27 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(() => engine.put(model));
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, model.toData());
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._putModel() is called once', () => {
+                expect(engine._getModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putModel() is called with the model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.toData());
+            });
+
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -200,20 +202,23 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(model);
             });
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._putModel(model) is not called', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._putModel() is not called', () => {
                 expect(engine._putModel).not.toHaveBeenCalled();
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -231,21 +236,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, existingModel.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.toData());
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._putModel() is called with the model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.toData());
+            });
+
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -258,21 +269,27 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(() => engine.put(model));
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, model.toData());
             });
 
-            test('._getIndex(modelConstructor) is called', () => {
+            test('._putModel() is called with the model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.toData());
+            });
+
+            test('._getIndex() is called', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithIndex);
             });
 
-            test('._putIndex(modelConstructor, data) is called with the updated index', () => {
+            test('._putIndex() is called with the updated index', () => {
                 expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithIndex, {
                     [model.id]: model.toIndexData(),
                 });
@@ -288,20 +305,23 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(model);
             });
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._putModel() is not called', () => {
                 expect(engine._putModel).not.toHaveBeenCalled();
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -319,21 +339,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.toData());
             });
 
-            test('._getIndex(modelConstructor) is called', () => {
+            test('._putModel() is called with the model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.toData());
+            });
+
+            test('._getIndex() is called', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithIndex);
             });
 
-            test('._putIndex(modelConstructor, data) is called with the updated index', () => {
+            test('._putIndex() is called with the updated index', () => {
                 expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithIndex, {
                     [editedModel.id]: editedModel.toIndexData(),
                 });
@@ -353,21 +379,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the model id', () => {
+            test('._getModel() is called once', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(1);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._putModel(model) is called once with the model\'s data', () => {
+            test('._getModel() is called with the model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.toData());
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._putModel() is called with the model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.toData());
+            });
+
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -380,31 +412,35 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(() => engine.put(model));
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, model.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('._putModel(model) is called once with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._putModel() is called twice', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(2);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, model.toData());
             });
 
-            test('._putModel(model) is called once with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(2);
-                expect(engine._putModel).toHaveBeenNthCalledWith(2, model.linked.toData());
+            test('._putModel() is called with the main model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.toData());
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._putModel() is called with the linked model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.linked.toData());
+            });
+
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -422,31 +458,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(model);
             });
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, model.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('._putModel(model) is not called with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._putModel() is not called', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(0);
-                expect(engine._putModel).not.toHaveBeenCalledWith(model.toData());
             });
 
-            test('._putModel(model) is not called with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(0);
-                expect(engine._putModel).not.toHaveBeenCalledWith(model.linked.toData());
-            });
-
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -469,23 +501,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, editedModel.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
             });
 
-            test('._putModel(model) is called once with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.linked.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.toData());
             });
 
-            test('._putModel(model) is not called with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(1);
+            test('._putModel() is called with the main model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.toData());
+            });
+
+            test('._putModel() is not called with the linked model\'s data', () => {
                 expect(engine._putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
             });
 
@@ -515,32 +551,35 @@ describe('StorageEngine.put(model)', () => {
                 });
                 await engine.put(editedModel);
             });
-
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, editedModel.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
             });
 
-            test('._putModel(model) is not called with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.linked.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putModel() is not called with the main model\'s data', () => {
                 expect(engine._putModel).not.toHaveBeenCalledWith(editedModel.toData());
             });
 
-            test('._putModel(model) is called once with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.linked.toData());
+            test('._putModel() is called with the linked model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.linked.toData());
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -553,42 +592,54 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(() => engine.put(model));
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, model.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('._putModel(model) is called once with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._putModel() is called twice', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(2);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, model.toData());
             });
 
-            test('._putModel(model) is called once with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(2);
-                expect(engine._putModel).toHaveBeenNthCalledWith(2, model.linked.toData());
+            test('._putModel() is called with the main model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.toData());
             });
 
-            test('._getIndex(modelConstructor) is called for the main model', () => {
+            test('._putModel() is called with the linked model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(model.linked.toData());
+            });
+
+            test('._getIndex() is called twice', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getIndex() is called for the main model', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(LinkedModelWithIndex);
             });
 
-            test('._getIndex(modelConstructor) is called for the linked model', () => {
+            test('._getIndex() is called for the linked model', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithIndex);
             });
 
-            test('._putIndex(modelConstructor, data) is called for the main model', () => {
-                expect(engine._putIndex).toHaveBeenNthCalledWith(1, LinkedModelWithIndex, {
+            test('._putIndex() is called twice', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._putIndex() is called for the main model', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(LinkedModelWithIndex, {
                     [model.id]: model.toIndexData(),
                 });
             });
 
-            test('._putIndex(modelConstructor, data) is called for the linked model', () => {
-                expect(engine._putIndex).toHaveBeenNthCalledWith(2, SimpleModelWithIndex, {
+            test('._putIndex() is called for the linked model', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithIndex, {
                     [model.linked.id]: model.linked.toIndexData(),
                 });
             });
@@ -607,31 +658,27 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(model);
             });
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, model.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, model.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('._putModel(model) is not called with the main model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(0);
-                expect(engine._putModel).not.toHaveBeenCalledWith(model.toData());
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
             });
 
-            test('._putModel(model) is not called with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(0);
-                expect(engine._putModel).not.toHaveBeenCalledWith(model.linked.toData());
+            test('._putModel() is not called', () => {
+                expect(engine._putModel).not.toHaveBeenCalled();
             });
 
-            test('._getIndex(modelConstructor) is not called', () => {
+            test('._getIndex() is not called', () => {
                 expect(engine._getIndex).not.toHaveBeenCalled();
             });
 
-            test('._putIndex(modelConstructor, data) is not called', () => {
+            test('._putIndex() is not called', () => {
                 expect(engine._putIndex).not.toHaveBeenCalled();
             });
         });
@@ -654,41 +701,53 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, editedModel.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
             });
 
-            test('._putModel(model) is called once with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.linked.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.toData());
             });
 
-            test('._putModel(model) is not called with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(1);
+            test('._putModel() is called with the main model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.toData());
+            });
+
+            test('._putModel() is not called with the linked model\'s data', () => {
                 expect(engine._putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
             });
 
-            test('._getIndex(modelConstructor) is called for the main model', () => {
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getIndex() is called for the main model', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(LinkedModelWithIndex);
             });
 
-            test('._getIndex(modelConstructor) is not called for the linked model', () => {
+            test('._getIndex() is not called for the linked model', () => {
                 expect(engine._getIndex).not.toHaveBeenCalledWith(SimpleModelWithIndex);
             });
 
-            test('._putIndex(modelConstructor, data) is called for the main model', () => {
-                expect(engine._putIndex).toHaveBeenNthCalledWith(1, LinkedModelWithIndex, {
+            test('._putIndex() is called once', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putIndex() is called for the main model', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(LinkedModelWithIndex, {
                     [editedModel.id]: editedModel.toIndexData(),
                 });
             });
 
-            test('._putIndex(modelConstructor, data) is not called for the linked model', () => {
+            test('._putIndex() is not called for the linked model', () => {
                 expect(engine._putIndex).not.toHaveBeenCalledWith(SimpleModelWithIndex, {
                     [editedModel.linked.id]: editedModel.linked.toIndexData(),
                 });
@@ -713,42 +772,50 @@ describe('StorageEngine.put(model)', () => {
                 await engine.put(editedModel);
             });
 
-            test('._getModel(model.id) is called once with the main model id', () => {
+            test('._getModel() is called twice', () => {
                 expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(1, editedModel.id);
             });
 
-            test('._getModel(model.id) is called once with the linked model id', () => {
-                expect(engine._getModel).toHaveBeenCalledTimes(2);
-                expect(engine._getModel).toHaveBeenNthCalledWith(2, editedModel.linked.id);
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.id);
             });
 
-            test('._putModel(model) is not called with the main model\'s data', () => {
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(editedModel.linked.id);
+            });
+
+            test('._putModel() is called once', () => {
                 expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).not.toHaveBeenCalledWith(editedModel.toData());
             });
 
-            test('._putModel(model) is called once with the linked model\'s data', () => {
-                expect(engine._putModel).toHaveBeenCalledTimes(1);
-                expect(engine._putModel).toHaveBeenNthCalledWith(1, editedModel.linked.toData());
+            test('._putModel() is called with the linked model\'s data', () => {
+                expect(engine._putModel).toHaveBeenCalledWith(editedModel.linked.toData());
             });
 
-            test('._getIndex(modelConstructor) is not called for the main model', () => {
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getIndex() is not called for the main model', () => {
                 expect(engine._getIndex).not.toHaveBeenCalledWith(LinkedModelWithIndex);
             });
 
-            test('._getIndex(modelConstructor) is called for the linked model', () => {
+            test('._getIndex() is called for the linked model', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithIndex);
             });
 
-            test('._putIndex(modelConstructor, data) is not called for the main model', () => {
+            test('._putIndex() is called once', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putIndex() is not called for the main model', () => {
                 expect(engine._putIndex).not.toHaveBeenCalledWith(LinkedModelWithIndex, {
                     [editedModel.id]: editedModel.toIndexData(),
                 });
             });
 
-            test('._putIndex(modelConstructor, data) is called for the linked model', () => {
-                expect(engine._putIndex).toHaveBeenNthCalledWith(1, SimpleModelWithIndex, {
+            test('._putIndex() is called for the linked model', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithIndex, {
                     [editedModel.linked.id]: editedModel.linked.toIndexData(),
                 });
             });
