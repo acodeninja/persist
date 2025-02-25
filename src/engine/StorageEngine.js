@@ -28,7 +28,7 @@ export default class StorageEngine {
             if (!Object.keys(this.models).includes(modelToProcess.constructor.name)) throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
 
             modelToProcess.validate();
-            const currentModel = await this.get(modelToProcess.id);
+            const currentModel = await this.get(modelToProcess.id).catch(() => null);
 
             const modelToProcessHasChanged = (JSON.stringify(currentModel?.toData() || {}) !== JSON.stringify(modelToProcess.toData()));
 
@@ -74,8 +74,13 @@ export default class StorageEngine {
      * @param {string} modelId
      * @return {Promise<void>}
      */
-    async get(modelId) {
-        return await this._getModel(modelId);
+    get(modelId) {
+        try {
+            this.getModelConstructorFromId(modelId);
+        } catch (e) {
+            return Promise.reject(e);
+        }
+        return this._getModel(modelId);
     }
 
     /**
@@ -101,8 +106,8 @@ export default class StorageEngine {
         return Object.fromEntries(
             Object.entries(this.getAllModelLinks())
                 .filter(([modelName, links]) =>
-                    model['name'] === modelName ||
-                    Object.values(links).some((link) => link.name === model['name']),
+                    model.name === modelName ||
+                    Object.values(links).some((link) => link.name === model.name),
                 ),
         );
     }
@@ -151,6 +156,7 @@ export default class StorageEngine {
      * Get a model
      * @param {string} _id
      * @throws MethodNotImplementedStorageEngineError
+     * @throws ModelNotFoundStorageEngineError
      * @return Promise<void>
      */
     _getModel(_id) {
@@ -179,21 +185,51 @@ export default class StorageEngine {
     }
 }
 
+/**
+ * @class StorageEngineError
+ * @extends Error
+ */
 export class StorageEngineError extends Error {
-    constructor(message) {
-        super(message);
-    }
 }
 
+/**
+ * @class ModelNotRegisteredStorageEngineError
+ * @extends StorageEngineError
+ */
 export class ModelNotRegisteredStorageEngineError extends StorageEngineError {
+    /**
+     * @param {Type.Model} model
+     * @param {StorageEngine} storageEngine
+     */
     constructor(model, storageEngine) {
         const modelName = typeof model === 'string' ? model : model.constructor.name;
         super(`The model ${modelName} is not registered in the storage engine ${storageEngine.constructor.name}`);
     }
 }
 
+/**
+ * @class MethodNotImplementedStorageEngineError
+ * @extends StorageEngineError
+ */
 export class MethodNotImplementedStorageEngineError extends StorageEngineError {
+    /**
+     * @param {string} method
+     * @param {StorageEngine} storageEngine
+     */
     constructor(method, storageEngine) {
         super(`The method ${method} is not implemented in the storage engine ${storageEngine.constructor.name}`);
+    }
+}
+
+/**
+ * @class ModelNotFoundStorageEngineError
+ * @extends StorageEngineError
+ */
+export class ModelNotFoundStorageEngineError extends StorageEngineError {
+    /**
+     * @param {string} modelId
+     */
+    constructor(modelId) {
+        super(`The model ${modelId} was not found`);
     }
 }

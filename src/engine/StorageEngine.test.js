@@ -1,5 +1,5 @@
 import StorageEngine, {
-    MethodNotImplementedStorageEngineError,
+    MethodNotImplementedStorageEngineError, ModelNotFoundStorageEngineError,
     ModelNotRegisteredStorageEngineError,
 } from './StorageEngine.js';
 import {beforeAll, beforeEach, describe, expect, jest, test} from '@jest/globals';
@@ -99,15 +99,56 @@ class TestStorageEngine extends StorageEngine {
     _putIndex = jest.fn();
     _getIndex = jest.fn();
     _putModel = jest.fn();
-    _getModel = jest.fn();
+    _getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
 }
 
-beforeEach(async () => {
+beforeEach(() => {
     TestStorageEngine._deleteModel = jest.fn();
     TestStorageEngine._putIndex = jest.fn();
     TestStorageEngine._getIndex = jest.fn();
     TestStorageEngine._putModel = jest.fn();
-    TestStorageEngine._getModel = jest.fn();
+    TestStorageEngine._getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
+});
+
+describe('StorageEngine.get(modelId)', () => {
+    describe('when the model is not registered', () => {
+        const model = SimpleModelFactory();
+        const engine = new TestStorageEngine({}, []);
+
+        test('.get(modelId) throws a ModelNotRegisteredStorageEngineError', async () => {
+            await expect(() => engine.get(model.id))
+                .rejects.toThrowError({
+                    instanceOf: ModelNotRegisteredStorageEngineError,
+                    message: 'The model SimpleModel is not registered in the storage engine TestStorageEngine',
+                });
+        });
+    });
+
+    describe('when the model does not exist', () => {
+        const model = SimpleModelFactory();
+        const engine = new TestStorageEngine({}, [SimpleModel]);
+
+        test('.get(modelId) throws a ModelNotFoundStorageEngineError', async () => {
+            await expect(() => engine.get(model.id))
+                .rejects.toThrowError({
+                    instanceOf: ModelNotFoundStorageEngineError,
+                    message: `The model ${model.id} was not found`,
+                });
+        });
+    });
+
+    describe('when a simple model exists', () => {
+        const model = SimpleModelFactory();
+        const engine = new TestStorageEngine({}, [SimpleModel]);
+
+        beforeAll(() => {
+            engine._getModel.mockResolvedValueOnce(model);
+        });
+
+        test('.get(modelId) returns the expected model', async () => {
+            expect(await engine.get(model.id)).toBe(model);
+        });
+    });
 });
 
 describe('StorageEngine.put(model)', () => {
@@ -374,8 +415,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === model.id) return model;
-                    if (id === model.linked.id) return model.linked;
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(model);
             });
@@ -420,8 +462,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === existingModel.id) return existingModel;
-                    if (id === existingModel.linked.id) return existingModel.linked;
+                    if (id === existingModel.id) return Promise.resolve(existingModel);
+                    if (id === existingModel.linked.id) return Promise.resolve(existingModel.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(editedModel);
             });
@@ -466,8 +509,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === existingModel.id) return existingModel;
-                    if (id === existingModel.linked.id) return existingModel.linked;
+                    if (id === existingModel.id) return Promise.resolve(existingModel);
+                    if (id === existingModel.linked.id) return Promise.resolve(existingModel.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(editedModel);
             });
@@ -556,8 +600,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === model.id) return model;
-                    if (id === model.linked.id) return model.linked;
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(model);
             });
@@ -602,8 +647,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === existingModel.id) return existingModel;
-                    if (id === existingModel.linked.id) return existingModel.linked;
+                    if (id === existingModel.id) return Promise.resolve(existingModel);
+                    if (id === existingModel.linked.id) return Promise.resolve(existingModel.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(editedModel);
             });
@@ -660,8 +706,9 @@ describe('StorageEngine.put(model)', () => {
 
             beforeAll(async () => {
                 engine._getModel.mockImplementation(id => {
-                    if (id === existingModel.id) return existingModel;
-                    if (id === existingModel.linked.id) return existingModel.linked;
+                    if (id === existingModel.id) return Promise.resolve(existingModel);
+                    if (id === existingModel.linked.id) return Promise.resolve(existingModel.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
                 });
                 await engine.put(editedModel);
             });
@@ -761,7 +808,7 @@ describe('new StorageEngine', () => {
 
         test('the model is registered', () => {
             expect(engine.models).toStrictEqual({
-                EmptyModel: EmptyModel,
+                EmptyModel,
             });
         });
 
