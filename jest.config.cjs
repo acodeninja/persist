@@ -1,9 +1,10 @@
 /** @type {import('jest').Config} */
 const config = {
     coveragePathIgnorePatterns: [
-        'test/fixtures',
         'node_modules',
+        'test/fixtures',
         'test/mocks',
+        'test/scripts',
     ],
     coverageThreshold: {
         global: {
