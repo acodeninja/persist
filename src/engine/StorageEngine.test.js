@@ -18,19 +18,9 @@ import StorageEngine, {
     ModelNotFoundStorageEngineError,
     ModelNotRegisteredStorageEngineError,
 } from './StorageEngine.js';
-import {beforeAll, describe, expect, jest, test} from '@jest/globals';
+import {beforeAll, describe, expect, test} from '@jest/globals';
+import {TestStorageEngine} from '../../test/fixtures/Engine.js';
 import Type from '../type/index.js';
-
-class TestStorageEngine extends StorageEngine {
-    constructor(configuration = {}, models = null) {
-        super(configuration, models);
-        this._deleteModel = jest.fn();
-        this._putIndex = jest.fn();
-        this._getIndex = jest.fn();
-        this._putModel = jest.fn();
-        this._getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
-    }
-}
 
 describe('StorageEngine.get(modelId)', () => {
     describe('when the model is not registered', () => {
