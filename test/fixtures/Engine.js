@@ -1,6 +1,10 @@
 import StorageEngine, {ModelNotFoundStorageEngineError} from '../../src/engine/StorageEngine.js';
 import {jest} from '@jest/globals';
 
+/**
+ * @class TestStorageEngine
+ * @extends StorageEngine
+ */
 export class TestStorageEngine extends StorageEngine {
     constructor(configuration = {}, models = null) {
         super(configuration, models);
