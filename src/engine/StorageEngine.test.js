@@ -13,10 +13,13 @@ describe('UnimplementedStorageEngine', () => {
     const storageEngine = new UnimplementedStorageEngine({}, [EmptyModel]);
 
     describe.each([
-        '_putModel',
         '_getModel',
+        '_putModel',
         '_getIndex',
         '_putIndex',
+        '_getSearchIndex',
+        '_getSearchIndexCompiled',
+        '_putSearchIndex',
     ])('when the storage engine does not implement %s', (method) => {
         test(`a ${method} is not implemented error is thrown`, async () => {
             await expect(() => storageEngine[method](new EmptyModel()))
