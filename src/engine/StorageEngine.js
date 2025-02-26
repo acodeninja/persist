@@ -59,16 +59,18 @@ export default class StorageEngine {
 
         await processModel(model);
 
-        await Promise.all(modelsToPut.map(m => this._putModel(m.toData())));
-        await Promise.all(Object.entries(modelsToReindex).map(async ([constructor, models]) => {
-            const modelConstructor = this.models[constructor];
-            const index = await this._getIndex(modelConstructor);
+        await Promise.all([
+            Promise.all(modelsToPut.map(m => this._putModel(m.toData()))),
+            Promise.all(Object.entries(modelsToReindex).map(async ([constructorName, models]) => {
+                const modelConstructor = this.models[constructorName];
+                const index = await this._getIndex(modelConstructor);
 
-            await this._putIndex(modelConstructor, {
-                ...index || {},
-                ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
-            });
-        }));
+                await this._putIndex(modelConstructor, {
+                    ...index || {},
+                    ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
+                });
+            })),
+        ]);
     }
 
     /**
