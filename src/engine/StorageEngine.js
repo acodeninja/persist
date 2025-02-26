@@ -41,7 +41,7 @@ export default class StorageEngine {
 
             if (
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
-                this._indexedFieldsHaveChanged(currentModel, modelToProcess)
+                indexedFieldsHaveChanged(currentModel, modelToProcess)
             ) {
                 const modelToProcessConstructor = this.getModelConstructorFromId(modelToProcess.id);
                 modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
@@ -67,21 +67,6 @@ export default class StorageEngine {
                 ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
             });
         }));
-    }
-
-    /**
-     * Decide if two models indexable fields have changed
-     * @param {Type.Model} currentModel
-     * @param {Type.Model} modelToProcess
-     * @return {boolean}
-     * @private
-     */
-    _indexedFieldsHaveChanged(currentModel, modelToProcess) {
-        return !currentModel || Boolean(
-            modelToProcess.constructor.indexedProperties()
-                .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
-                .length,
-        );
     }
 
     /**
@@ -198,6 +183,21 @@ export default class StorageEngine {
     _putIndex(_modelConstructor, _data) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('_putIndex', this));
     }
+}
+
+/**
+ * Decide if two models indexable fields have changed
+ * @param {Type.Model} currentModel
+ * @param {Type.Model} modelToProcess
+ * @return {boolean}
+ * @private
+ */
+function indexedFieldsHaveChanged(currentModel, modelToProcess) {
+    return !currentModel || Boolean(
+        modelToProcess.constructor.indexedProperties()
+            .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
+            .length,
+    );
 }
 
 /**
