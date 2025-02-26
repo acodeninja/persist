@@ -1,4 +1,5 @@
 import Type from '../type/index.js';
+import _ from 'lodash';
 
 export default class StorageEngine {
     /**
@@ -25,6 +26,10 @@ export default class StorageEngine {
          * @return {Promise<void>}
          */
         const processModel = async (modelToProcess) => {
+            if (processedModels.includes(modelToProcess.id)) return;
+
+            processedModels.push(modelToProcess.id);
+
             if (!Object.keys(this.models).includes(modelToProcess.constructor.name)) throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
 
             modelToProcess.validate();
@@ -35,14 +40,8 @@ export default class StorageEngine {
             if (modelToProcessHasChanged) modelsToPut.push(modelToProcess);
 
             if (
-                modelToProcess.constructor.indexedProperties().length &&
-                (
-                    !currentModel ||
-                    Object.keys(currentModel)
-                        .filter(field => JSON.stringify(currentModel[field]) !== JSON.stringify(modelToProcess[field]))
-                        .filter(field => modelToProcess.constructor.indexedProperties().includes(field))
-                        .length
-                )
+                Boolean(modelToProcess.constructor.indexedProperties().length) &&
+                this._indexedFieldsHaveChanged(currentModel, modelToProcess)
             ) {
                 modelsToReindex.push(modelToProcess);
             }
@@ -52,8 +51,6 @@ export default class StorageEngine {
                     await processModel(modelToProcess[field]);
                 }
             }
-
-            processedModels.push(modelToProcess.id);
         };
 
         await processModel(model);
@@ -67,6 +64,21 @@ export default class StorageEngine {
                 [m.id]: m.toIndexData(),
             });
         }));
+    }
+
+    /**
+     * Decide if two models indexable fields have changed
+     * @param {Type.Model} currentModel
+     * @param {Type.Model} modelToProcess
+     * @return {boolean}
+     * @private
+     */
+    _indexedFieldsHaveChanged(currentModel, modelToProcess) {
+        return !currentModel || Boolean(
+            modelToProcess.constructor.indexedProperties()
+                .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
+                .length,
+        );
     }
 
     /**
