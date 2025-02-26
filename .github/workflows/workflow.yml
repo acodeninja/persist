@@ -12,6 +12,7 @@ on:
 jobs:
   lint:
     name: 🧹 lint
+    if: github.event_name == 'push' || !contains(fromJSON('["main", "next"]'), github.head_ref)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +22,7 @@ jobs:
 
   test-with-coverage:
     name: 🧪 test
+    if: github.event_name == 'push' || !contains(fromJSON('["main", "next"]'), github.head_ref)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
