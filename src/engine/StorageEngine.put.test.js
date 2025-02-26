@@ -236,6 +236,35 @@ describe('StorageEngine.put(model)', () => {
                     [editedModel.id]: editedModel.toIndexData(),
                 });
             });
+
+            describe('and the index already contains other models', () => {
+                const alreadyIndexedModel = SimpleModelWithIndexFactory();
+                const existingModel = SimpleModelWithIndexFactory();
+                const editedModel = SimpleModelWithIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.string = 'updated';
+
+                const engine = new TestStorageEngine({}, [SimpleModelWithIndex]);
+
+                beforeAll(async () => {
+                    engine._getModel.mockResolvedValueOnce(existingModel);
+                    engine._getIndex.mockResolvedValueOnce({
+                        [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                    });
+                    await engine.put(editedModel);
+                });
+
+                test('._getIndex() is called', () => {
+                    expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithIndex);
+                });
+
+                test('._putIndex() is called with the updated index', () => {
+                    expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithIndex, {
+                        [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                        [editedModel.id]: editedModel.toIndexData(),
+                    });
+                });
+            });
         });
 
         describe('and the model exists and an non-indexed field is changed', () => {
@@ -1027,6 +1056,42 @@ describe('StorageEngine.put(model)', () => {
             test('._putIndex() is not called for the linked model', () => {
                 expect(engine._putIndex).not.toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
                     [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                });
+            });
+
+            describe('and the index already contains other models', () => {
+                const alreadyIndexedModel = CircularLinkedModelWithIndexFactory();
+                const existingModel = CircularLinkedModelWithIndexFactory();
+                const editedModel = CircularLinkedModelWithIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.linked.id = existingModel.linked.id;
+                editedModel.string = 'updated';
+
+                const engine = new TestStorageEngine({}, [CircularLinkedModelWithIndex]);
+
+                beforeAll(async () => {
+                    engine._getModel.mockImplementation(id => {
+                        if (id === existingModel.id) return Promise.resolve(existingModel);
+                        if (id === existingModel.linked.id) return Promise.resolve(existingModel.linked);
+                        return Promise.reject(new ModelNotFoundStorageEngineError(id));
+                    });
+                    engine._getIndex.mockResolvedValueOnce({
+                        [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                        [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toIndexData(),
+                    });
+                    await engine.put(editedModel);
+                });
+
+                test('._getIndex() is called', () => {
+                    expect(engine._getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
+                });
+
+                test('._putIndex() is called with the updated index', () => {
+                    expect(engine._putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
+                        [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                        [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toIndexData(),
+                        [editedModel.id]: editedModel.toIndexData(),
+                    });
                 });
             });
         });

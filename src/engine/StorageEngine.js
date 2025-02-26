@@ -26,16 +26,18 @@ export default class StorageEngine {
          * @return {Promise<void>}
          */
         const processModel = async (modelToProcess) => {
-            if (processedModels.includes(modelToProcess.id)) return;
+            if (processedModels.includes(modelToProcess.id))
+                return;
 
             processedModels.push(modelToProcess.id);
 
-            if (!Object.keys(this.models).includes(modelToProcess.constructor.name)) throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
+            if (!Object.keys(this.models).includes(modelToProcess.constructor.name))
+                throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
 
             modelToProcess.validate();
             const currentModel = await this.get(modelToProcess.id).catch(() => null);
 
-            const modelToProcessHasChanged = (JSON.stringify(currentModel?.toData() || {}) !== JSON.stringify(modelToProcess.toData()));
+            const modelToProcessHasChanged = JSON.stringify(currentModel?.toData() || {}) !== JSON.stringify(modelToProcess.toData());
 
             if (modelToProcessHasChanged) modelsToPut.push(modelToProcess);
 
