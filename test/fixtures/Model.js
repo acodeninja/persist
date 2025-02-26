@@ -9,7 +9,7 @@ export class EmptyModel extends Type.Model {
 
 /**
  * @class SimpleModel
- * @extends Type.Model
+ * @extends EmptyModel
  */
 export class SimpleModel extends EmptyModel {
     static {
@@ -21,9 +21,8 @@ export class SimpleModel extends EmptyModel {
 }
 
 /**
- * Factory for an SimpleModel
+ * Factory for a SimpleModel
  * @return {SimpleModel}
- * @constructor
  */
 export function SimpleModelFactory() {
     return new SimpleModel({
@@ -34,6 +33,10 @@ export function SimpleModelFactory() {
     });
 }
 
+/**
+ * @class SimpleModelWithIndex
+ * @extends SimpleModel
+ */
 export class SimpleModelWithIndex extends SimpleModel {
     static {
         this.string = Type.String;
@@ -45,9 +48,8 @@ export class SimpleModelWithIndex extends SimpleModel {
 }
 
 /**
- * Factory for an SimpleModelWithIndex
+ * Factory for a SimpleModelWithIndex
  * @return {SimpleModelWithIndex}
- * @constructor
  */
 export function SimpleModelWithIndexFactory() {
     return new SimpleModelWithIndex({
@@ -58,6 +60,10 @@ export function SimpleModelWithIndexFactory() {
     });
 }
 
+/**
+ * @class LinkedModel
+ * @extends EmptyModel
+ */
 export class LinkedModel extends EmptyModel {
     static {
         this.string = Type.String;
@@ -65,6 +71,10 @@ export class LinkedModel extends EmptyModel {
     }
 }
 
+/**
+ * Factory for a LinkedModel
+ * @return {LinkedModel}
+ */
 export function LinkedModelFactory() {
     const linked = SimpleModelFactory();
     return new LinkedModel({
@@ -73,6 +83,10 @@ export function LinkedModelFactory() {
     });
 }
 
+/**
+ * @class LinkedModelWithIndex
+ * @extends EmptyModel
+ */
 export class LinkedModelWithIndex extends EmptyModel {
     static {
         this.string = Type.String;
@@ -81,6 +95,10 @@ export class LinkedModelWithIndex extends EmptyModel {
     }
 }
 
+/**
+ * Factory for a LinkedModelWithIndex
+ * @return {LinkedModelWithIndex}
+ */
 export function LinkedModelWithIndexFactory() {
     const linked = SimpleModelWithIndexFactory();
     return new LinkedModelWithIndex({
@@ -89,6 +107,10 @@ export function LinkedModelWithIndexFactory() {
     });
 }
 
+/**
+ * @class CircularLinkedModel
+ * @extends EmptyModel
+ */
 export class CircularLinkedModel extends EmptyModel {
     static {
         this.string = Type.String;
@@ -96,6 +118,10 @@ export class CircularLinkedModel extends EmptyModel {
     }
 }
 
+/**
+ * Factory for a CircularLinkedModel
+ * @return {CircularLinkedModel}
+ */
 export function CircularLinkedModelFactory() {
     const linked = new CircularLinkedModel({string: 'linked'});
     const main = new CircularLinkedModel({string: 'main'});
@@ -104,6 +130,10 @@ export function CircularLinkedModelFactory() {
     return main;
 }
 
+/**
+ * @class CircularLinkedModelWithIndex
+ * @extends EmptyModel
+ */
 export class CircularLinkedModelWithIndex extends EmptyModel {
     static {
         this.string = Type.String;
@@ -112,6 +142,10 @@ export class CircularLinkedModelWithIndex extends EmptyModel {
     }
 }
 
+/**
+ * Factory for a CircularLinkedModelWithIndex
+ * @return {CircularLinkedModelWithIndex}
+ */
 export function CircularLinkedModelWithIndexFactory() {
     const linked = new CircularLinkedModelWithIndex({string: 'linked'});
     const main = new CircularLinkedModelWithIndex({string: 'main'});
