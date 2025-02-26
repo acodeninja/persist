@@ -20,6 +20,7 @@ export default class StorageEngine {
         const processedModels = [];
         const modelsToPut = [];
         const modelsToReindex = {};
+        const modelsToReindexSearch = {};
 
         /**
          * @param {Type.Model} modelToProcess
@@ -50,6 +51,15 @@ export default class StorageEngine {
                 modelsToReindex[modelToProcessConstructor].push(modelToProcess);
             }
 
+            if (
+                Boolean(modelToProcess.constructor.searchProperties().length) &&
+                searchableFieldsHaveChanged(currentModel, modelToProcess)
+            ) {
+                const modelToProcessConstructor = this.getModelConstructorFromId(modelToProcess.id);
+                modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
+                modelsToReindexSearch[modelToProcessConstructor].push(modelToProcess);
+            }
+
             for (const [field, value] of Object.entries(modelToProcess)) {
                 if (Type.Model.isModel(value)) {
                     await processModel(modelToProcess[field]);
@@ -66,6 +76,15 @@ export default class StorageEngine {
                 const index = await this._getIndex(modelConstructor);
 
                 await this._putIndex(modelConstructor, {
+                    ...index || {},
+                    ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
+                });
+            })),
+            Promise.all(Object.entries(modelsToReindexSearch).map(async ([constructorName, models]) => {
+                const modelConstructor = this.models[constructorName];
+                const index = await this._getSearchIndex(modelConstructor);
+
+                await this._putSearchIndex(modelConstructor, {
                     ...index || {},
                     ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
                 });
@@ -187,6 +206,37 @@ export default class StorageEngine {
     _putIndex(_modelConstructor, _data) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('_putIndex', this));
     }
+
+    /**
+     * Get a model's raw search index data
+     * @param {Model.constructor} _modelConstructor
+     * @throws MethodNotImplementedStorageEngineError
+     * @return Promise<void>
+     */
+    _getSearchIndex(_modelConstructor) {
+        return Promise.reject(new MethodNotImplementedStorageEngineError('_getSearchIndex', this));
+    }
+
+    /**
+     * Get a model's raw search index data
+     * @param {Model.constructor} _modelConstructor
+     * @throws MethodNotImplementedStorageEngineError
+     * @return Promise<void>
+     */
+    _getSearchIndexCompiled(_modelConstructor) {
+        return Promise.reject(new MethodNotImplementedStorageEngineError('_getSearchIndexCompiled', this));
+    }
+
+    /**
+     * Put a model's raw and compiled search index data
+     * @param {Model.constructor} _modelConstructor
+     * @param {object} _data
+     * @throws MethodNotImplementedStorageEngineError
+     * @return Promise<void>
+     */
+    _putSearchIndex(_modelConstructor, _data) {
+        return Promise.reject(new MethodNotImplementedStorageEngineError('_putSearchIndex', this));
+    }
 }
 
 /**
@@ -199,6 +249,21 @@ export default class StorageEngine {
 function indexedFieldsHaveChanged(currentModel, modelToProcess) {
     return !currentModel || Boolean(
         modelToProcess.constructor.indexedProperties()
+            .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
+            .length,
+    );
+}
+
+/**
+ * Decide if two models searchable fields have changed
+ * @param {Type.Model} currentModel
+ * @param {Type.Model} modelToProcess
+ * @return {boolean}
+ * @private
+ */
+function searchableFieldsHaveChanged(currentModel, modelToProcess) {
+    return !currentModel || Boolean(
+        modelToProcess.constructor.searchProperties()
             .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
             .length,
     );

@@ -61,6 +61,34 @@ export function SimpleModelWithIndexFactory() {
 }
 
 /**
+ * @class SimpleModelWithSearchIndex
+ * @extends SimpleModel
+ */
+export class SimpleModelWithSearchIndex extends SimpleModel {
+    static {
+        this.string = Type.String;
+        this.number = Type.Number;
+        this.boolean = Type.Boolean;
+        this.date = Type.Date;
+        this.indexedProperties = () => ['string', 'number'];
+        this.searchProperties = () => ['string', 'number'];
+    }
+}
+
+/**
+ * Factory for a SimpleModelWithSearchIndex
+ * @return {SimpleModelWithSearchIndex}
+ */
+export function SimpleModelWithSearchIndexFactory() {
+    return new SimpleModelWithSearchIndex({
+        string: 'string',
+        number: 1.4,
+        boolean: true,
+        date: new Date(),
+    });
+}
+
+/**
  * @class LinkedModel
  * @extends EmptyModel
  */
@@ -108,6 +136,31 @@ export function LinkedModelWithIndexFactory() {
 }
 
 /**
+ * @class LinkedModelWithSearchIndex
+ * @extends EmptyModel
+ */
+export class LinkedModelWithSearchIndex extends EmptyModel {
+    static {
+        this.string = Type.String;
+        this.linked = () => SimpleModelWithSearchIndex;
+        this.indexedProperties = () => ['string'];
+        this.searchProperties = () => ['string'];
+    }
+}
+
+/**
+ * Factory for a LinkedModelWithSearchIndex
+ * @return {LinkedModelWithSearchIndex}
+ */
+export function LinkedModelWithSearchIndexFactory() {
+    const linked = SimpleModelWithSearchIndexFactory();
+    return new LinkedModelWithSearchIndex({
+        string: 'string',
+        linked,
+    });
+}
+
+/**
  * @class CircularLinkedModel
  * @extends EmptyModel
  */
@@ -149,6 +202,31 @@ export class CircularLinkedModelWithIndex extends EmptyModel {
 export function CircularLinkedModelWithIndexFactory() {
     const linked = new CircularLinkedModelWithIndex({string: 'linked'});
     const main = new CircularLinkedModelWithIndex({string: 'main'});
+    linked.linked = main;
+    main.linked = linked;
+    return main;
+}
+
+/**
+ * @class CircularLinkedModelWithSearchIndex
+ * @extends EmptyModel
+ */
+export class CircularLinkedModelWithSearchIndex extends EmptyModel {
+    static {
+        this.string = Type.String;
+        this.linked = () => CircularLinkedModelWithSearchIndex;
+        this.indexedProperties = () => ['string'];
+        this.searchProperties = () => ['string'];
+    }
+}
+
+/**
+ * Factory for a CircularLinkedModelWithSearchIndex
+ * @return {CircularLinkedModelWithSearchIndex}
+ */
+export function CircularLinkedModelWithSearchIndexFactory() {
+    const linked = new CircularLinkedModelWithSearchIndex({string: 'linked'});
+    const main = new CircularLinkedModelWithSearchIndex({string: 'main'});
     linked.linked = main;
     main.linked = linked;
     return main;
