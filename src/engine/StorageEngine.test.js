@@ -1,3 +1,18 @@
+import {
+    CircularLinkedModel,
+    CircularLinkedModelFactory,
+    CircularLinkedModelWithIndex,
+    CircularLinkedModelWithIndexFactory,
+    EmptyModel,
+    LinkedModel,
+    LinkedModelFactory,
+    LinkedModelWithIndex,
+    LinkedModelWithIndexFactory,
+    SimpleModel,
+    SimpleModelFactory,
+    SimpleModelWithIndex,
+    SimpleModelWithIndexFactory,
+} from '../../test/fixtures/Model.js';
 import StorageEngine, {
     MethodNotImplementedStorageEngineError,
     ModelNotFoundStorageEngineError,
@@ -5,126 +20,6 @@ import StorageEngine, {
 } from './StorageEngine.js';
 import {beforeAll, describe, expect, jest, test} from '@jest/globals';
 import Type from '../type/index.js';
-
-/**
- * @class EmptyModel
- * @extends Type.Model
- */
-class EmptyModel extends Type.Model {
-}
-
-/**
- * @class SimpleModel
- * @extends Type.Model
- */
-class SimpleModel extends EmptyModel {
-    static {
-        this.string = Type.String;
-        this.number = Type.Number;
-        this.boolean = Type.Boolean;
-        this.date = Type.Date;
-    }
-}
-
-/**
- * Factory for an SimpleModel
- * @return {SimpleModel}
- * @constructor
- */
-function SimpleModelFactory() {
-    return new SimpleModel({
-        string: 'string',
-        number: 1.4,
-        boolean: true,
-        date: new Date(),
-    });
-}
-
-class SimpleModelWithIndex extends SimpleModel {
-    static {
-        this.string = Type.String;
-        this.number = Type.Number;
-        this.boolean = Type.Boolean;
-        this.date = Type.Date;
-        this.indexedProperties = () => ['string', 'number'];
-    }
-}
-
-/**
- * Factory for an SimpleModelWithIndex
- * @return {SimpleModelWithIndex}
- * @constructor
- */
-function SimpleModelWithIndexFactory() {
-    return new SimpleModelWithIndex({
-        string: 'string',
-        number: 1.4,
-        boolean: true,
-        date: new Date(),
-    });
-}
-
-class LinkedModel extends EmptyModel {
-    static {
-        this.string = Type.String;
-        this.linked = () => SimpleModel;
-    }
-}
-
-function LinkedModelFactory() {
-    const linked = SimpleModelFactory();
-    return new LinkedModel({
-        string: 'string',
-        linked,
-    });
-}
-
-class LinkedModelWithIndex extends EmptyModel {
-    static {
-        this.string = Type.String;
-        this.linked = () => SimpleModelWithIndex;
-        this.indexedProperties = () => ['string'];
-    }
-}
-
-function LinkedModelWithIndexFactory() {
-    const linked = SimpleModelWithIndexFactory();
-    return new LinkedModelWithIndex({
-        string: 'string',
-        linked,
-    });
-}
-
-class CircularLinkedModel extends EmptyModel {
-    static {
-        this.string = Type.String;
-        this.linked = () => CircularLinkedModel;
-    }
-}
-
-function CircularLinkedModelFactory() {
-    const linked = new CircularLinkedModel({string: 'linked'});
-    const main = new CircularLinkedModel({string: 'main'});
-    linked.linked = main;
-    main.linked = linked;
-    return main;
-}
-
-class CircularLinkedModelWithIndex extends EmptyModel {
-    static {
-        this.string = Type.String;
-        this.linked = () => CircularLinkedModelWithIndex;
-        this.indexedProperties = () => ['string'];
-    }
-}
-
-function CircularLinkedModelWithIndexFactory() {
-    const linked = new CircularLinkedModelWithIndex({string: 'linked'});
-    const main = new CircularLinkedModelWithIndex({string: 'main'});
-    linked.linked = main;
-    main.linked = linked;
-    return main;
-}
 
 class TestStorageEngine extends StorageEngine {
     constructor(configuration = {}, models = null) {
