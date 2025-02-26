@@ -19,7 +19,7 @@ export default class StorageEngine {
     async put(model) {
         const processedModels = [];
         const modelsToPut = [];
-        const modelsToReindex = [];
+        const modelsToReindex = {};
 
         /**
          * @param {Type.Model} modelToProcess
@@ -43,7 +43,9 @@ export default class StorageEngine {
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
                 this._indexedFieldsHaveChanged(currentModel, modelToProcess)
             ) {
-                modelsToReindex.push(modelToProcess);
+                const modelToProcessConstructor = this.getModelConstructorFromId(modelToProcess.id);
+                modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
+                modelsToReindex[modelToProcessConstructor].push(modelToProcess);
             }
 
             for (const [field, value] of Object.entries(modelToProcess)) {
@@ -56,12 +58,13 @@ export default class StorageEngine {
         await processModel(model);
 
         await Promise.all(modelsToPut.map(m => this._putModel(m.toData())));
-        await Promise.all(modelsToReindex.map(async m => {
-            const index = await this._getIndex(this.getModelConstructorFromId(m.id));
+        await Promise.all(Object.entries(modelsToReindex).map(async ([constructor, models]) => {
+            const modelConstructor = this.models[constructor];
+            const index = await this._getIndex(modelConstructor);
 
-            await this._putIndex(m.constructor, {
+            await this._putIndex(modelConstructor, {
                 ...index || {},
-                [m.id]: m.toIndexData(),
+                ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
             });
         }));
     }

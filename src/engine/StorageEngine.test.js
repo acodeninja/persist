@@ -1066,25 +1066,20 @@ describe('StorageEngine.put(model)', () => {
             });
 
             test('._getIndex() is called twice', () => {
-                expect(engine._getIndex).toHaveBeenCalledTimes(2);
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
             });
 
             test('._getIndex() is called for the circular model', () => {
                 expect(engine._getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
             });
 
-            test('._putIndex() is called twice', () => {
-                expect(engine._putIndex).toHaveBeenCalledTimes(2);
+            test('._putIndex() is called once', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(1);
             });
 
-            test('._putIndex() is called for the main model', () => {
+            test('._putIndex() is called for the main and linked models', () => {
                 expect(engine._putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
                     [model.id]: model.toIndexData(),
-                });
-            });
-
-            test('._putIndex() is called for the linked model', () => {
-                expect(engine._putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
                     [model.linked.id]: model.linked.toIndexData(),
                 });
             });
