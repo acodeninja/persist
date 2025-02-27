@@ -95,7 +95,8 @@ export default class StorageEngine {
     /**
      * Get a model by its id
      * @param {string} modelId
-     * @return {Promise<void>}
+     * @throws {ModelNotFoundStorageEngineError}
+     * @return {Promise<Type.Model>}
      */
     get(modelId) {
         try {
@@ -104,6 +105,21 @@ export default class StorageEngine {
             return Promise.reject(e);
         }
         return this._getModel(modelId);
+    }
+
+    /**
+     *
+     * @param {Type.Model} model
+     * @throws {ModelNotRegisteredStorageEngineError}
+     * @throws {ModelNotFoundStorageEngineError}
+     */
+    async delete(model) {
+        if (!Object.keys(this.models).includes(model.constructor.name))
+            throw new ModelNotRegisteredStorageEngineError(model, this);
+
+        const currentModel = await this.get(model.id);
+
+        await this._deleteModel(currentModel.id);
     }
 
     /**
@@ -180,10 +196,21 @@ export default class StorageEngine {
      * @param {string} _id
      * @throws MethodNotImplementedStorageEngineError
      * @throws ModelNotFoundStorageEngineError
-     * @return Promise<void>
+     * @return Promise<Model>
      */
     _getModel(_id) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('_getModel', this));
+    }
+
+    /**
+     * Delete a model
+     * @param {string} _id
+     * @throws MethodNotImplementedStorageEngineError
+     * @throws ModelNotFoundStorageEngineError
+     * @return Promise<void>
+     */
+    _deleteModel(_id) {
+        return Promise.reject(new MethodNotImplementedStorageEngineError('_deleteModel', this));
     }
 
     /**
@@ -238,6 +265,7 @@ export default class StorageEngine {
         return Promise.reject(new MethodNotImplementedStorageEngineError('_putSearchIndex', this));
     }
 }
+
 
 /**
  * Decide if two models indexable fields have changed

@@ -15,6 +15,7 @@ describe('UnimplementedStorageEngine', () => {
     describe.each([
         '_getModel',
         '_putModel',
+        '_deleteModel',
         '_getIndex',
         '_putIndex',
         '_getSearchIndex',
