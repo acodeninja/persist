@@ -1,8 +1,13 @@
 import {
+    LinkedModel,
+    LinkedModelFactory,
+    SimpleModel,
+    SimpleModelFactory,
+} from '../../test/fixtures/Model.js';
+import {
     ModelNotFoundStorageEngineError,
     ModelNotRegisteredStorageEngineError,
 } from './StorageEngine.js';
-import {SimpleModel, SimpleModelFactory} from '../../test/fixtures/Model.js';
 import {beforeAll, describe, expect, test} from '@jest/globals';
 import {TestStorageEngine} from '../../test/fixtures/Engine.js';
 
@@ -55,6 +60,32 @@ describe('StorageEngine.delete()', () => {
         });
 
         test('._deleteModel() is called with the model', () => {
+            expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
+        });
+    });
+
+    describe('when a one way linked model exists', () => {
+        const model = LinkedModelFactory();
+        const engine = new TestStorageEngine({}, [LinkedModel]);
+
+        beforeAll(async () => {
+            engine._getModel.mockResolvedValue(model);
+            await engine.delete(model);
+        });
+
+        test('._getModel() is called once', () => {
+            expect(engine._getModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('._getModel() is called with the main model id', () => {
+            expect(engine._getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('._deleteModel() is called once', () => {
+            expect(engine._deleteModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('._deleteModel() is called with the main model', () => {
             expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
         });
     });
