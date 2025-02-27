@@ -120,6 +120,10 @@ export default class StorageEngine {
         const currentModel = await this.get(model.id);
 
         await this._deleteModel(currentModel.id);
+
+        const currentIndex = this._getIndex(currentModel.constructor);
+
+        await this._putIndex(currentModel.constructor, _.omit(currentIndex, [currentModel.id]));
     }
 
     /**
