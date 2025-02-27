@@ -124,6 +124,10 @@ export default class StorageEngine {
         const currentIndex = this._getIndex(currentModel.constructor);
 
         await this._putIndex(currentModel.constructor, _.omit(currentIndex, [currentModel.id]));
+
+        const currentSearchIndex = this._getSearchIndex(currentModel.constructor);
+
+        await this._putSearchIndex(currentModel.constructor, _.omit(currentSearchIndex, [currentModel.id]));
     }
 
     /**
