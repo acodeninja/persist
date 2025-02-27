@@ -2,7 +2,7 @@ import {
     LinkedModel,
     LinkedModelFactory,
     SimpleModel,
-    SimpleModelFactory,
+    SimpleModelFactory, SimpleModelWithIndex, SimpleModelWithIndexFactory,
 } from '../../test/fixtures/Model.js';
 import {
     ModelNotFoundStorageEngineError,
@@ -87,6 +87,51 @@ describe('StorageEngine.delete()', () => {
 
         test('._deleteModel() is called with the main model', () => {
             expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
+        });
+    });
+
+    describe('when a model with an index exists', () => {
+        const model = SimpleModelWithIndexFactory();
+        const engine = new TestStorageEngine({}, [SimpleModelWithIndex]);
+
+        beforeAll(async () => {
+            engine._getModel.mockResolvedValue(model);
+            engine._getIndex.mockResolvedValue({
+                [model.id]: model.toIndexData(),
+            });
+            await engine.delete(model);
+        });
+
+        test('._getModel() is called once', () => {
+            expect(engine._getModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('._getModel() is called with the main model id', () => {
+            expect(engine._getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('._deleteModel() is called once', () => {
+            expect(engine._deleteModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('._deleteModel() is called with the main model', () => {
+            expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('._getIndex() is called once', () => {
+            expect(engine._getIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('._getIndex() is called with the main model constructor', () => {
+            expect(engine._getIndex).toHaveBeenCalledWith(model.constructor);
+        });
+
+        test('._putIndex() is called once', () => {
+            expect(engine._putIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('._putIndex() is called with the main model removed', () => {
+            expect(engine._putIndex).toHaveBeenCalledWith(model.constructor, {});
         });
     });
 });
