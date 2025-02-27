@@ -133,6 +133,7 @@ describe('storageEngine.getLinksFor(model)', () => {
          * @extends Type.Model
          */
         class MainModel extends Type.Model {
+            static string = Type.String;
             static linked = () => LinkedModel;
         }
 
@@ -141,6 +142,7 @@ describe('storageEngine.getLinksFor(model)', () => {
          * @extends Type.Model
          */
         class LinkedModel extends Type.Model {
+            static string = Type.String;
             static linked = () => MainModel;
         }
 
