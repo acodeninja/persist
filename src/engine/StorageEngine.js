@@ -170,7 +170,10 @@ export default class StorageEngine {
                     .map(([propertyName, propertyType]) => [
                         registeredModelName,
                         propertyName,
-                        typeof propertyType === 'function' && !Type.Model.isModel(propertyType) ? propertyType() : propertyType,
+                        typeof propertyType === 'function' &&
+                            !/^class/.test(Function.prototype.toString.call(propertyType)) &&
+                            !Type.Model.isModel(propertyType) ?
+                                propertyType() : propertyType,
                     ])
                     .filter(([_m, _p, type]) => Type.Model.isModel(type))
                     .map(([containingModel, propertyName, propertyType]) => ({
