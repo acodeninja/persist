@@ -1897,7 +1897,7 @@ describe('StorageEngine.put(model)', () => {
 
                 test('._putSearchIndex() is called for the main model', () => {
                     expect(engine._putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
-                        [editedModel.id]: editedModel.toIndexData(),
+                        [editedModel.id]: editedModel.toSearchData(),
                     });
                 });
 
@@ -1946,9 +1946,9 @@ describe('StorageEngine.put(model)', () => {
 
                     test('._putSearchIndex() is called with the updated index', () => {
                         expect(engine._putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
-                            [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
-                            [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toIndexData(),
-                            [editedModel.id]: editedModel.toIndexData(),
+                            [alreadyIndexedModel.id]: alreadyIndexedModel.toSearchData(),
+                            [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toSearchData(),
+                            [editedModel.id]: editedModel.toSearchData(),
                         });
                     });
                 });
@@ -2036,7 +2036,7 @@ describe('StorageEngine.put(model)', () => {
 
                 test('._putSearchIndex() is called for the linked model', () => {
                     expect(engine._putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
-                        [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                        [editedModel.linked.id]: editedModel.linked.toSearchData(),
                     });
                 });
             });

@@ -100,11 +100,11 @@ class Model {
 
     /**
      * Extracts data from the model based on the indexed properties defined in the class.
-     *
+     * Includes the ID of any linked models.
      * @returns {Object} - A representation of the model's indexed data.
      */
     toIndexData() {
-        return this._extractData(this.constructor.indexedProperties());
+        return this._extractData(this.constructor.indexedPropertiesResolved());
     }
 
     /**
@@ -185,6 +185,39 @@ class Model {
      */
     static indexedProperties() {
         return [];
+    }
+
+    /**
+     * Returns a list of properties that are indexed including links to other models.
+     *
+     * @returns {Array<string>} - The indexed properties.
+     * @abstract
+     * @static
+     */
+    static indexedPropertiesResolved() {
+        return []
+            .concat(
+                Object.entries(this)
+                    .filter(([_, type]) =>
+                        this.isModel(
+                            typeof type === 'function' &&
+                            !/^class/.test(Function.prototype.toString.call(type)) ?
+                                type() : type,
+                        ),
+                    )
+                    .map(([name, _]) => `${name}.id`),
+            )
+            .concat(
+                Object.entries(this)
+                    .filter(([_, type]) =>
+                            type?._type === 'array' && this.isModel(
+                                typeof type._items === 'function' &&
+                                !/^class/.test(Function.prototype.toString.call(type._items)) ?
+                                    type._items() : type._items,
+                            ),
+                    ).map(([name, _]) => `${name}.[*].id`),
+            )
+            .concat(this.indexedProperties());
     }
 
     /**

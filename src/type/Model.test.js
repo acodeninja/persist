@@ -34,10 +34,15 @@ test('model.toIndexData() returns an object with the index properties', () => {
     expect({
         arrayOfString: ['test'],
         boolean: false,
+        circular: {id: 'CircularModel/000000000000'},
+        circularMany: [{id: 'CircularManyModel/000000000000'}],
+        circularRequired: {id: 'CircularRequiredModel/000000000000'},
+        emptyArrayOfModels: [],
         id: 'MainModel/000000000000',
-        linked: {string: 'test', boolean: true},
-        linkedMany: [{string: 'many'}],
+        linked: {id: 'LinkedModel/000000000000', string: 'test', boolean: true},
+        linkedMany: [{id: 'LinkedManyModel/000000000000', string: 'many'}],
         number: 24.3,
+        requiredLinked: {id: 'LinkedModel/000000000001'},
         string: 'test',
         stringSlug: 'test',
     }).toEqual(index);
