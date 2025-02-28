@@ -134,7 +134,7 @@ export class MainModel extends Type.Model {
         this.emptyArrayOfNumbers = Type.Array.of(Type.Number);
         this.emptyArrayOfBooleans = Type.Array.of(Type.Boolean);
         this.emptyArrayOfDates = Type.Array.of(Type.Date);
-        this.emptyArrayOfModels = Type.Array.of(LinkedManyModel);
+        this.emptyArrayOfModels = Type.Array.of(() => LinkedManyModel);
         this.arrayOfString = Type.Array.of(Type.String);
         this.arrayOfNumber = Type.Array.of(Type.Number);
         this.arrayOfBoolean = Type.Array.of(Type.Boolean);

@@ -86,7 +86,7 @@ export default class StorageEngine {
 
                 await this._putSearchIndex(modelConstructor, {
                     ...index || {},
-                    ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
+                    ...Object.fromEntries(models.map(m => [m.id, m.toSearchData()])),
                 });
             })),
         ]);
@@ -279,18 +279,14 @@ export default class StorageEngine {
 
 
 /**
- * Decide if two models indexable fields have changed
+ * Decide if two models indexable fields are different
  * @param {Type.Model} currentModel
  * @param {Type.Model} modelToProcess
  * @return {boolean}
  * @private
  */
 function indexedFieldsHaveChanged(currentModel, modelToProcess) {
-    return !currentModel || Boolean(
-        modelToProcess.constructor.indexedProperties()
-            .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
-            .length,
-    );
+    return !currentModel || JSON.stringify(currentModel.toIndexData()) !== JSON.stringify(modelToProcess.toIndexData());
 }
 
 /**
@@ -301,11 +297,7 @@ function indexedFieldsHaveChanged(currentModel, modelToProcess) {
  * @private
  */
 function searchableFieldsHaveChanged(currentModel, modelToProcess) {
-    return !currentModel || Boolean(
-        modelToProcess.constructor.searchProperties()
-            .filter(field => JSON.stringify(_.get(currentModel, field)) !== JSON.stringify(_.get(modelToProcess, field)))
-            .length,
-    );
+    return !currentModel || JSON.stringify(currentModel.toSearchData()) !== JSON.stringify(modelToProcess.toSearchData());
 }
 
 /**

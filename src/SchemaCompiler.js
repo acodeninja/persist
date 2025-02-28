@@ -79,7 +79,11 @@ class SchemaCompiler {
                     schema.properties[name].items.format = property?._items._format;
                 }
 
-                if (Type.Model.isModel(property?._items)) {
+                const prop = typeof property?._items === 'function' &&
+                !/^class/.test(Function.prototype.toString.call(property?._items)) ?
+                    property?._items() : property?._items;
+
+                if (Type.Model.isModel(prop)) {
                     schema.properties[name].items = {
                         type: 'object',
                         additionalProperties: false,
@@ -87,7 +91,7 @@ class SchemaCompiler {
                         properties: {
                             id: {
                                 type: 'string',
-                                pattern: `^${property?._items.toString()}/[A-Z0-9]+$`,
+                                pattern: `^${prop.toString()}/[A-Z0-9]+$`,
                             },
                         },
                     };

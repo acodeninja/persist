@@ -492,6 +492,9 @@ describe('FileStorageEngine.delete', () => {
 
         const globalModelIndexWithout = models.getIndex();
         delete globalModelIndexWithout[modelToBeDeleted.id];
+        delete globalModelIndexWithout['CircularModel/000000000001'].linked;
+        delete globalModelIndexWithout['CircularRequiredModel/000000000001'].linked;
+        delete globalModelIndexWithout['CircularRequiredModel/000000000001'].other;
         expect(filesystem.writeFile).toHaveBeenCalledWith('/tmp/fileEngine/_index.json', JSON.stringify(globalModelIndexWithout));
 
         const circularModelWithout = modelToBeDeleted.circular.toData();
