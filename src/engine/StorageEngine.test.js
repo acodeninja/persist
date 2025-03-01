@@ -91,7 +91,7 @@ describe('storageEngine.getInstancesLinkedTo(model)', () => {
         const engine = new StorageEngine({}, [LinkedModel, SimpleModel]);
         const model = LinkedModelFactory();
 
-        beforeAll(async () => {
+        beforeAll(() => {
             engine._getIndex = jest.fn().mockImplementation((constructor) => {
                 if (constructor === LinkedModel) return Promise.resolve({
                     [model.id]: model.toIndexData(),
@@ -99,7 +99,7 @@ describe('storageEngine.getInstancesLinkedTo(model)', () => {
                 if (constructor === SimpleModel) return Promise.resolve({
                     [model.linked.id]: model.linked.toIndexData(),
                 });
-                return Promise.reject();
+                return Promise.resolve({});
             });
         });
 
@@ -121,14 +121,14 @@ describe('storageEngine.getInstancesLinkedTo(model)', () => {
                     if (constructor === SimpleModel) return Promise.resolve({
                         [model.linked.id]: model.linked.toIndexData(),
                     });
-                    return Promise.reject();
+                    return Promise.resolve({});
                 });
                 const cache = {};
                 await engine.getInstancesLinkedTo(model.linked, cache);
                 await engine.getInstancesLinkedTo(model.linked, cache);
             });
 
-            test('._getIndex() is called once', async () => {
+            test('._getIndex() is called once', () => {
                 expect(engine._getIndex).toHaveBeenCalledTimes(1);
             });
         });
