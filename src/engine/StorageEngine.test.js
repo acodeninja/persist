@@ -1,9 +1,14 @@
+import {
+    EmptyModel,
+    LinkedModel,
+    LinkedModelFactory,
+    SimpleModel,
+} from '../../test/fixtures/Model.js';
 import StorageEngine, {
     MethodNotImplementedStorageEngineError,
     ModelNotRegisteredStorageEngineError,
 } from './StorageEngine.js';
-import {describe, expect, test} from '@jest/globals';
-import {EmptyModel} from '../../test/fixtures/Model.js';
+import {beforeAll, describe, expect, jest, test} from '@jest/globals';
 import Type from '../type/index.js';
 
 describe('UnimplementedStorageEngine', () => {
@@ -68,6 +73,64 @@ describe('new StorageEngine', () => {
 
         test('the given configuration is set', () => {
             expect(engine.configuration).toStrictEqual({test: true});
+        });
+    });
+});
+
+describe('storageEngine.getInstancesLinkedTo(model)', () => {
+    describe('when there are no linked models', () => {
+        const engine = new StorageEngine({}, [EmptyModel]);
+        const model = new EmptyModel();
+
+        test('no models are returned', async () => {
+            expect(await engine.getInstancesLinkedTo(model)).toStrictEqual({});
+        });
+    });
+
+    describe('when the given model has a single directional link to another model', () => {
+        const engine = new StorageEngine({}, [LinkedModel, SimpleModel]);
+        const model = LinkedModelFactory();
+
+        beforeAll(async () => {
+            engine._getIndex = jest.fn().mockImplementation((constructor) => {
+                if (constructor === LinkedModel) return Promise.resolve({
+                    [model.id]: model.toIndexData(),
+                });
+                if (constructor === SimpleModel) return Promise.resolve({
+                    [model.linked.id]: model.linked.toIndexData(),
+                });
+                return Promise.reject();
+            });
+        });
+
+        test('the linked model is returned', async () => {
+            expect(await engine.getInstancesLinkedTo(model.linked)).toStrictEqual({
+                LinkedModel: [model.toIndexData()],
+            });
+        });
+
+        describe('and .getInstancesLinkedTo is called twice', () => {
+            const engine = new StorageEngine({}, [LinkedModel, SimpleModel]);
+            const model = LinkedModelFactory();
+
+            beforeAll(async () => {
+                engine._getIndex = jest.fn().mockImplementation((constructor) => {
+                    if (constructor === LinkedModel) return Promise.resolve({
+                        [model.id]: model.toIndexData(),
+                    });
+                    if (constructor === SimpleModel) return Promise.resolve({
+                        [model.linked.id]: model.linked.toIndexData(),
+                    });
+                    return Promise.reject();
+                });
+                const cache = {};
+                await engine.getInstancesLinkedTo(model.linked, cache);
+                await engine.getInstancesLinkedTo(model.linked, cache);
+            });
+
+            test('._getIndex() is called once', async () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
         });
     });
 });
