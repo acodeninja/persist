@@ -95,7 +95,7 @@ export function SimpleModelWithSearchIndexFactory() {
 export class LinkedModel extends EmptyModel {
     static {
         this.string = Type.String;
-        this.linked = () => SimpleModel;
+        this.linked = SimpleModel;
     }
 }
 
@@ -228,6 +228,55 @@ export function CircularLinkedModelWithSearchIndexFactory() {
     const linked = new CircularLinkedModelWithSearchIndex({string: 'linked'});
     const main = new CircularLinkedModelWithSearchIndex({string: 'main'});
     linked.linked = main;
+    main.linked = linked;
+    return main;
+}
+
+/**
+ * @class CircularRequiredLinkedModelWithSearchIndex
+ * @extends EmptyModel
+ */
+export class CircularRequiredLinkedModelWithSearchIndex extends EmptyModel {
+    static {
+        this.string = Type.String;
+        this.linked = () => CircularRequiredLinkedModelWithSearchIndex.required;
+        this.indexedProperties = () => ['string'];
+        this.searchProperties = () => ['string'];
+    }
+}
+
+/**
+ * Factory for a CircularRequiredLinkedModelWithSearchIndex
+ * @return {CircularRequiredLinkedModelWithSearchIndex}
+ */
+export function CircularRequiredLinkedModelWithSearchIndexFactory() {
+    const linked = new CircularRequiredLinkedModelWithSearchIndex({string: 'linked'});
+    const main = new CircularRequiredLinkedModelWithSearchIndex({string: 'main'});
+    linked.linked = main;
+    main.linked = linked;
+    return main;
+}
+
+/**
+ * @class RequiredLinkedModelWithSearchIndex
+ * @extends EmptyModel
+ */
+export class RequiredLinkedModelWithSearchIndex extends EmptyModel {
+    static {
+        this.string = Type.String;
+        this.linked = SimpleModelWithSearchIndex.required;
+        this.indexedProperties = () => ['string'];
+        this.searchProperties = () => ['string'];
+    }
+}
+
+/**
+ * Factory for a RequiredLinkedModelWithSearchIndex
+ * @return {RequiredLinkedModelWithSearchIndex}
+ */
+export function RequiredLinkedModelWithSearchIndexFactory() {
+    const linked = new SimpleModelWithSearchIndex({string: 'linked'});
+    const main = new RequiredLinkedModelWithSearchIndex({string: 'main'});
     main.linked = linked;
     return main;
 }
