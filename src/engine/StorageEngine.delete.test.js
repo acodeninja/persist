@@ -378,7 +378,7 @@ describe('StorageEngine.delete()', () => {
             const model = CircularRequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({}, [CircularRequiredLinkedModelWithSearchIndex]);
 
-            beforeAll(async () => {
+            beforeAll(() => {
                 engine._getModel.mockImplementation((id) => {
                     if (id === model.id) return Promise.resolve(model);
                     if (id === model.linked.id) return Promise.resolve(model.linked);
@@ -524,7 +524,7 @@ describe('StorageEngine.delete()', () => {
             const model = RequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({}, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
-            beforeAll(async () => {
+            beforeAll(() => {
                 engine._getModel.mockImplementation((id) => {
                     if (id === model.id) return Promise.resolve(model);
                     if (id === model.linked.id) return Promise.resolve(model.linked);
@@ -606,7 +606,7 @@ describe('StorageEngine.delete()', () => {
                             [model.linked.id]: model.linked.toIndexData(),
                         });
                     }
-                    Promise.resolve({});
+                    return Promise.resolve({});
                 });
                 await engine.delete(model.linked, [model.id]);
             });
