@@ -198,24 +198,24 @@ class Model {
         return []
             .concat(
                 Object.entries(this)
-                    .filter(([_, type]) =>
+                    .filter(([_name, type]) =>
                         this.isModel(
                             typeof type === 'function' &&
                             !/^class/.test(Function.prototype.toString.call(type)) ?
                                 type() : type,
                         ),
                     )
-                    .map(([name, _]) => `${name}.id`),
+                    .map(([name, _type]) => `${name}.id`),
             )
             .concat(
                 Object.entries(this)
-                    .filter(([_, type]) =>
+                    .filter(([_name, type]) =>
                             type?._type === 'array' && this.isModel(
                                 typeof type._items === 'function' &&
                                 !/^class/.test(Function.prototype.toString.call(type._items)) ?
                                     type._items() : type._items,
                             ),
-                    ).map(([name, _]) => `${name}.[*].id`),
+                    ).map(([name, _type]) => `${name}.[*].id`),
             )
             .concat(this.indexedProperties());
     }

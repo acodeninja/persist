@@ -84,6 +84,7 @@ describe('StorageEngine.delete()', () => {
                     return Promise.resolve({[model.id]: model.toIndexData()});
                 if (constructor === SimpleModel)
                     return Promise.resolve({[model.linked.id]: model.linked.toIndexData()});
+                return Promise.resolve({});
             });
             await engine.delete(model);
         });

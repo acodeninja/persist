@@ -121,6 +121,11 @@ export default class StorageEngine {
         const searchIndexCache = {};
         const searchIndexActions = {};
 
+        /**
+         * Process a model for deletion
+         * @param {Type.Model} modelToProcess
+         * @return {Promise<void>}
+         */
         const processModel = async (modelToProcess) => {
             if (!Object.keys(this.models).includes(modelToProcess.constructor.name))
                 throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
@@ -152,16 +157,14 @@ export default class StorageEngine {
             ))).flat(1)
                 .forEach(m =>
                     Object.entries(links[m.constructor.name])
-                        .forEach(([linkName, _]) => {
+                        .forEach(([linkName, _modelConstructor]) => {
                             m[linkName] = undefined;
                             modelsToPut.push(m);
 
-                            const modelToProcessConstructor = this.getModelConstructorFromId(m.id);
-                            indexActions[modelToProcessConstructor].push(['reindex', m]);
+                            indexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
 
                             if (m.constructor.searchProperties().length) {
-                                const modelToProcessConstructor = this.getModelConstructorFromId(m.id);
-                                searchIndexActions[modelToProcessConstructor].push(['reindex', m]);
+                                searchIndexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
                             }
                         }),
                 );
@@ -172,37 +175,33 @@ export default class StorageEngine {
         await Promise.all([
             Promise.all(Object.entries(indexActions).map(async ([constructorName, actions]) => {
                 const modelConstructor = this.models[constructorName];
-                indexCache[constructorName] = indexCache[constructorName] ?? await this._getIndex(modelConstructor);
+                indexCache[modelConstructor] = indexCache[modelConstructor] ?? await this._getIndex(modelConstructor);
 
-                actions.forEach(([action, model]) => {
-                    switch (action) {
-                        case 'delete':
-                            indexCache[constructorName] = _.omit(indexCache[constructorName], [model.id]);
-                            break;
-                        case 'reindex':
-                            indexCache[constructorName] = {
-                                ...indexCache[constructorName],
-                                [model.id]: model.toIndexData(),
-                            };
-                            break;
+                actions.forEach(([action, actionModel]) => {
+                    if (action === 'delete') {
+                        indexCache[modelConstructor] = _.omit(indexCache[modelConstructor], [actionModel.id]);
+                    }
+                    if (action === 'reindex') {
+                        indexCache[modelConstructor] = {
+                            ...indexCache[modelConstructor],
+                            [actionModel.id]: actionModel.toIndexData(),
+                        };
                     }
                 });
             })),
             Promise.all(Object.entries(searchIndexActions).map(async ([constructorName, actions]) => {
                 const modelConstructor = this.models[constructorName];
-                searchIndexCache[constructorName] = searchIndexCache[constructorName] ?? await this._getSearchIndex(modelConstructor);
+                searchIndexCache[modelConstructor] = searchIndexCache[modelConstructor] ?? await this._getSearchIndex(modelConstructor);
 
-                actions.forEach(([action, model]) => {
-                    switch (action) {
-                        case 'delete':
-                            searchIndexCache[constructorName] = _.omit(searchIndexCache[constructorName], [model.id]);
-                            break;
-                        case 'reindex':
-                            searchIndexCache[constructorName] = {
-                                ...searchIndexCache[constructorName],
-                                [model.id]: model.toSearchData(),
-                            };
-                            break;
+                actions.forEach(([action, actionModel]) => {
+                    if (action === 'delete') {
+                        searchIndexCache[modelConstructor] = _.omit(searchIndexCache[modelConstructor], [actionModel.id]);
+                    }
+                    if (action === 'reindex') {
+                        searchIndexCache[modelConstructor] = {
+                            ...searchIndexCache[modelConstructor],
+                            [actionModel.id]: actionModel.toSearchData(),
+                        };
                     }
                 });
             })),
@@ -213,11 +212,11 @@ export default class StorageEngine {
             Promise.all(modelsToPut.map(m => this._putModel(m))),
             Promise.all(
                 Object.entries(indexCache)
-                    .map(([constructorName, _]) => this._putIndex(this.models[constructorName], indexCache[constructorName])),
+                    .map(([constructorName, index]) => this._putIndex(this.models[constructorName], index)),
             ),
             Promise.all(
                 Object.entries(searchIndexCache)
-                    .map(([constructorName, _]) => this._putSearchIndex(this.models[constructorName], searchIndexCache[constructorName])),
+                    .map(([constructorName, index]) => this._putSearchIndex(this.models[constructorName], index)),
             ),
         ]);
     }
@@ -247,7 +246,7 @@ export default class StorageEngine {
             Object.entries(
                 await Promise.all(
                     Object.entries(this.getLinksFor(model.constructor))
-                        .map(([name, _]) =>
+                        .map(([name, _index]) =>
                             cache[name] ? Promise.resolve([name, Object.values(cache[name])]) :
                                 this._getIndex(this.models[name])
                                     .then(i => {
@@ -256,12 +255,12 @@ export default class StorageEngine {
                                     }),
                         ),
                 ).then(Object.fromEntries),
-            ).map(([name, i]) => [
+            ).map(([name, index]) => [
                 name,
-                i.map(i => Object.fromEntries(
-                    Object.entries(i)
-                        .filter(([name, property]) => name === 'id' || property?.id === model.id),
-                )).filter(i => Object.keys(i).length > 1),
+                index.map(item => Object.fromEntries(
+                    Object.entries(item)
+                        .filter(([propertyName, property]) => propertyName === 'id' || property?.id === model.id),
+                )).filter(item => Object.keys(item).length > 1),
             ]),
         );
     }
