@@ -163,9 +163,9 @@ export default class StorageEngine {
                     .map(async ([constructor, updatableModels]) => [
                         constructor,
                         await Promise.all(updatableModels.map(async m => {
-                            const currentModel = modelCache[m.id] ?? await this.get(m.id);
-                            modelCache[currentModel.id] = currentModel;
-                            return currentModel;
+                            const upToDateModel = modelCache[m.id] ?? await this.get(m.id);
+                            modelCache[upToDateModel.id] = upToDateModel;
+                            return upToDateModel;
                         })),
                     ]),
             ))).flat(1)
@@ -193,8 +193,8 @@ export default class StorageEngine {
                         }),
                 );
 
-            for (const model of modelsToProcess) {
-                await processModel(model);
+            for (const modelToBeProcessed of modelsToProcess) {
+                await processModel(modelToBeProcessed);
             }
         };
 
