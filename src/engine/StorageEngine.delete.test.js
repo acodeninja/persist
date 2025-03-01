@@ -3,8 +3,12 @@ import {
     CircularLinkedModelFactory,
     CircularLinkedModelWithSearchIndex,
     CircularLinkedModelWithSearchIndexFactory,
+    CircularRequiredLinkedModelWithSearchIndex,
+    CircularRequiredLinkedModelWithSearchIndexFactory,
     LinkedModel,
     LinkedModelFactory,
+    RequiredLinkedModelWithSearchIndex,
+    RequiredLinkedModelWithSearchIndexFactory,
     SimpleModel,
     SimpleModelFactory,
     SimpleModelWithIndex,
@@ -365,6 +369,322 @@ describe('StorageEngine.delete()', () => {
         test('._putSearchIndex() is called with the circular model', () => {
             expect(engine._putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
                 [model.linked.id]: _.omit(model.linked.toSearchData(), 'linked'),
+            });
+        });
+    });
+
+    describe('when a model with a required circular link with a search index exists', () => {
+        describe('and .delete() is called without propagate', () => {
+            const model = CircularRequiredLinkedModelWithSearchIndexFactory();
+            const engine = new TestStorageEngine({}, [CircularRequiredLinkedModelWithSearchIndex]);
+
+            beforeAll(async () => {
+                engine._getModel.mockImplementation((id) => {
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
+                });
+                engine._getIndex.mockResolvedValue({
+                    [model.id]: model.toIndexData(),
+                    [model.linked.id]: model.linked.toIndexData(),
+                });
+            });
+
+            test('.delete() throws a cannot delete error', async () => {
+                await expect(() => engine.delete(model)).rejects.toMatchObject({
+                    message: `Deleting ${model.id} has unintended consequences`,
+                    consequences: {
+                        willDelete: [model.linked.id],
+                    },
+                });
+            });
+
+            test('._getModel() is called twice', () => {
+                expect(engine._getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._deleteModel() is not called', () => {
+                expect(engine._deleteModel).not.toHaveBeenCalled();
+            });
+
+            test('._putModel() is not called', () => {
+                expect(engine._putModel).not.toHaveBeenCalled();
+            });
+
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getIndex() is called with the circular model', () => {
+                expect(engine._getIndex).toHaveBeenCalledWith(CircularRequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._putIndex() is not called', () => {
+                expect(engine._putIndex).not.toHaveBeenCalled();
+            });
+
+            test('._getSearchIndex() is not called', () => {
+                expect(engine._getSearchIndex).not.toHaveBeenCalled();
+            });
+
+            test('._putSearchIndex() is not called', () => {
+                expect(engine._putSearchIndex).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('and .delete() is called with propagate', () => {
+            const model = CircularRequiredLinkedModelWithSearchIndexFactory();
+            const engine = new TestStorageEngine({}, [CircularRequiredLinkedModelWithSearchIndex]);
+
+            beforeAll(async () => {
+                engine._getModel.mockImplementation((id) => {
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
+                });
+                engine._getIndex.mockResolvedValue({
+                    [model.id]: model.toIndexData(),
+                    [model.linked.id]: model.linked.toIndexData(),
+                });
+                await engine.delete(model, [model.linked.id]);
+            });
+
+            test('._getModel() is called twice', () => {
+                expect(engine._getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._deleteModel() is called twice', () => {
+                expect(engine._deleteModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._deleteModel() is called with the main model', () => {
+                expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._deleteModel() is called with the linked model', () => {
+                expect(engine._deleteModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._putModel() is not called', () => {
+                expect(engine._putModel).not.toHaveBeenCalled();
+            });
+
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getIndex() is called with the circular model', () => {
+                expect(engine._getIndex).toHaveBeenCalledWith(CircularRequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._putIndex() is called once', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putIndex() is called with an empty index', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(CircularRequiredLinkedModelWithSearchIndex, {});
+            });
+
+            test('._getSearchIndex() is called once', () => {
+                expect(engine._getSearchIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getSearchIndex() is called with the circular model', () => {
+                expect(engine._getSearchIndex).toHaveBeenCalledWith(CircularRequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._putSearchIndex() is called once', () => {
+                expect(engine._putSearchIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._putSearchIndex() is called with an empty index', () => {
+                expect(engine._putSearchIndex).toHaveBeenCalledWith(CircularRequiredLinkedModelWithSearchIndex, {});
+            });
+        });
+    });
+
+    describe('when a model with a required normal link with a search index exists', () => {
+        describe('and .delete() is called without propagate', () => {
+            const model = RequiredLinkedModelWithSearchIndexFactory();
+            const engine = new TestStorageEngine({}, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            beforeAll(async () => {
+                engine._getModel.mockImplementation((id) => {
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
+                });
+                engine._getIndex.mockResolvedValue({
+                    [model.id]: model.toIndexData(),
+                    [model.linked.id]: model.linked.toIndexData(),
+                });
+            });
+
+            test('.delete() throws a cannot delete error', async () => {
+                await expect(() => engine.delete(model.linked))
+                    .rejects.toMatchObject({
+                        message: `Deleting ${model.linked.id} has unintended consequences`,
+                        consequences: {willDelete: [model.id]},
+                    });
+            });
+
+            test('._getModel() is called twice', () => {
+                expect(engine._getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._deleteModel() is not called', () => {
+                expect(engine._deleteModel).not.toHaveBeenCalled();
+            });
+
+            test('._putModel() is not called', () => {
+                expect(engine._putModel).not.toHaveBeenCalled();
+            });
+
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('._getIndex() is called with the circular model', () => {
+                expect(engine._getIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._putIndex() is not called', () => {
+                expect(engine._putIndex).not.toHaveBeenCalled();
+            });
+
+            test('._getSearchIndex() is not called', () => {
+                expect(engine._getSearchIndex).not.toHaveBeenCalled();
+            });
+
+            test('._putSearchIndex() is not called', () => {
+                expect(engine._putSearchIndex).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('and .delete() is called with propagate', () => {
+            const model = RequiredLinkedModelWithSearchIndexFactory();
+            const engine = new TestStorageEngine({}, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            beforeAll(async () => {
+                engine._getModel.mockImplementation((id) => {
+                    if (id === model.id) return Promise.resolve(model);
+                    if (id === model.linked.id) return Promise.resolve(model.linked);
+                    return Promise.reject(new ModelNotFoundStorageEngineError(id));
+                });
+                engine._getIndex.mockImplementation((constructor) => {
+                    if (constructor === RequiredLinkedModelWithSearchIndex) {
+                        return Promise.resolve({
+                            [model.id]: model.toIndexData(),
+                        });
+                    }
+                    if (constructor === SimpleModelWithSearchIndex) {
+                        return Promise.resolve({
+                            [model.linked.id]: model.linked.toIndexData(),
+                        });
+                    }
+                    Promise.resolve({});
+                });
+                await engine.delete(model.linked, [model.id]);
+            });
+
+            test('._getModel() is called twice', () => {
+                expect(engine._getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getModel() is called with the main model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._getModel() is called with the linked model id', () => {
+                expect(engine._getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._deleteModel() is called twice', () => {
+                expect(engine._deleteModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('._deleteModel() is called with the main model', () => {
+                expect(engine._deleteModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('._deleteModel() is called with the linked model', () => {
+                expect(engine._deleteModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('._putModel() is not called', () => {
+                expect(engine._putModel).not.toHaveBeenCalled();
+            });
+
+            test('._getIndex() is called once', () => {
+                expect(engine._getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getIndex() is called with the main model', () => {
+                expect(engine._getIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._getIndex() is called with the linked model', () => {
+                expect(engine._getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('._putIndex() is called once', () => {
+                expect(engine._putIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._putIndex() is called with an empty main model index', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex, {});
+            });
+
+            test('._putIndex() is called with an empty linked model index', () => {
+                expect(engine._putIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {});
+            });
+
+            test('._getSearchIndex() is called twice', () => {
+                expect(engine._getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._getSearchIndex() is called with the main model', () => {
+                expect(engine._getSearchIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex);
+            });
+
+            test('._getSearchIndex() is called with the linked model', () => {
+                expect(engine._getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('._putSearchIndex() is called twice', () => {
+                expect(engine._putSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('._putSearchIndex() is called with an empty index for the main model', () => {
+                expect(engine._putSearchIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex, {});
+            });
+
+            test('._putSearchIndex() is called with an empty index for the linked model', () => {
+                expect(engine._putSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {});
             });
         });
     });

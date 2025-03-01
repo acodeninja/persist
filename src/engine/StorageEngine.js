@@ -110,16 +110,21 @@ export default class StorageEngine {
     /**
      * Delete a model and update indexes that reference it
      * @param {Type.Model} model
+     * @param {Array<string>} propagateTo - List of model ids that are expected to be deleted
      * @throws {ModelNotRegisteredStorageEngineError}
      * @throws {ModelNotFoundStorageEngineError}
      */
-    async delete(model) {
+    async delete(model, propagateTo = []) {
+        const processedModels = [];
         const modelsToDelete = [];
         const modelsToPut = [];
         const indexCache = {};
         const indexActions = {};
         const searchIndexCache = {};
         const searchIndexActions = {};
+        const modelCache = {};
+
+        propagateTo.push(model.id);
 
         /**
          * Process a model for deletion
@@ -127,12 +132,17 @@ export default class StorageEngine {
          * @return {Promise<void>}
          */
         const processModel = async (modelToProcess) => {
+            if (processedModels.includes(modelToProcess.id)) return;
+            processedModels.push(modelToProcess.id);
+
+            const modelsToProcess = [];
             if (!Object.keys(this.models).includes(modelToProcess.constructor.name))
                 throw new ModelNotRegisteredStorageEngineError(modelToProcess, this);
 
-            const currentModel = await this.get(model.id);
+            const currentModel = modelCache[model.id] ?? await this.get(model.id);
+            modelCache[currentModel.id] = currentModel;
 
-            modelsToDelete.push(currentModel.id);
+            if (!modelsToDelete.includes(currentModel.id)) modelsToDelete.push(currentModel.id);
 
             const modelToProcessConstructor = this.getModelConstructorFromId(modelToProcess.id);
             indexActions[modelToProcessConstructor] = indexActions[modelToProcessConstructor] ?? [];
@@ -152,25 +162,50 @@ export default class StorageEngine {
                 Object.entries(linkedModels)
                     .map(async ([constructor, updatableModels]) => [
                         constructor,
-                        await Promise.all(updatableModels.map(m => this.get(m.id))),
+                        await Promise.all(updatableModels.map(async m => {
+                            const currentModel = modelCache[m.id] ?? await this.get(m.id);
+                            modelCache[currentModel.id] = currentModel;
+                            return currentModel;
+                        })),
                     ]),
             ))).flat(1)
                 .forEach(m =>
                     Object.entries(links[m.constructor.name])
-                        .forEach(([linkName, _modelConstructor]) => {
-                            m[linkName] = undefined;
-                            modelsToPut.push(m);
+                        .forEach(([linkName, modelConstructor]) => {
+                            if ((
+                                typeof modelConstructor[linkName] === 'function' &&
+                                !/^class/.test(Function.prototype.toString.call(modelConstructor[linkName])) &&
+                                !Type.Model.isModel(modelConstructor[linkName]) ?
+                                    modelConstructor[linkName]() : modelConstructor
+                            )._required) {
+                                if (!modelsToDelete.includes(m.id)) modelsToDelete.push(m.id);
+                                modelsToProcess.push(m);
+                            } else {
+                                m[linkName] = undefined;
+                                modelsToPut.push(m);
 
-                            indexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
+                                indexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
 
-                            if (m.constructor.searchProperties().length) {
-                                searchIndexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
+                                if (m.constructor.searchProperties().length) {
+                                    searchIndexActions[this.getModelConstructorFromId(m.id)].push(['reindex', m]);
+                                }
                             }
                         }),
                 );
+
+            for (const model of modelsToProcess) {
+                await processModel(model);
+            }
         };
 
         await processModel(model);
+
+        const unrequestedDeletions = modelsToDelete.filter(m => !propagateTo.includes(m));
+        if (unrequestedDeletions.length) {
+           throw new DeleteHasUnintendedConsequencesStorageEngineError(model.id, {
+               willDelete: unrequestedDeletions,
+           });
+        }
 
         await Promise.all([
             Promise.all(Object.entries(indexActions).map(async ([constructorName, actions]) => {
@@ -467,5 +502,16 @@ export class ModelNotFoundStorageEngineError extends StorageEngineError {
      */
     constructor(modelId) {
         super(`The model ${modelId} was not found`);
+    }
+}
+
+export class DeleteHasUnintendedConsequencesStorageEngineError extends StorageEngineError {
+    /**
+     * @param {string} modelId
+     * @param {object} consequences
+     */
+    constructor(modelId, consequences) {
+        super(`Deleting ${modelId} has unintended consequences`);
+        this.consequences = consequences;
     }
 }
