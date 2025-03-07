@@ -11,7 +11,18 @@ export default class SearchIndex {
         if (model.searchProperties().length === 0) {
             throw new NoIndexAvailableSearchIndexError(this.#model);
         }
+    }
 
+    search(query) {
+        return (this.#compiledIndex ?? this.#compileIndex()).search(query).map(doc => ({
+            score: doc.score,
+            model: this.#model.fromData(this.#index[doc.ref]),
+        }));
+    }
+
+    #compileIndex() {
+        const model = this.#model;
+        const index = this.#index;
         this.#compiledIndex = lunr(function () {
             this.ref('id');
 
@@ -23,13 +34,8 @@ export default class SearchIndex {
                 this.add(doc);
             }, this);
         });
-    }
 
-    search(query) {
-        return this.#compiledIndex.search(query).map(doc => ({
-            score: doc.score,
-            model: this.#model.fromData(this.#index[doc.ref]),
-        }));
+        return this.#compiledIndex;
     }
 }
 
