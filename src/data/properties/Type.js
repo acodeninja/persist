@@ -53,6 +53,14 @@ class Type {
      * @returns {Type} A subclass of the current type with `_required` set to `true`.
      */
     static get required() {
+        /**
+         * A subclass of the current type with the `_required` flag set to `true`.
+         * Used to indicate that the property is required during validation or schema generation.
+         *
+         * @class
+         * @extends {Type}
+         * @private
+         */
         class Required extends this {
             static _required = true;
         }

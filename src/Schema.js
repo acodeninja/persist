@@ -26,6 +26,15 @@ class Schema {
         ajvErrors(validation);
         ajvFormats(validation);
 
+        /**
+         * Recursively builds a JSON-schema-like object from a model or schema segment.
+         *
+         * Handles both `Model` instances and schema property definitions,
+         * including nested models and required property rules.
+         *
+         * @param {Object|Model|Type} schemaSegment - A model or a property descriptor.
+         * @returns {Object} A JSON schema representation of the input segment.
+         */
         function BuildSchema(schemaSegment) {
             const thisSchema = {};
 
