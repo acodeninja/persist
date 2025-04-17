@@ -272,7 +272,7 @@ export default class Connection {
             if (!Object.keys(this.#models).includes(modelToProcess.constructor.name))
                 throw new ModelNotRegisteredConnectionError(modelToProcess, this.#storage);
 
-            const currentModel = modelCache[model.id] ?? await this.get(model.id);
+            const currentModel = modelCache[modelToProcess.id] ?? await this.get(modelToProcess.id);
             modelCache[currentModel.id] = currentModel;
 
             if (!modelsToDelete.includes(currentModel.id)) modelsToDelete.push(currentModel.id);
