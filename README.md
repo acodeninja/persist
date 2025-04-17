@@ -53,6 +53,7 @@ class Person extends Persist.Model {
 
 ```javascript
 import Persist from '@acodeninja/persist';
+import {S3Client} from "@aws-sdk/client-s3";
 import S3StorageEngine from '@acodeninja/persist/storage/s3';
 
 const engine = new S3StorageEngine({
