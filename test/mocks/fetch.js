@@ -69,7 +69,7 @@ function stubFetch(models, prefix = '') {
         if (opts.method === 'DELETE') {
             for (const [path, _value] of Object.entries(resolvedFiles)) {
                 if (url.pathname.endsWith(path)) {
-                    delete resolvedFiles[url.pathname];
+                    delete resolvedFiles[path];
                     return Promise.resolve({
                         ok: true,
                         status: 204,
