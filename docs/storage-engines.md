@@ -8,6 +8,7 @@ To store models using an S3 Bucket, use the `S3` storage engine. To use the `S3`
 
 ```javascript
 import Persist from "@acodeninja/persist";
+import {S3Client} from "@aws-sdk/client-s3";
 import S3StorageEngine from "@acodeninja/persist/storage/s3";
 
 const connection = Persist.registerConnection('remote', new S3StorageEngine({
