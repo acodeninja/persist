@@ -9,6 +9,7 @@ A JSON based data modelling and persistence library with alternate storage mecha
 
 [![DeepSource](https://app.deepsource.com/gh/acodeninja/persist.svg/?label=active+issues&show_trend=true&token=Vd8_PJuRwwoq4_uBJ0_ymc06)](https://app.deepsource.com/gh/acodeninja/persist/)
 [![DeepSource](https://app.deepsource.com/gh/acodeninja/persist.svg/?label=code+coverage&show_trend=true&token=Vd8_PJuRwwoq4_uBJ0_ymc06)](https://app.deepsource.com/gh/acodeninja/persist/)
+![CodeRabbit PR Reviews](https://img.shields.io/coderabbit/prs/github/acodeninja/persist?utm_source=oss&utm_medium=github&utm_campaign=acodeninja%2Fpersist&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ## Features
 
