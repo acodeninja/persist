@@ -542,12 +542,6 @@ export default class Connection {
  * @extends Error
  */
 export class ConnectionError extends Error {
-    /**
-     * @param {String} message
-     */
-    constructor(message) {
-        super(message);
-    }
 }
 
 export class MissingArgumentsConnectionError extends ConnectionError {
@@ -569,9 +563,6 @@ export class ModelNotRegisteredConnectionError extends ConnectionError {
 }
 
 class TransactionError extends Error {
-    constructor(message) {
-        super(message);
-    }
 }
 
 export class CommitFailedTransactionError extends TransactionError {
