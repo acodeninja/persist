@@ -55,7 +55,7 @@ describe('HTTPStorageEngine.getModel()', () => {
         }, []);
 
         test('throws ModelNotFoundStorageEngineError', async () => {
-            await expect(() => engine.getModel(model.id)).rejects.toThrow({
+            await expect(engine.getModel(model.id)).rejects.toThrow({
                 instanceOf: ModelNotFoundStorageEngineError,
                 message: `The model ${model.id} was not found`,
             });
@@ -79,7 +79,7 @@ describe('HTTPStorageEngine.getModel()', () => {
         }, []);
 
         test('throws the error', async () => {
-            await expect(() => engine.getModel(model.id)).rejects.toThrow({
+            await expect(engine.getModel(model.id)).rejects.toThrow({
                 instanceOf: HTTPRequestFailedError,
                 message: `Failed to get https://example.com/${model.id}`,
             });
@@ -128,7 +128,7 @@ describe('HTTPStorageEngine.putModel()', () => {
         }, []);
 
         test('throws the error', async () => {
-            await expect(() => engine.putModel(model.toData())).rejects.toThrow({
+            await expect(engine.putModel(model.toData())).rejects.toThrow({
                 instanceOf: HTTPRequestFailedError,
                 message: `Failed to put https://example.com/${model.id}`,
             });
@@ -177,7 +177,7 @@ describe('HTTPStorageEngine.deleteModel()', () => {
         }, []);
 
         test('throws ModelNotFoundStorageEngineError', async () => {
-            await expect(() => engine.deleteModel(model.id)).rejects.toThrow({
+            await expect(engine.deleteModel(model.id)).rejects.toThrow({
                 instanceOf: ModelNotFoundStorageEngineError,
                 message: `The model ${model.id} was not found`,
             });
@@ -201,7 +201,7 @@ describe('HTTPStorageEngine.deleteModel()', () => {
         }, []);
 
         test('throws the received error', async () => {
-            await expect(() => engine.deleteModel(model.id)).rejects.toThrow({
+            await expect(engine.deleteModel(model.id)).rejects.toThrow({
                 instanceOf: HTTPRequestFailedError,
                 message: `Failed to delete https://example.com/${model.id}`,
             });

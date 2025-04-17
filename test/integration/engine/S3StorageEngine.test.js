@@ -53,7 +53,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
             const {engine, client} = EngineFactory();
 
             test('it should throw a ModelNotFoundStorageEngineError', async () => {
-                await expect(() => engine.getModel('NotAModel/000000000000')).rejects.toThrow({
+                await expect(engine.getModel('NotAModel/000000000000')).rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: 'The model NotAModel/000000000000 was not found',
                 });
@@ -74,7 +74,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
             engine.configuration.bucket = 'not-a-bucket';
 
             test('it should throw a NoSuchBucket error', async () => {
-                await expect(() => engine.getModel(model.id)).rejects.toThrow(NoSuchBucket);
+                await expect(engine.getModel(model.id)).rejects.toThrow(NoSuchBucket);
             });
 
             test('the engine calls client.send with GetObjectCommand', () => {
@@ -126,7 +126,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
             const {engine, client} = EngineFactory();
 
             test('it should throw a ModelNotFoundStorageEngineError', async () => {
-                await expect(() => engine.deleteModel('NotAModel/000000000000')).rejects.toThrow({
+                await expect(engine.deleteModel('NotAModel/000000000000')).rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: 'The model NotAModel/000000000000 was not found',
                 });

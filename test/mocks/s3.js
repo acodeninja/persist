@@ -118,6 +118,6 @@ export default stubS3Client;
 
 describe('S3Mock', () => {
     test('throws an error for an unknown command', async () => {
-        await expect(() => stubS3Client([]).send({})).rejects.toThrow(InvalidRequest);
+        await expect(stubS3Client([]).send({})).rejects.toThrow(InvalidRequest);
     });
 });

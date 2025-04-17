@@ -48,7 +48,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
             const {engine, fetch} = EngineFactory();
 
             test('it should throw a ModelNotFoundStorageEngineError', async () => {
-                await expect(() => engine.getModel('NotAModel/000000000000')).rejects.toThrow({
+                await expect(engine.getModel('NotAModel/000000000000')).rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: 'The model NotAModel/000000000000 was not found',
                 });
@@ -102,7 +102,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
             const {engine, fetch} = EngineFactory();
 
             test('it should throw a ModelNotFoundStorageEngineError', async () => {
-                await expect(() => engine.deleteModel('NotAModel/000000000000')).rejects.toThrow({
+                await expect(engine.deleteModel('NotAModel/000000000000')).rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: 'The model NotAModel/000000000000 was not found',
                 });

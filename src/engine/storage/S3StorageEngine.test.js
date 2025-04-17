@@ -68,7 +68,7 @@ describe('S3StorageEngine.getModel()', () => {
         }, []);
 
         test('throws ModelNotFoundStorageEngineError', async () => {
-            await expect(() => engine.getModel(model.id)).rejects.toThrow({
+            await expect(engine.getModel(model.id)).rejects.toThrow({
                 instanceOf: ModelNotFoundStorageEngineError,
                 message: `The model ${model.id} was not found`,
             });
@@ -94,7 +94,7 @@ describe('S3StorageEngine.getModel()', () => {
         }, []);
 
         test('throws the received error', async () => {
-            await expect(() => engine.getModel(model.id)).rejects.toThrow({
+            await expect(engine.getModel(model.id)).rejects.toThrow({
                 instanceOf: Error,
                 message: 'unknown',
             });
@@ -145,7 +145,7 @@ describe('S3StorageEngine.putModel()', () => {
         }, []);
 
         test('throws the error', async () => {
-            await expect(() => engine.putModel(model.toData())).rejects.toThrow({
+            await expect(engine.putModel(model.toData())).rejects.toThrow({
                 instanceOf: Error,
                 message: 'unknown',
             });
@@ -196,7 +196,7 @@ describe('S3StorageEngine.deleteModel()', () => {
         }, []);
 
         test('throws ModelNotFoundStorageEngineError', async () => {
-            await expect(() => engine.deleteModel(model.id)).rejects.toThrow({
+            await expect(engine.deleteModel(model.id)).rejects.toThrow({
                 instanceOf: ModelNotFoundStorageEngineError,
                 message: `The model ${model.id} was not found`,
             });
@@ -222,7 +222,7 @@ describe('S3StorageEngine.deleteModel()', () => {
         }, []);
 
         test('throws the received error', async () => {
-            await expect(() => engine.deleteModel(model.id)).rejects.toThrow({
+            await expect(engine.deleteModel(model.id)).rejects.toThrow({
                 instanceOf: Error,
                 message: 'unknown',
             });
