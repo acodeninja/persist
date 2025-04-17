@@ -343,15 +343,15 @@ export default class Connection {
         await Promise.all([
             Promise.all(Object.entries(indexActions).map(async ([constructorName, actions]) => {
                 const modelConstructor = this.#models[constructorName];
-                indexCache[modelConstructor] = indexCache[modelConstructor] ?? await this.#storage.getIndex(modelConstructor);
+                indexCache[constructorName] = indexCache[constructorName] ?? await this.#storage.getIndex(modelConstructor);
 
                 actions.forEach(([action, actionModel]) => {
                     if (action === 'delete') {
-                        indexCache[modelConstructor] = _.omit(indexCache[modelConstructor], [actionModel.id]);
+                        indexCache[constructorName] = _.omit(indexCache[constructorName], [actionModel.id]);
                     }
                     if (action === 'reindex') {
-                        indexCache[modelConstructor] = {
-                            ...indexCache[modelConstructor],
+                        indexCache[constructorName] = {
+                            ...indexCache[constructorName],
                             [actionModel.id]: actionModel.toIndexData(),
                         };
                     }
@@ -359,15 +359,15 @@ export default class Connection {
             })),
             Promise.all(Object.entries(searchIndexActions).map(async ([constructorName, actions]) => {
                 const modelConstructor = this.#models[constructorName];
-                searchIndexCache[modelConstructor] = searchIndexCache[modelConstructor] ?? await this.#storage.getSearchIndex(modelConstructor);
+                searchIndexCache[constructorName] = searchIndexCache[constructorName] ?? await this.#storage.getSearchIndex(modelConstructor);
 
                 actions.forEach(([action, actionModel]) => {
                     if (action === 'delete') {
-                        searchIndexCache[modelConstructor] = _.omit(searchIndexCache[modelConstructor], [actionModel.id]);
+                        searchIndexCache[constructorName] = _.omit(searchIndexCache[constructorName], [actionModel.id]);
                     }
                     if (action === 'reindex') {
-                        searchIndexCache[modelConstructor] = {
-                            ...searchIndexCache[modelConstructor],
+                        searchIndexCache[constructorName] = {
+                            ...searchIndexCache[constructorName],
                             [actionModel.id]: actionModel.toSearchData(),
                         };
                     }
