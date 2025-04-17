@@ -115,7 +115,7 @@ describe('S3StorageEngine.putModel()', () => {
     describe('when no error occurs', () => {
         const model = SimpleModelFactory();
         const client = new S3Client();
-        jest.spyOn(client, 'send').mockResolvedValue(undefined);
+        jest.spyOn(client, 'send').mockResolvedValue(null);
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
             client,
@@ -168,7 +168,7 @@ describe('S3StorageEngine.deleteModel()', () => {
     describe('when no error occurs', () => {
         const model = SimpleModelFactory();
         const client = new S3Client();
-        jest.spyOn(client, 'send').mockResolvedValue(undefined);
+        jest.spyOn(client, 'send').mockResolvedValue(null);
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
             client,
@@ -305,7 +305,7 @@ describe('S3StorageEngine.putIndex()', () => {
     describe('when no error occurs', () => {
         const model = SimpleModelFactory();
         const client = new S3Client();
-        jest.spyOn(client, 'send').mockResolvedValue(undefined);
+        jest.spyOn(client, 'send').mockResolvedValue(null);
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
             client,
@@ -422,7 +422,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
     describe('when no error occurs', () => {
         const model = SimpleModelFactory();
         const client = new S3Client();
-        jest.spyOn(client, 'send').mockResolvedValue(undefined);
+        jest.spyOn(client, 'send').mockResolvedValue(null);
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
             client,
