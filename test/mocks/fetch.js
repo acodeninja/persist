@@ -16,11 +16,11 @@ function stubFetch(models, prefix = '') {
      */
     function fileSystemFromModels(initialFilesystem, ...initialModels) {
         for (const model of initialModels) {
-            const modelIndexPath = [prefix, model.id.replace(/\/[A-Z0-9]+$/, '')].filter(i => Boolean(i)).join('/');
-            const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, 'search')].filter(i => Boolean(i)).join('/');
+            const modelIndexPath = [prefix, model.id.replace(/\/[A-Z0-9]+$/, '')].filter(Boolean).join('/');
+            const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, 'search')].filter(Boolean).join('/');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[[`${prefix}/${model.id}`].filter(i => Boolean(i)).join('/')] = model.toData();
+            initialFilesystem[[prefix, model.id].filter(Boolean).join('/')] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),

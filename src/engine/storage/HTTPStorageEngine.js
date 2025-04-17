@@ -93,7 +93,7 @@ export default class HTTPStorageEngine extends StorageEngine {
      * @return Promise<void>
      */
     putIndex(constructor, index) {
-        return this.#processFetch(this.#generateURL([constructor.name]), {
+        return this.#processFetch(this.#generateURL([constructor.toString()]), {
             ...this.#getWriteOptions(),
             body: JSON.stringify(index),
         });
@@ -107,7 +107,7 @@ export default class HTTPStorageEngine extends StorageEngine {
      */
     getSearchIndex(constructor) {
         return this.#processFetch(
-            this.#generateURL([constructor.name, 'search']),
+            this.#generateURL([constructor.toString(), 'search']),
             this.#getReadOptions(),
             {},
         );
@@ -121,7 +121,7 @@ export default class HTTPStorageEngine extends StorageEngine {
      * @return Promise<void>
      */
     putSearchIndex(constructor, index) {
-        return this.#processFetch(this.#generateURL([constructor.name, 'search']), {
+        return this.#processFetch(this.#generateURL([constructor.toString(), 'search']), {
             ...this.#getWriteOptions(),
             body: JSON.stringify(index),
         });
