@@ -1,5 +1,9 @@
 import Persist from '../../../src/Persist.js';
 
+/**
+ * @class TestModel
+ * @extends {Persist.Model}
+ */
 class TestModel extends Persist.Model {
     static {
         this.withName('TestModel');

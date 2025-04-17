@@ -151,6 +151,14 @@ class Model {
      * @static
      */
     static get required() {
+        /**
+         * A subclass of the current model with the `_required` flag set to `true`.
+         * Used to indicate that the property is required during validation or schema generation.
+         *
+         * @class
+         * @extends {Model}
+         * @private
+         */
         class Required extends this {
             static _required = true;
         }

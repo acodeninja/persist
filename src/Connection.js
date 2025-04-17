@@ -7,6 +7,14 @@ import Model from './data/Model.js';
 import SearchIndex from './data/SearchIndex.js';
 import _ from 'lodash';
 
+/**
+ * Represents a transactional operation to be executed, typically queued and later committed.
+ *
+ * Stores the method to invoke, the arguments to apply, and tracks the result or error state
+ * of the transaction once it's processed.
+ *
+ * @class Transaction
+ */
 export class Transaction {
     constructor(method, ...args) {
         this.method = method;
@@ -81,6 +89,12 @@ export default class Connection {
     async hydrate(dryModel) {
         const hydratedModels = {};
 
+        /**
+         * Recursively hydrates a single model and its nested properties.
+         *
+         * @param {Object|Model} modelToProcess - The model instance to hydrate.
+         * @returns {Promise<Model>} The hydrated model instance.
+         */
         const hydrateModel = async (modelToProcess) => {
             hydratedModels[modelToProcess.id] = modelToProcess;
 
@@ -97,6 +111,12 @@ export default class Connection {
             return modelToProcess;
         };
 
+        /**
+         * Hydrates a nested sub-model if it hasn't already been hydrated.
+         *
+         * @param {Object} property - The sub-model with a known ID but incomplete data.
+         * @returns {Promise<Model>} The fully hydrated sub-model.
+         */
         const hydrateSubModel = async (property) => {
             if (hydratedModels[property.id]) {
                 return hydratedModels[property.id];
@@ -109,6 +129,12 @@ export default class Connection {
             return hydratedSubModel;
         };
 
+        /**
+         * Hydrates a list of related sub-models.
+         *
+         * @param {Array<Object>} property - Array of dry sub-models.
+         * @returns {Promise<Array<Model>>} Array of hydrated sub-models.
+         */
         const hydrateModelList = async (property) => {
             const newModelList = await Promise.all(property.map(subModel => {
                 if (hydratedModels[subModel.id]) {
@@ -538,16 +564,26 @@ export default class Connection {
 }
 
 /**
+ * Base class for errors that occur during connection operations.
+ *
  * @class ConnectionError
  * @extends Error
  */
 export class ConnectionError extends Error {
 }
 
+/**
+ * Thrown when a connection is created with missing arguments.
+ *
+ * @class MissingArgumentsConnectionError
+ * @extends ConnectionError
+ */
 export class MissingArgumentsConnectionError extends ConnectionError {
 }
 
 /**
+ * Thrown when a model class is not registered.
+ *
  * @class ModelNotRegisteredConnectionError
  * @extends ConnectionError
  */
@@ -562,9 +598,23 @@ export class ModelNotRegisteredConnectionError extends ConnectionError {
     }
 }
 
+/**
+ * Base class for errors that occur during transactions.
+ *
+ * @class TransactionError
+ * @extends {Error}
+ */
 class TransactionError extends Error {
 }
 
+/**
+ * Thrown when a transaction fails to commit.
+ *
+ * Contains the original error and the list of transactions involved.
+ *
+ * @class CommitFailedTransactionError
+ * @extends {TransactionError}
+ */
 export class CommitFailedTransactionError extends TransactionError {
     /**
      *
