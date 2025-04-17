@@ -185,13 +185,13 @@ export default class Connection {
             modelToProcess.validate();
             const currentModel = await this.get(modelToProcess.id).catch(() => null);
 
-            const modelToProcessHasChanged = JSON.stringify(currentModel?.toData() || {}) !== JSON.stringify(modelToProcess.toData());
+            const modelToProcessHasChanged = !_.isEqual(currentModel?.toData() || {}, modelToProcess.toData());
 
             if (modelToProcessHasChanged) modelsToPut.push(modelToProcess);
 
             if (
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
-                (!currentModel || JSON.stringify(currentModel.toIndexData()) !== JSON.stringify(modelToProcess.toIndexData()))
+                (!currentModel || !_.isEqual(currentModel.toIndexData(), modelToProcess.toIndexData()))
             ) {
                 const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
                 modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
@@ -200,7 +200,7 @@ export default class Connection {
 
             if (
                 Boolean(modelToProcess.constructor.searchProperties().length) &&
-                (!currentModel || JSON.stringify(currentModel.toSearchData()) !== JSON.stringify(modelToProcess.toSearchData()))
+                (!currentModel || !_.isEqual(currentModel.toSearchData(), modelToProcess.toSearchData()))
             ) {
                 const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
                 modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
