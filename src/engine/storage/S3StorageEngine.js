@@ -85,12 +85,12 @@ class S3StorageEngine extends StorageEngine {
 
     /**
      * Get a model's index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<object>
      */
-    async getIndex(constructor) {
-        const Key = this.#generatePath([constructor?.toString(), '_index.json']);
+    async getIndex(modelConstructor) {
+        const Key = this.#generatePath([modelConstructor.name, '_index.json']);
         try {
             const data = await this.configuration.client.send(new GetObjectCommand({
                 Bucket: this.configuration.bucket,
@@ -105,13 +105,13 @@ class S3StorageEngine extends StorageEngine {
 
     /**
      * Put a model's index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {object} index
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
-    async putIndex(constructor, index) {
-        const Key = this.#generatePath([constructor.toString(), '_index.json']);
+    async putIndex(modelConstructor, index) {
+        const Key = this.#generatePath([modelConstructor.name, '_index.json']);
         await this.configuration.client.send(new PutObjectCommand({
             Key,
             Bucket: this.configuration.bucket,
@@ -122,11 +122,11 @@ class S3StorageEngine extends StorageEngine {
 
     /**
      * Get a model's raw search index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @return Promise<Record<string, object>>
      */
-    async getSearchIndex(constructor) {
-        const Key = this.#generatePath([constructor.toString(), '_search_index.json']);
+    async getSearchIndex(modelConstructor) {
+        const Key = this.#generatePath([modelConstructor.name, '_search_index.json']);
 
         try {
             const data = await this.configuration.client.send(new GetObjectCommand({
@@ -142,12 +142,12 @@ class S3StorageEngine extends StorageEngine {
 
     /**
      * Put a model's search index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {Record<string, object>} index
      * @return Promise<void>
      */
-    async putSearchIndex(constructor, index) {
-        const Key = this.#generatePath([constructor.toString(), '_search_index.json']);
+    async putSearchIndex(modelConstructor, index) {
+        const Key = this.#generatePath([modelConstructor.name, '_search_index.json']);
 
         await this.configuration.client.send(new PutObjectCommand({
             Key,
