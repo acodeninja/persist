@@ -271,7 +271,7 @@ describe('S3StorageEngine.getIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_index.json`,
+                    Key: `${model.constructor.name}/_index.json`,
                 },
             }));
         });
@@ -294,7 +294,7 @@ describe('S3StorageEngine.getIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_index.json`,
+                    Key: `${model.constructor.name}/_index.json`,
                 },
             }));
         });
@@ -317,7 +317,7 @@ describe('S3StorageEngine.putIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_index.json`,
+                    Key: `${model.constructor.name}/_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
                 },
@@ -347,7 +347,7 @@ describe('S3StorageEngine.putIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_index.json`,
+                    Key: `${model.constructor.name}/_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
                 },
@@ -388,7 +388,7 @@ describe('S3StorageEngine.getSearchIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_search_index.json`,
+                    Key: `${model.constructor.name}/_search_index.json`,
                 },
             }));
         });
@@ -411,7 +411,7 @@ describe('S3StorageEngine.getSearchIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_search_index.json`,
+                    Key: `${model.constructor.name}/_search_index.json`,
                 },
             }));
         });
@@ -434,7 +434,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_search_index.json`,
+                    Key: `${model.constructor.name}/_search_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
                 },
@@ -464,7 +464,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
             expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                 input: {
                     Bucket: 's3-bucket',
-                    Key: `${model.constructor.toString()}/_search_index.json`,
+                    Key: `${model.constructor.name}/_search_index.json`,
                     Body: JSON.stringify({[model.id]: model.toSearchData()}),
                     ContentType: 'application/json',
                 },
