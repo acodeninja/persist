@@ -118,7 +118,7 @@ describe('working with data storage engines', () => {
             const httpStorageEngine = new HTTPStorageEngine({
                 baseURL: 'https://example.com',
                 prefix: 'api/v1',
-                fetch: (_url, _options) => Promise.resolve({}),
+                fetch: (_url, _options) => Promise.resolve(Response.json({}, {status: 200})),
             });
 
             const connectionName = 'http';
