@@ -1,22 +1,22 @@
 # Models as Properties
 
-In addition to assigning basic types to model properties, you can assign entire models as properties. This allows for the creation of complex relationships between models. For information on using basic types for properties, refer to [model property types](./model-property-types.md).
+In addition to assigning basic types to model properties, you can assign entire models as properties. This allows for the creation of complex relationships between models. For information on using basic types for properties, refer to [model property types](./model-properties.md).
 
 We’ll explore different types of relationships between models using examples of `Person` and `Address` models, evolving the definition step by step.
 
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
+        this.name = Persist.Property.String.required;
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -28,17 +28,17 @@ To define a **one-to-one** relationship between two models, set a static propert
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
+        this.name = Persist.Property.String.required;
         this.address = () => Address;
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -46,7 +46,7 @@ export class Address extends Persist.Type.Model {
 > [!IMPORTANT]
 > **Why Use an Arrow Function?**
 >
-> The arrow function allows the model to reference another model that may not have been defined yet. Without it, you might encounter an error like `ReferenceError: Cannot access 'Address' before initialization`.
+> The arrow function allows the model to reference another model that may not have been defined yet. Without it, you might encounter an error like `ReferenceError: Cannot access 'Address' before initialization`. See [Reference Errors](./code-quirks.md#reference-errors).
 
 ### Circular One-to-One Relationships
 
@@ -55,41 +55,41 @@ You can extend the previous example by allowing both models to reference each ot
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
+        this.name = Persist.Property.String.required;
         this.address = () => Address;
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
         this.person = () => Person;
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```
 
 ## One-to-Many Relationships
 
-To model a **one-to-many** relationship, use `Persist.Type.Array` to store an array of related models. For instance, if a `Person` can have multiple addresses, this is how it would be defined:
+To model a **one-to-many** relationship, use `Persist.Property.Array` to store an array of related models. For instance, if a `Person` can have multiple addresses, this is how it would be defined:
 
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
-        this.addresses = () => Persist.Type.Array.of(Address);
+        this.name = Persist.Property.String.required;
+        this.addresses = () => Persist.Property.Array.of(Address);
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
         this.person = () => Person;
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -103,18 +103,18 @@ In some cases, you may want to model a many-to-many relationship. For example, i
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
-        this.addresses = () => Persist.Type.Array.of(Address);
+        this.name = Persist.Property.String.required;
+        this.addresses = () => Persist.Property.Array.of(Address);
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        this.people = () => Persist.Type.Array.of(Person);
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.people = () => Persist.Property.Array.of(Person);
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -128,26 +128,26 @@ In more complex scenarios, you may want to capture additional information about 
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
-        this.addresses = () => Persist.Type.Array.of(Abode);
+        this.name = Persist.Property.String.required;
+        this.addresses = () => Persist.Property.Array.of(Abode);
     }
 }
 
-export class Abode extends Persist.Type.Model {
+export class Abode extends Persist.Model {
     static {
-        this.moveInDate = Persist.Type.Date.required;
+        this.moveInDate = Persist.Property.Date.required;
         this.address = () => Address;
         this.person = () => Person;
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        this.people = () => Persist.Type.Array.of(Person);
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        this.people = () => Persist.Property.Array.of(Person);
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
     }
 }
 ```

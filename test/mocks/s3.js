@@ -1,7 +1,6 @@
-import Model from '../../src/type/Model.js';
-import {NoSuchKey} from '@aws-sdk/client-s3';
+import {NoSuchBucket, NoSuchKey} from '@aws-sdk/client-s3';
+import Model from '../../src/data/Model.js';
 import {jest} from '@jest/globals';
-import lunr from 'lunr';
 
 /**
  * @param data
@@ -17,11 +16,11 @@ function S3ObjectWrapper(data) {
 }
 
 /**
- * @param filesystem
- * @param models
+ * Create a mock S3 client that allows testing the S3StorageEngine integration.
+ * @param {Record<string, Array<Model>>} models
  * @return {{send: (*|void)}}
  */
-function stubS3Client(filesystem = {}, models = {}) {
+function stubS3Client(models) {
     const modelsAddedToFilesystem = [];
 
     /**
@@ -40,7 +39,7 @@ function stubS3Client(filesystem = {}, models = {}) {
             };
             modelsAddedToFilesystem.push(model.id);
 
-            const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json');
+            const searchIndexRawPath = model.id.replace(/[A-Z0-9]+$/, '_search_index.json');
 
             if (model.constructor.searchProperties().length > 0) {
                 const searchIndex = initialFilesystem[searchIndexRawPath] || {};
@@ -67,30 +66,10 @@ function stubS3Client(filesystem = {}, models = {}) {
         return initialFilesystem;
     }
 
-    const resolvedBuckets = filesystem;
+    const resolvedBuckets = {};
 
     for (const [bucket, modelList] of Object.entries(models)) {
         const resolvedFiles = bucketFilesFromModels(resolvedBuckets[bucket], ...modelList);
-
-        const searchIndexes = Object.entries(resolvedFiles)
-            .filter(([name, _]) => name.endsWith('_search_index_raw.json'));
-
-        if (searchIndexes.length > 0) {
-            for (const [name, index] of searchIndexes) {
-                const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
-                resolvedFiles[name.replace('_raw', '')] = lunr(function () {
-                    this.ref('id');
-
-                    for (const field of fields) {
-                        this.field(field);
-                    }
-
-                    Object.values(index).forEach(function (doc) {
-                        this.add(doc);
-                    }, this);
-                });
-            }
-        }
 
         resolvedBuckets[bucket] = {
             ...(resolvedBuckets[bucket] || {}),
@@ -110,26 +89,23 @@ function stubS3Client(filesystem = {}, models = {}) {
                             return Promise.resolve(S3ObjectWrapper(Buffer.from(JSON.stringify(value))));
                         }
                     }
+                    return Promise.reject(new NoSuchKey({}));
                 }
-                return Promise.reject(new NoSuchKey({}));
+                return Promise.reject(new NoSuchBucket({}));
             case 'PutObjectCommand':
                 resolvedBuckets[command.input.Bucket] = {
-                    ...resolvedBuckets[command.input.Bucket] || {},
-                    [command.input.Key]: command.input.Value,
+                    ...resolvedBuckets[command.input.Bucket],
+                    [command.input.Key]: command.input.Body,
                 };
                 return Promise.resolve(null);
             case 'DeleteObjectCommand':
-                if (resolvedBuckets[command.input.Bucket]) {
-                    for (const [filename, _] of Object.entries(resolvedBuckets[command.input.Bucket])) {
-                        if (command.input.Key.endsWith(filename)) {
-                            delete resolvedBuckets[command.input.Bucket][filename];
-                            return Promise.resolve();
-                        }
+                for (const [filename, _] of Object.entries(resolvedBuckets[command.input.Bucket])) {
+                    if (command.input.Key.endsWith(filename)) {
+                        delete resolvedBuckets[command.input.Bucket][filename];
+                        return Promise.resolve();
                     }
                 }
                 return Promise.reject(new NoSuchKey({}));
-            default:
-                return Promise.reject(new Error('Unsupported command'));
         }
     });
 

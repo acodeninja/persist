@@ -14,13 +14,67 @@ A JSON based data modelling and persistence library with alternate storage mecha
 
 - Data modelling with relationships
 - Data validation
-- Data querying
-- Fuzzy search
-- Storage with: S3, HTTP and Filesystem
+- Data queries and fuzzy search
+- Store data using AWS S3 or HTTP APIs
+
+## Terms
+
+`model`
+: Defines the shape of an entity's data within your application.
+
+`property`
+: Analogous to a data type, allows defining the type of properties associated with a `model`.
+
+`connection`
+: Abstraction layer that establishes a connection to the configured storage engine and supports CRUD and query functionality.
+
+`engine`
+: An engine allows a connection to send instructions to a given service, it may support anything from a RESTFul HTTP API to a cloud service like S3 or DynamoDB.
+
+## Usage
+
+### Models
+
+```javascript
+import Persist from '@acodeninja/persist';
+
+class Person extends Persist.Model {
+    static {
+        this.name = Persist.Property.String.required;
+        this.dateOfBirth = Persist.Property.Date.required;
+        this.height = Persist.Property.Number.required;
+        this.isStudent = Persist.Property.Boolean.required;
+    }
+}
+```
+
+### Storage
+
+```javascript
+import Persist from '@acodeninja/persist';
+import S3StorageEngine from '@acodeninja/persist/storage/s3';
+
+const engine = new S3StorageEngine({
+    bucket: 'person-storage',
+    client: new S3Client(),
+});
+
+const connection = Persist.registerConnection('people', engine, [Person]);
+
+const person = new Person({
+    name: 'Joe Bloggs',
+    dateOfBirth: new Date('1993-04-02T00:00:00.000Z'),
+    height: 1.85,
+    isStudent: true,
+});
+
+await connection.put(person);
+```
 
 ## Find out more
 
-- [Model Property Types](./docs/model-property-types.md)
+- [Defining Models](./docs/defining-models.md)
+- [Model Property Types](./docs/model-properties)
 - [Models as Properties](./docs/models-as-properties.md)
 - [Structured Queries](./docs/structured-queries.md)
 - [Search Queries](./docs/search-queries.md)

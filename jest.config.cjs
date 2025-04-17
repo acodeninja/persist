@@ -1,10 +1,11 @@
 /** @type {import('jest').Config} */
 const config = {
-    coveragePathIgnorePatterns: [
-        'node_modules',
-        'test/fixtures',
-        'test/mocks',
-        'test/scripts',
+    collectCoverage: true,
+    coveragePathIgnorePatterns: ['test/fixtures/minified/'],
+    collectCoverageFrom: [
+        '**/*.js',
+        '!{node_modules,coverage,exports}/**',
+        '!*.config.js',
     ],
     coverageThreshold: {
         global: {
@@ -14,13 +15,8 @@ const config = {
             statements: 100,
         },
     },
-    testMatch: [
-        '**/*.test.js',
-    ],
-    watchPathIgnorePatterns: [
-        'coverage/',
-        'test/fixtures/minified',
-    ],
+    testMatch: ['**/*.test.js'],
+    watchPathIgnorePatterns: ['coverage/', 'test/fixtures/minified'],
 };
 
 module.exports = config;

@@ -1,125 +1,100 @@
-import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
-import StorageEngine, {EngineError, MissConfiguredError} from './StorageEngine.js';
+import {
+    DeleteObjectCommand,
+    GetObjectCommand,
+    NoSuchKey,
+    PutObjectCommand,
+} from '@aws-sdk/client-s3';
+import StorageEngine, {
+    MisconfiguredStorageEngineError,
+    ModelNotFoundStorageEngineError,
+} from './StorageEngine.js';
 
-/**
- * Represents an error specific to the S3 engine operations.
- * @class S3StorageEngineError
- * @extends EngineError
- */
-class S3StorageEngineError extends EngineError {}
-
-/**
- * Error indicating a failure when putting an object to S3.
- * @class FailedPutS3StorageEngineError
- * @extends S3StorageEngineError
- */
-class FailedPutS3StorageEngineError extends S3StorageEngineError {}
-
-/**
- * S3StorageEngine is an extension of the StorageEngine class that provides methods for interacting with AWS S3.
- * It allows for storing, retrieving, and managing model data in an S3 bucket.
- *
- * @class S3StorageEngine
- * @extends StorageEngine
- */
 class S3StorageEngine extends StorageEngine {
     /**
-     * Configures the S3 engine with additional options.
-     *
-     * @param {Object} configuration - Configuration object.
-     * @param {S3Client} [configuration.client] - An S3 client used to process operations.
-     * @param {string} [configuration.bucket] - The S3 bucket to perform operations against.
-     * @param {string?} [configuration.prefix] - The optional prefix in the bucket to perform operations against.
-     * @returns {Object} The configured settings for the HTTP engine.
+     * @param {Object} configuration - Configuration object containing fetch options and other settings.
+     * @param {string} [configuration.bucket] - Hostname and protocol of the HTTP service to use (ie: https://example.com).
+     * @param {string?} [configuration.prefix] - The prefix on the host to perform operations against.
+     * @param {S3Client} [configuration.client] - The http client that implements fetch.
      */
-    static configure(configuration = {}) {
-        return super.configure(configuration);
+    constructor(configuration) {
+        super(configuration);
+        if (!configuration?.bucket || !configuration?.client)
+            throw new MisconfiguredStorageEngineError('both bucket and client must be provided', this);
     }
 
     /**
-     * Validates the S3 engine configuration to ensure necessary parameters (bucket and client) are present.
-     * Throws an error if the configuration is invalid.
-     *
-     * @throws {MissConfiguredError} Thrown when the configuration is missing required parameters.
+     * Retrieves an object from S3 by its id
+     * @param {string} id
+     * @returns {Promise<Object>}
+     * @throws {ModelNotFoundStorageEngineError|Error} Thrown if there is an issue with the S3 client request.
      */
-    static checkConfiguration() {
-        if (
-            !this.configuration?.bucket ||
-            !this.configuration?.client
-        ) throw new MissConfiguredError(this.configuration);
-    }
-
-    /**
-     * Retrieves an object from S3 by its ID.
-     *
-     * @param {string} id - The ID of the object to retrieve.
-     * @returns {Promise<Object>} The parsed JSON object retrieved from S3.
-     *
-     * @throws {Error} Thrown if there is an issue with the S3 client request.
-     */
-    static async getById(id) {
-        const objectPath = [this.configuration.prefix, `${id}.json`].join('/');
-
-        const data = await this.configuration.client.send(new GetObjectCommand({
-            Bucket: this.configuration.bucket,
-            Key: objectPath,
-        }));
-
-        return JSON.parse(await data.Body.transformToString());
-    }
-
-    /**
-     * Deletes a model by its ID from theS3 bucket.
-     *
-     * @param {string} id - The ID of the model to delete.
-     * @returns {Promise<void>} Resolves when the model has been deleted.
-     * @throws {Error} Throws if the model cannot be deleted.
-     */
-    static async deleteById(id) {
-        const objectPath = [this.configuration.prefix, `${id}.json`].join('/');
-
-        await this.configuration.client.send(new DeleteObjectCommand({
-            Bucket: this.configuration.bucket,
-            Key: objectPath,
-        }));
-
-        return undefined;
-    }
-
-    /**
-     * Puts (uploads) a model object to S3.
-     *
-     * @param {Model} model - The model object to upload.
-     * @returns {Promise<void>}
-     *
-     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
-     */
-    static async putModel(model) {
-        const Key = [this.configuration.prefix, `${model.id}.json`].join('/');
+    async getModel(id) {
+        const objectPath = this.#generatePath([`${id}.json`]);
 
         try {
-            await this.configuration.client.send(new PutObjectCommand({
-                Key,
-                Body: JSON.stringify(model.toData()),
+            const data = await this.configuration.client.send(new GetObjectCommand({
                 Bucket: this.configuration.bucket,
-                ContentType: 'application/json',
+                Key: objectPath,
             }));
+
+            return JSON.parse(await data.Body.transformToString());
         } catch (error) {
-            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+            if (error instanceof NoSuchKey) {
+                throw new ModelNotFoundStorageEngineError(id);
+            }
+            throw error;
         }
     }
 
     /**
-     * Retrieves the index object from S3 at the specified location.
-     *
-     * @param {Model.constructor?} model - The model in the bucket where the index is stored.
-     * @returns {Promise<Object>} The parsed index object.
+     * Upload an object to S3
+     * @param {object} model - The model object to upload.
+     * @returns {Promise<void>}
      */
-    static async getIndex(model) {
+    async putModel(model) {
+        const Key = this.#generatePath([`${model.id}.json`]);
+
+        await this.configuration.client.send(new PutObjectCommand({
+            Key,
+            Body: JSON.stringify(model),
+            Bucket: this.configuration.bucket,
+            ContentType: 'application/json',
+        }));
+    }
+
+    /**
+     * Delete a model by its id
+     * @param {string} id
+     * @throws {ModelNotFoundStorageEngineError|Error}
+     * @return Promise<void>
+     */
+    async deleteModel(id) {
+        const Key = this.#generatePath([`${id}.json`]);
+        try {
+            await this.configuration.client.send(new DeleteObjectCommand({
+                Bucket: this.configuration.bucket,
+                Key,
+            }));
+        } catch (error) {
+            if (error instanceof NoSuchKey) {
+                throw new ModelNotFoundStorageEngineError(id);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get a model's index data
+     * @param {Model.constructor} constructor
+     * @throws MethodNotImplementedStorageEngineError
+     * @return Promise<object>
+     */
+    async getIndex(constructor) {
+        const Key = this.#generatePath([constructor?.toString(), '_index.json']);
         try {
             const data = await this.configuration.client.send(new GetObjectCommand({
-                Key: [this.configuration.prefix, model?.toString(), '_index.json'].filter(e => Boolean(e)).join('/'),
                 Bucket: this.configuration.bucket,
+                Key,
             }));
 
             return JSON.parse(await data.Body.transformToString());
@@ -129,128 +104,66 @@ class S3StorageEngine extends StorageEngine {
     }
 
     /**
-     * Puts (uploads) an index object to S3.
-     *
-     * @param {Object} index - An object where keys are locations and values are key value pairs of models and their ids.
-     * @returns {Promise<void>}
-     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
+     * Put a model's index data
+     * @param {Model.constructor} constructor
+     * @param {object} index
+     * @throws MethodNotImplementedStorageEngineError
+     * @return Promise<void>
      */
-    static async putIndex(index) {
-        /**
-         * Process an index of models
-         * @param {string} location
-         * @param {Array<Model>} models
-         * @throws FailedPutS3StorageEngineError
-         * @return {Promise<void>}
-         */
-        const processIndex = async (location, models) => {
-            const Key = [this.configuration.prefix, location, '_index.json'].filter(e => Boolean(e)).join('/');
-            const currentIndex = await this.getIndex(location);
-
-            try {
-                await this.configuration.client.send(new PutObjectCommand({
-                    Key,
-                    Bucket: this.configuration.bucket,
-                    ContentType: 'application/json',
-                    Body: JSON.stringify({
-                        ...currentIndex,
-                        ...Object.fromEntries(
-                            Object.entries(models).map(([k, v]) => [k, v?.toIndexData?.() || v]),
-                        ),
-                    }),
-                }));
-            } catch (error) {
-                throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
-            }
-        };
-
-        for (const [location, models] of Object.entries(index)) {
-            await processIndex(location, models);
-        }
-
-        await processIndex(null, Object.values(index).reduce((accumulator, currentValue) => {
-            Object.keys(currentValue).forEach(key => {
-                accumulator[key] = currentValue[key];
-            });
-            return accumulator;
-        }, {}));
-    }
-
-    /**
-     * Retrieves the compiled search index for a specific model from S3.
-     *
-     * @param {Model.constructor} model - The model whose search index to retrieve.
-     * @returns {Promise<Object>} The compiled search index.
-     */
-    static getSearchIndexCompiled(model) {
-        return this.configuration.client.send(new GetObjectCommand({
-            Key: [this.configuration.prefix, model.toString(), '_search_index.json'].join('/'),
+    async putIndex(constructor, index) {
+        const Key = this.#generatePath([constructor.toString(), '_index.json']);
+        await this.configuration.client.send(new PutObjectCommand({
+            Key,
             Bucket: this.configuration.bucket,
-        })).then(data => data.Body.transformToString())
-            .then(JSON.parse);
+            Body: JSON.stringify(index),
+            ContentType: 'application/json',
+        }));
     }
 
     /**
-     * Retrieves the raw (uncompiled) search index for a specific model from S3.
-     *
-     * @param {Model.constructor} model - The model whose raw search index to retrieve.
-     * @returns {Promise<Object>} The raw search index, or an empty object if not found.
+     * Get a model's raw search index data
+     * @param {Model.constructor} constructor
+     * @return Promise<Record<string, object>>
      */
-    static getSearchIndexRaw(model) {
-        return this.configuration.client.send(new GetObjectCommand({
-            Key: [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/'),
-            Bucket: this.configuration.bucket,
-        })).then(data => data.Body.transformToString())
-            .then(JSON.parse)
-            .catch(() => ({}));
-    }
-
-    /**
-     * Puts (uploads) a compiled search index for a specific model to S3.
-     *
-     * @param {Model.constructor} model - The model whose compiled search index to upload.
-     * @param {Object} compiledIndex - The compiled search index data.
-     * @returns {Promise<void>}
-     *
-     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
-     */
-    static async putSearchIndexCompiled(model, compiledIndex) {
-        const Key = [this.configuration.prefix, model.toString(), '_search_index.json'].join('/');
+    async getSearchIndex(constructor) {
+        const Key = this.#generatePath([constructor.toString(), '_search_index.json']);
 
         try {
-            await this.configuration.client.send(new PutObjectCommand({
-                Key,
-                Body: JSON.stringify(compiledIndex),
+            const data = await this.configuration.client.send(new GetObjectCommand({
                 Bucket: this.configuration.bucket,
-                ContentType: 'application/json',
+                Key,
             }));
-        } catch (error) {
-            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
+
+            return JSON.parse(await data.Body.transformToString());
+        } catch (_error) {
+            return {};
         }
     }
 
     /**
-     * Puts (uploads) a raw search index for a specific model to S3.
-     *
-     * @param {Model.constructor} model - The model whose raw search index to upload.
-     * @param {Object} rawIndex - The raw search index data.
-     * @returns {Promise<void>}
-     *
-     * @throws {FailedPutS3StorageEngineError} Thrown if there is an error during the S3 PutObject operation.
+     * Put a model's search index data
+     * @param {Model.constructor} constructor
+     * @param {Record<string, object>} index
+     * @return Promise<void>
      */
-    static async putSearchIndexRaw(model, rawIndex) {
-        const Key = [this.configuration.prefix, model.toString(), '_search_index_raw.json'].join('/');
+    async putSearchIndex(constructor, index) {
+        const Key = this.#generatePath([constructor.toString(), '_search_index.json']);
 
-        try {
-            await this.configuration.client.send(new PutObjectCommand({
-                Key,
-                Body: JSON.stringify(rawIndex),
-                Bucket: this.configuration.bucket,
-                ContentType: 'application/json',
-            }));
-        } catch (error) {
-            throw new FailedPutS3StorageEngineError(`Failed to put s3://${this.configuration.bucket}/${Key}`, error);
-        }
+        await this.configuration.client.send(new PutObjectCommand({
+            Key,
+            Bucket: this.configuration.bucket,
+            Body: JSON.stringify(index),
+            ContentType: 'application/json',
+        }));
+    }
+
+    /**
+     * Generate an S3 prefix path
+     * @param {Array<string>} path
+     * @return {string}
+     */
+    #generatePath(path) {
+        return [this.configuration.prefix].concat(path).filter(Boolean).join('/');
     }
 }
 

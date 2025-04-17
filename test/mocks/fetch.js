@@ -1,15 +1,12 @@
-import Model from '../../src/type/Model.js';
+import Model from '../../src/data/Model.js';
 import {jest} from '@jest/globals';
-import lunr from 'lunr';
 
 /**
- * @param filesystem
  * @param models
- * @param errors
  * @param prefix
  * @return {void|*}
  */
-function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
+function stubFetch(models, prefix = '') {
     const modelsAddedToFilesystem = [];
 
     /**
@@ -17,13 +14,13 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
      * @param initialModels
      * @return {object}
      */
-    function fileSystemFromModels(initialFilesystem = {}, ...initialModels) {
+    function fileSystemFromModels(initialFilesystem, ...initialModels) {
         for (const model of initialModels) {
-            const modelIndexPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_index.json')].filter(i => Boolean(i)).join('/');
-            const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, '_search_index_raw.json')].filter(i => Boolean(i)).join('/');
+            const modelIndexPath = [prefix, model.id.replace(/\/[A-Z0-9]+$/, '')].filter(i => Boolean(i)).join('/');
+            const searchIndexRawPath = [prefix, model.id.replace(/[A-Z0-9]+$/, 'search')].filter(i => Boolean(i)).join('/');
 
             const modelIndex = initialFilesystem[modelIndexPath] || {};
-            initialFilesystem[[`${prefix}/${model.id}.json`].filter(i => Boolean(i)).join('/')] = model.toData();
+            initialFilesystem[[`${prefix}/${model.id}`].filter(i => Boolean(i)).join('/')] = model.toData();
             initialFilesystem[modelIndexPath] = {
                 ...modelIndex,
                 [model.id]: model.toIndexData(),
@@ -57,33 +54,11 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         return initialFilesystem;
     }
 
-    const resolvedFiles = fileSystemFromModels(filesystem, ...models);
-
-    const searchIndexes = Object.entries(resolvedFiles)
-        .filter(([name, _]) => name.endsWith('_search_index_raw.json'));
-
-    if (searchIndexes.length > 0) {
-        for (const [name, index] of searchIndexes) {
-            const fields = [...new Set(Object.values(index).map(i => Object.keys(i).filter(p => p !== 'id')).flat(Infinity))];
-            const compiledIndex = lunr(function () {
-                this.ref('id');
-
-                for (const field of fields) {
-                    this.field(field);
-                }
-
-                Object.values(index).forEach(function (doc) {
-                    this.add(doc);
-                }, this);
-            });
-
-            resolvedFiles[name.replace('_raw', '')] = JSON.parse(JSON.stringify(compiledIndex));
-        }
-    }
+    const resolvedFiles = fileSystemFromModels({}, ...models);
 
     const stubbedFetch = jest.fn().mockImplementation((url, opts) => {
         if (opts.method === 'PUT') {
-            resolvedFiles[url.pathname ?? url] = JSON.parse(opts.body);
+            resolvedFiles[url.pathname] = JSON.parse(opts.body);
             return Promise.resolve({
                 ok: true,
                 status: 200,
@@ -92,27 +67,25 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         }
 
         if (opts.method === 'DELETE') {
-            delete resolvedFiles[url.pathname ?? url];
+            for (const [path, _value] of Object.entries(resolvedFiles)) {
+                if (url.pathname.endsWith(path)) {
+                    delete resolvedFiles[url.pathname];
+                    return Promise.resolve({
+                        ok: true,
+                        status: 204,
+                        json: () => Promise.resolve(),
+                    });
+                }
+            }
+
             return Promise.resolve({
-                ok: true,
-                status: 204,
-                json: () => Promise.resolve(),
+                ok: false,
+                status: 404,
             });
         }
 
-        for (const [path, value] of Object.entries(errors)) {
-            if ((url.pathname ?? url).endsWith(path)) {
-                if (value) return value;
-                return Promise.resolve({
-                    ok: false,
-                    status: 404,
-                    json: () => Promise.reject(new Error()),
-                });
-            }
-        }
-
         for (const [filename, value] of Object.entries(resolvedFiles)) {
-            if ((url.pathname ?? url).endsWith(filename)) {
+            if (url.pathname.endsWith(filename)) {
                 return Promise.resolve({
                     ok: true,
                     status: 200,
@@ -124,7 +97,6 @@ function stubFetch(filesystem = {}, models = [], errors = {}, prefix = '') {
         return Promise.resolve({
             ok: false,
             status: 404,
-            json: () => Promise.reject(new Error()),
         });
     });
 

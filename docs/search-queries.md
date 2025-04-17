@@ -36,12 +36,10 @@ To search for any `Person` who lives on station road, the following search query
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import Person from "./Person";
-import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileStorageEngine
-    .configure(configuration)
-    .search(Person, 'station road');
+const connection = Persist.getConnections('people');
+
+await connection.search(Person, 'station road');
 ```
 
 This will find all matches for people who live at any address that includes `station road`.

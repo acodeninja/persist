@@ -3,8 +3,8 @@ import {
     SimpleModelWithSearchIndex,
     SimpleModelWithSearchIndexFactory,
 } from '../../test/fixtures/Model.js';
+import SearchIndex, {SearchResult} from './SearchIndex.js';
 import {describe, expect, test} from '@jest/globals';
-import SearchIndex from './SearchIndex.js';
 
 describe('new SearchIndex', () => {
     describe('when a model has not search properties', () => {
@@ -24,6 +24,12 @@ describe('new SearchIndex', () => {
            expect(() => new SearchIndex(SimpleModelWithSearchIndex, index)).not.toThrow();
         });
     });
+
+    test('allows access to the underlying index', () => {
+        const model = SimpleModelWithSearchIndexFactory();
+        const index = {[model.id]: model.toSearchData()};
+        expect(() => new SearchIndex(SimpleModelWithSearchIndex, index)).not.toThrow();
+    });
 });
 
 describe('SearchIndex.search()', () => {
@@ -39,10 +45,9 @@ describe('SearchIndex.search()', () => {
         const result = index.search('abc');
 
         test('returns the expected model', () => {
-            expect(result).toStrictEqual([{
-                score: 0.693,
-                model: SimpleModelWithSearchIndex.fromData(model1.toSearchData()),
-            }]);
+            expect(result).toStrictEqual([
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.693),
+            ]);
         });
     });
 
@@ -58,13 +63,10 @@ describe('SearchIndex.search()', () => {
         const result = index.search('abc');
 
         test('returns the expected model', () => {
-            expect(result).toStrictEqual([{
-                score: 0.182,
-                model: SimpleModelWithSearchIndex.fromData(model1.toSearchData()),
-            }, {
-                score: 0.182,
-                model: SimpleModelWithSearchIndex.fromData(model2.toSearchData()),
-            }]);
+            expect(result).toStrictEqual([
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.182),
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model2.toSearchData()), 0.182),
+            ]);
         });
     });
 });

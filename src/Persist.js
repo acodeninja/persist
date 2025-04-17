@@ -1,45 +1,42 @@
-import Type from './type/index.js';
-import enableTransactions from './Transactions.js';
+import Connection from './Connection.js';
+import Model from './data/Model.js';
+import Property from './data/Property.js';
+import {ValidationError} from './Schema.js';
 
 /**
  * @class Persist
  */
 class Persist {
-    static _engine = {};
-    /**
-     * @memberof Persist
-     * @type {Type}
-     * @static
-     */
-    static Type = Type;
+    static Property = Property;
+    static Model = Model;
+    static Connection = Connection;
+
+    static Errors = {
+        ValidationError,
+    };
+
+    static #connections = {};
 
     /**
-     * @function getEngine
-     * @memberof Persist
-     * @static
-     * @param {string} group - Name of the group containing the engine
-     * @param {Engine} engine - The engine class you wish to retrieve
-     * @return {Engine|null}
+     * Register a new connection.
+     * @param {string} name
+     * @param {StorageEngine} storage
+     * @param {Array<Model.constructor>} models
+     * @return {Connection}
      */
-    static getEngine(group, engine) {
-        return this._engine[group]?.[engine.name] ?? null;
+    static registerConnection(name, storage, models) {
+        this.#connections[name] = new Connection(storage, models);
+
+        return this.getConnection(name);
     }
 
     /**
-     * @function addEngine
-     * @memberof Persist
-     * @static
-     * @param {string} group - Name of the group containing the engine
-     * @param {Engine} engine - The engine class you wish to configure and add to the group
-     * @param {object?} configuration - The configuration to use with the engine
+     * Get a persist connection by its name.
+     * @param {string} name
+     * @return {Connection|undefined}
      */
-    static addEngine(group, engine, configuration) {
-        if (!this._engine[group]) this._engine[group] = {};
-
-        this._engine[group][engine.name] =
-            configuration.transactions ?
-                enableTransactions(engine.configure(configuration)) :
-                engine.configure(configuration);
+    static getConnection(name) {
+        return this.#connections[name];
     }
 }
 
