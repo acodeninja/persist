@@ -458,9 +458,11 @@ export default class Connection {
                     }
                 }
             } catch (error) {
-                for (const transaction of transactions.filter(t => t.committed && t.original)) {
-                    this.#storage.putModel(transaction.original);
-                }
+                await Promise.all(
+                    transactions
+                        .filter(t => t.committed && t.original)
+                        .map(t => this.#storage.putModel(t.original)),
+                );
 
                 throw new CommitFailedTransactionError(transactions, error);
             }
