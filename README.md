@@ -75,7 +75,7 @@ await connection.put(person);
 ## Find out more
 
 - [Defining Models](./docs/defining-models.md)
-- [Model Property Types](./docs/model-properties)
+- [Model Property Types](./docs/model-properties.md)
 - [Models as Properties](./docs/models-as-properties.md)
 - [Structured Queries](./docs/structured-queries.md)
 - [Search Queries](./docs/search-queries.md)
