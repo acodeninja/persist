@@ -193,7 +193,7 @@ export default class Connection {
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toIndexData(), modelToProcess.toIndexData()))
             ) {
-                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
+                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
                 modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
                 modelsToReindex[modelToProcessConstructor].push(modelToProcess);
             }
@@ -202,7 +202,7 @@ export default class Connection {
                 Boolean(modelToProcess.constructor.searchProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toSearchData(), modelToProcess.toSearchData()))
             ) {
-                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
+                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
                 modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
                 modelsToReindexSearch[modelToProcessConstructor].push(modelToProcess);
             }
