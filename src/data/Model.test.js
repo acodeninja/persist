@@ -71,7 +71,7 @@ describe('model.toIndexData()', () => {
         const indexData = model.toIndexData();
 
         test('returns an object representation of the indexable fields of the model', () => {
-            model.constructor.indexedProperties().map(field => {
+            model.constructor.indexedProperties().forEach(field => {
                 expect(model[field]).toEqual(indexData[field]);
             });
         });
@@ -89,7 +89,7 @@ describe('model.toSearchData()', () => {
         const indexData = model.toSearchData();
 
         test('returns an object representation of the searchable fields of the model', () => {
-            model.constructor.searchProperties().map(field => {
+            model.constructor.searchProperties().forEach(field => {
                 expect(model[field]).toEqual(indexData[field]);
             });
         });
