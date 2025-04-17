@@ -1,6 +1,6 @@
-import {NoSuchBucket, NoSuchKey} from '@aws-sdk/client-s3';
+import {InvalidRequest, NoSuchBucket, NoSuchKey} from '@aws-sdk/client-s3';
+import {describe, expect, jest, test} from '@jest/globals';
 import Model from '../../src/data/Model.js';
-import {jest} from '@jest/globals';
 
 /**
  * @param data
@@ -106,6 +106,8 @@ function stubS3Client(models) {
                     }
                 }
                 return Promise.reject(new NoSuchKey({}));
+            default:
+                return Promise.reject(new InvalidRequest({}));
         }
     });
 
@@ -113,3 +115,9 @@ function stubS3Client(models) {
 }
 
 export default stubS3Client;
+
+describe('S3Mock', () => {
+    test('throws an error for an unknown command', async () => {
+        await expect(() => stubS3Client([]).send({})).rejects.toThrow(InvalidRequest);
+    });
+});
