@@ -22,7 +22,7 @@ export class SimpleModel extends EmptyModel {
     static arrayOfBoolean = Property.Array.of(Property.Boolean);
     static arrayOfDate = Property.Array.of(Property.Date);
     static stringSlug = Property.Slug.of('string');
-    static indexProperties = () => [this.string, this.date];
+    static indexProperties = () => ['string', 'date'];
 }
 
 /**
