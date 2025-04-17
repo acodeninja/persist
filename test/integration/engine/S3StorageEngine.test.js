@@ -157,7 +157,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
-                        Key: `files/${model.constructor}/_index.json`,
+                        Key: `files/${model.constructor.name}/_index.json`,
                     },
                 }));
             });
@@ -194,7 +194,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
-                        Key: `files/${model.constructor}/_index.json`,
+                        Key: `files/${model.constructor.name}/_index.json`,
                         Body: JSON.stringify({[model.id]: model.toIndexData()}),
                         ContentType: 'application/json',
                     },
@@ -224,7 +224,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
-                        Key: `files/${model.constructor}/_search_index.json`,
+                        Key: `files/${model.constructor.name}/_search_index.json`,
                     },
                 }));
             });
@@ -278,7 +278,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
-                        Key: `files/${model.constructor}/_search_index.json`,
+                        Key: `files/${model.constructor.name}/_search_index.json`,
                         Body: JSON.stringify({[model.id]: model.toSearchData()}),
                         ContentType: 'application/json',
                     },

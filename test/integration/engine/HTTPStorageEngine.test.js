@@ -132,7 +132,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.constructor}`),
+                    new URL(`https://example.com/api/${model.constructor.name}`),
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -165,7 +165,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.constructor}`),
+                    new URL(`https://example.com/api/${model.constructor.name}`),
                     {
                         headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
                         method: 'PUT',
