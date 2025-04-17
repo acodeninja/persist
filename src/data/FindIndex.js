@@ -93,10 +93,11 @@ class FindIndex {
             if (subject.includes?.(inputQuery.$contains))
                 return true;
 
-            for (const value of subject) {
-                if (this.#matchesQuery(value, inputQuery.$contains))
-                    return true;
-            }
+            if (typeof subject[Symbol.iterator] === 'function')
+                for (const value of subject) {
+                    if (this.#matchesQuery(value, inputQuery.$contains))
+                        return true;
+                }
         }
 
         for (const key of Object.keys(inputQuery)) {
