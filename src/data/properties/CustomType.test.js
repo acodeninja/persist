@@ -24,7 +24,7 @@ describe('CustomType', () => {
         expect(CustomType.of(validSchema)._properties).toBeUndefined();
     });
 
-    test('CustomType.of(validSchema) has items of type String', () => {
+    test('CustomType.of(validSchema) does not have items', () => {
         expect(CustomType.of(validSchema)._items).toBeUndefined();
     });
 
@@ -67,7 +67,7 @@ describe('RequiredCustomType', () => {
         expect(CustomType.of(validSchema).required._properties).toBeUndefined();
     });
 
-    test('RequiredCustomType.of(validSchema) has items of type String', () => {
+    test('RequiredCustomType.of(validSchema) does not have items', () => {
         expect(CustomType.of(validSchema).required._items).toBeUndefined();
     });
 
