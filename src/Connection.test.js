@@ -57,7 +57,7 @@ describe('connection.get()', () => {
         const modelId = 'UnregisteredModel/111111111111';
 
         test('throws a ModelNotRegisteredConnectionError', async () => {
-            await expect(() => connection.get(modelId))
+            await expect(connection.get(modelId))
                 .rejects.toThrow({
                     instanceOf: ModelNotRegisteredConnectionError,
                     message: 'The model UnregisteredModel is not registered in the storage engine TestStorageEngine',
@@ -77,7 +77,7 @@ describe('connection.get()', () => {
         beforeAll(() => engine.getModel.mockRejectedValue(new ModelNotFoundStorageEngineError(modelId)));
 
         test('throws a ModelNotFoundStorageEngineError', async () => {
-            await expect(() => connection.get(modelId))
+            await expect(connection.get(modelId))
                 .rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: 'The model SimpleModel/111111111111 was not found',
@@ -251,7 +251,7 @@ describe('connection.put()', () => {
         const connection = new Connection(engine, undefined, []);
 
         test('.put(model) throws a ModelNotRegisteredConnectionError', async () => {
-            await expect(() => connection.put(model))
+            await expect(connection.put(model))
                 .rejects.toThrowError({
                     instanceOf: ModelNotRegisteredConnectionError,
                     message: 'The model SimpleModel is not registered in the storage engine TestStorageEngine',
@@ -2326,7 +2326,7 @@ describe('connection.delete()', () => {
         const connection = new Connection(engine, undefined, []);
 
         test('.delete() throws a ModelNotRegisteredConnectionError', async () => {
-            await expect(() => connection.delete(model))
+            await expect(connection.delete(model))
                 .rejects.toThrowError({
                     instanceOf: ModelNotRegisteredConnectionError,
                     message: 'The model SimpleModel is not registered in the storage engine TestStorageEngine',
@@ -2340,7 +2340,7 @@ describe('connection.delete()', () => {
         const connection = new Connection(engine, undefined, [SimpleModel]);
 
         test('.delete() throws a ModelNotFoundStorageEngineError', async () => {
-            await expect(() => connection.delete(model))
+            await expect(connection.delete(model))
                 .rejects.toThrowError({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: `The model ${model.id} was not found`,
@@ -2699,7 +2699,7 @@ describe('connection.delete()', () => {
             });
 
             test('.delete() throws a cannot delete error', async () => {
-                await expect(() => connection.delete(model)).rejects.toMatchObject({
+                await expect(connection.delete(model)).rejects.toMatchObject({
                     message: `Deleting ${model.id} has unintended consequences`,
                     consequences: {
                         willDelete: [model.linked.id],
@@ -2847,7 +2847,7 @@ describe('connection.delete()', () => {
             });
 
             test('.delete() throws a cannot delete error', async () => {
-                await expect(() => connection.delete(model.linked))
+                await expect(connection.delete(model.linked))
                     .rejects.toMatchObject({
                         message: `Deleting ${model.linked.id} has unintended consequences`,
                         consequences: {willDelete: [model.id]},
