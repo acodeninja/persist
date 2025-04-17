@@ -170,7 +170,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(await engine.getIndex(SimpleModel)).toStrictEqual({});
             });
 
-            test('the engine calls client.send with DeleteObjectCommand', () => {
+            test('the engine calls client.send with GetObjectCommand', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
@@ -190,7 +190,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 [model.id]: model.toIndexData(),
             }));
 
-            test('the engine calls client.send with GetObjectCommand', () => {
+            test('the engine calls client.send with PutObjectCommand', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
@@ -237,7 +237,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(await engine.getSearchIndex(SimpleModelWithSearchIndex)).toStrictEqual({});
             });
 
-            test('the engine calls client.send with DeleteObjectCommand', () => {
+            test('the engine calls client.send with GetObjectCommand', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
@@ -254,7 +254,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 expect(await engine.getSearchIndex(SimpleModel)).toStrictEqual({});
             });
 
-            test('the engine calls client.send with DeleteObjectCommand', () => {
+            test('the engine calls client.send with GetObjectCommand', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
@@ -274,7 +274,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                 [model.id]: model.toSearchData(),
             }));
 
-            test('the engine calls client.send with GetObjectCommand', () => {
+            test('the engine calls client.send with PutObjectCommand', () => {
                 expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
                     input: {
                         Bucket: 's3-bucket',
