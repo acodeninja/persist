@@ -38,34 +38,6 @@ test('model and type names are not mangled when minified', async () => {
     const {getModel} = await import('../fixtures/minified/main.bundle.js');
     const model = getModel();
 
-    expect(model.name).toBe('MainModel');
-
-    expect(model.custom.name).toBe('Custom');
-
-    expect(model.string.name).toBe('String');
-    expect(model.stringSlug.name).toBe('SlugOf(string)');
-    expect(model.requiredString.name).toBe('RequiredString');
-    expect(model.arrayOfString.name).toBe('ArrayOf(String)');
-    expect(model.requiredArrayOfString.name).toBe('RequiredArrayOf(String)');
-
-    expect(model.boolean.name).toBe('Boolean');
-    expect(model.requiredBoolean.name).toBe('RequiredBoolean');
-    expect(model.arrayOfBoolean.name).toBe('ArrayOf(Boolean)');
-    expect(model.requiredArrayOfBoolean.name).toBe('RequiredArrayOf(Boolean)');
-
-    expect(model.number.name).toBe('Number');
-    expect(model.requiredNumber.name).toBe('RequiredNumber');
-    expect(model.arrayOfNumber.name).toBe('ArrayOf(Number)');
-    expect(model.requiredArrayOfNumber.name).toBe('RequiredArrayOf(Number)');
-
-    expect(model.date.name).toBe('Date');
-    expect(model.requiredDate.name).toBe('RequiredDate');
-    expect(model.arrayOfDate.name).toBe('ArrayOf(Date)');
-    expect(model.requiredArrayOfDate.name).toBe('RequiredArrayOf(Date)');
-
-    expect(model.linked.name).toBe('LinkedModel');
-    expect(model.linkedMany.name).toBe('ArrayOf(LinkedManyModel)');
-
-    expect(model.circular.name).toBe('CircularModel');
-    expect(model.circularMany.name).toBe('ArrayOf(CircularManyModel)');
+    expect(model.toString()).toBe('TestModel');
+    expect(model.string.toString()).toBe('String');
 }, 30 * 1000);

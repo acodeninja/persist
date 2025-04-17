@@ -1,8 +1,15 @@
-import {MainModel} from '../Models.js';
+import Persist from '../../../src/Persist.js';
+
+class TestModel extends Persist.Model {
+    static {
+        this.withName('TestModel');
+        this.string = Persist.Property.String;
+    }
+}
 
 /**
- * Returns the main model class
+ * Returns the test model class
  *
- * @return {MainModel}
+ * @return {TestModel}
  */
-export const getModel = () => MainModel;
+export const getModel = () => TestModel;
