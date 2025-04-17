@@ -171,6 +171,10 @@ class Model {
     /**
      * Returns a list of properties that are indexed.
      *
+     * - To link to properties of a model use `<name>`
+     * - To link to properties of linked models use `<model>.<name>`
+     * - To link to properties of many linked models use `<model>.[*].<name>`
+     *
      * @returns {Array<string>} - The indexed properties.
      * @abstract
      * @static
