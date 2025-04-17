@@ -43,12 +43,12 @@ class FindIndex {
     /**
      * Constructs a new `Query` instance with the provided query object.
      *
-     * @param {Model.constructor} constructor - The model class.
+     * @param {Model.constructor} modelConstructor - The model class.
      * @param {Record<string, Model>} index - The index dataset to search through.
      */
-    constructor(constructor, index) {
+    constructor(modelConstructor, index) {
         this.#index = index;
-        this.#modelConstructor = constructor;
+        this.#modelConstructor = modelConstructor;
     }
 
     /**
