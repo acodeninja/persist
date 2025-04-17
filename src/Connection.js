@@ -377,7 +377,7 @@ export default class Connection {
 
         await Promise.all([
             Promise.all(modelsToDelete.map(m => this.#storage.deleteModel(m))),
-            Promise.all(modelsToPut.map(m => this.#storage.putModel(m))),
+            Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData()))),
             Promise.all(
                 Object.entries(indexCache)
                     .map(([constructorName, index]) => this.#storage.putIndex(this.#models[constructorName], index)),
