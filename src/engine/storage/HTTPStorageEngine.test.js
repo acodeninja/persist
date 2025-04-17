@@ -277,7 +277,7 @@ describe('HTTPStorageEngine.putIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/_index`),
+                new URL(`https://example.com/${model.constructor.name}/_index`),
                 {
                     body: JSON.stringify({[model.id]: model.toIndexData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -307,7 +307,7 @@ describe('HTTPStorageEngine.putIndex()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/_index`),
+                new URL(`https://example.com/${model.constructor.name}/_index`),
                 {
                     body: JSON.stringify({[model.id]: model.toIndexData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -338,7 +338,7 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/_search_index`),
+                new URL(`https://example.com/${model.constructor.name}/_search_index`),
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -359,7 +359,7 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/_search_index`),
+                new URL(`https://example.com/${model.constructor.name}/_search_index`),
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -380,7 +380,7 @@ describe('HTTPStorageEngine.putSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/_search_index`),
+                new URL(`https://example.com/${model.constructor.name}/_search_index`),
                 {
                     body: JSON.stringify({[model.id]: model.toSearchData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -404,13 +404,13 @@ describe('HTTPStorageEngine.putSearchIndex()', () => {
                 engine.putSearchIndex(model.constructor, {[model.id]: model.toSearchData()}),
             ).rejects.toThrow({
                 instanceOf: HTTPRequestFailedError,
-                message: `Failed to put https://example.com/${model.constructor.toString()}/search`,
+                message: `Failed to put https://example.com/${model.constructor.name}/search`,
             });
         });
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.toString()}/search`),
+                new URL(`https://example.com/${model.constructor.name}/search`),
                 {
                     body: JSON.stringify({[model.id]: model.toSearchData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
