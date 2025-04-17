@@ -165,7 +165,7 @@ export default class Connection {
 
             if (
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
-                this.#indexedFieldsHaveChanged(currentModel, modelToProcess)
+                (!currentModel || JSON.stringify(currentModel.toIndexData()) !== JSON.stringify(modelToProcess.toIndexData()))
             ) {
                 const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
                 modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
@@ -174,7 +174,7 @@ export default class Connection {
 
             if (
                 Boolean(modelToProcess.constructor.searchProperties().length) &&
-                this.#searchableFieldsHaveChanged(currentModel, modelToProcess)
+                (!currentModel || JSON.stringify(currentModel.toSearchData()) !== JSON.stringify(modelToProcess.toSearchData()))
             ) {
                 const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
                 modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
@@ -456,28 +456,6 @@ export default class Connection {
         if (!constructor) throw new ModelNotRegisteredConnectionError(modelName, this.#storage);
 
         return constructor;
-    }
-
-    /**
-     * Decide if two models indexable fields are different
-     * @param {Model} currentModel
-     * @param {Model} modelToProcess
-     * @return {boolean}
-     * @private
-     */
-    #indexedFieldsHaveChanged(currentModel, modelToProcess) {
-        return !currentModel || JSON.stringify(currentModel.toIndexData()) !== JSON.stringify(modelToProcess.toIndexData());
-    }
-
-    /**
-     * Decide if two models searchable fields have changed
-     * @param {Model} currentModel
-     * @param {Model} modelToProcess
-     * @return {boolean}
-     * @private
-     */
-    #searchableFieldsHaveChanged(currentModel, modelToProcess) {
-        return !currentModel || JSON.stringify(currentModel.toSearchData()) !== JSON.stringify(modelToProcess.toSearchData());
     }
 
     /**
