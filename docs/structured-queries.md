@@ -41,7 +41,7 @@ To query for a `Person` called `Joe Bloggs` an exact query can be written:
 ```javascript
 import Persist from "@acodeninja/persist";
 
-const connection = Persist.getConnections('people');
+const connection = Persist.getConnection('people');
 
 await connection.find(Person, {
     name: {$is: 'Joe Bloggs'},
@@ -55,7 +55,7 @@ To query for a `Person` with name `Joe` a contains query can be written:
 ```javascript
 import Persist from "@acodeninja/persist";
 
-const connection = Persist.getConnections('people');
+const connection = Persist.getConnection('people');
 
 await connection.find(Person, {
     name: {$contains: 'Joe'},
@@ -69,7 +69,7 @@ To query for all instances of `Address` with a linked `Person` with a name that 
 ```javascript
 import Persist from "@acodeninja/persist";
 
-const connection = Persist.getConnections('people');
+const connection = Persist.getConnection('people');
 
 await connection.find(Address, {
     people: {
@@ -87,7 +87,7 @@ To query for a `Person` who lives at `SW1 1AA` a combination of contains and exa
 ```javascript
 import Persist from "@acodeninja/persist";
 
-const connection = Persist.getConnections('people');
+const connection = Persist.getConnection('people');
 
 await connection.find(Person, {
     address: {
@@ -105,7 +105,7 @@ To query for anyone called `Joe Bloggs` who lives in the `SW1` postcode area, we
 ```javascript
 import Persist from "@acodeninja/persist";
 
-const connection = Persist.getConnections('people');
+const connection = Persist.getConnection('people');
 
 await connection.find(Person, {
     name: {$is: 'Joe Bloggs'},

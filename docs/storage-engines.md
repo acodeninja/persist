@@ -28,14 +28,14 @@ To store models using an HTTP server, use the `HTTP` storage engine. When using 
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import HTTPStorageEngine from "@acodeninja/persist/engine/storage/http";
+import HTTPStorageEngine from "@acodeninja/persist/storage/http";
 
 const connection = Persist.registerConnection('remote', new HTTPStorageEngine({
     baseUrl: 'https://api.example.com',
 }));
 
-export class Tag extends Persist.Type.Model {
-    static tag = Persist.Type.String.required;
+export class Tag extends Persist.Model {
+    static tag = Persist.Property.String.required;
 }
 
 await connection.put(new Tag({tag: 'documentation'}));
