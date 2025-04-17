@@ -48,7 +48,7 @@ describe('creating models', () => {
             });
 
             test('fails validation when invalid', () => {
-                let error = undefined;
+                let error = null;
                 const page = new Page({
                     title: 'Test Page',
                     subtitle: 'A page to test the persist library.',

@@ -3430,7 +3430,7 @@ describe('connection.transaction()', () => {
                 });
 
                 test('transaction.commit throws a CommitFailedTransactionError', async () => {
-                    let error = undefined;
+                    let error = null;
 
                     try {
                         await transaction.commit();
@@ -3639,7 +3639,7 @@ describe('connection.transaction()', () => {
                 engine.deleteModel.mockRejectedValue(new Error('Something went wrong'));
 
                 test('transaction.commit throws a CommitFailedTransactionError', async () => {
-                    let error = undefined;
+                    let error = null;
 
                     try {
                         await transaction.commit();

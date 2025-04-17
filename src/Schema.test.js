@@ -110,7 +110,7 @@ describe('validating a model', () => {
     });
 
     describe('when the value is invalid', () => {
-        let error = undefined;
+        let error = null;
         const invalidModel = new SchemaTestModel({
             custom: {test: 123, additional: false},
             string: false,
