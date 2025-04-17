@@ -187,29 +187,15 @@ class Model {
      * @static
      */
     static indexedPropertiesResolved() {
-        return []
-            .concat(
-                Object.entries(this)
-                    .filter(([_name, type]) =>
-                        this.isModel(
-                            typeof type === 'function' &&
-                            !/^class/.test(Function.prototype.toString.call(type)) ?
-                                type() : type,
-                        ),
-                    )
-                    .map(([name, _type]) => `${name}.id`),
-            )
-            .concat(
-                Object.entries(this)
-                    .filter(([_name, type]) =>
-                        !/^class/.test(Function.prototype.toString.call(type)) || type.toString().includes('Array'),
-                    )
-                    .filter(([_name, type]) =>
-                        this.isModel(type._items ?? type()._items ?? type),
-                    )
-                    .map(([name, _type]) => `${name}.[*].id`),
-            )
-            .concat(this.indexedProperties());
+        return [
+            ...Object.entries(this)
+                .filter(([_name, type]) => !type._type && (this.isModel(type) || this.isModel(type())))
+                .map(([name, _type]) => `${name}.id`),
+            ...Object.entries(this)
+                .filter(([_name, type]) => !type._type && !this.isModel(type) && !type._items?._type && (this.isModel(type._items) || this.isModel(type()._items)))
+                .map(([name, _type]) => `${name}.[*].id`),
+            ...this.indexedProperties(),
+        ];
     }
 
     /**
