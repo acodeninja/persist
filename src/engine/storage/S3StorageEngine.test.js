@@ -1,4 +1,4 @@
-import {GetObjectCommand, NoSuchKey, S3Client} from '@aws-sdk/client-s3';
+import {GetObjectCommand, InvalidRequest, NoSuchKey, S3Client} from '@aws-sdk/client-s3';
 import {MisconfiguredStorageEngineError, ModelNotFoundStorageEngineError} from './StorageEngine.js';
 import {SimpleModelFactory, SimpleModelWithSearchIndexFactory} from '../../../test/fixtures/Model.js';
 import {beforeAll, describe, expect, jest, test} from '@jest/globals';
@@ -36,6 +36,8 @@ describe('S3StorageEngine.getModel()', () => {
                     },
                 });
             }
+
+            return Promise.reject(new InvalidRequest({}));
         });
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
@@ -251,6 +253,8 @@ describe('S3StorageEngine.getIndex()', () => {
                     },
                 });
             }
+
+            return Promise.reject(new InvalidRequest({}));
         });
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
@@ -366,6 +370,8 @@ describe('S3StorageEngine.getSearchIndex()', () => {
                     },
                 });
             }
+
+            return Promise.reject(new InvalidRequest({}));
         });
         const engine = new S3StorageEngine({
             bucket: 's3-bucket',
