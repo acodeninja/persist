@@ -74,12 +74,12 @@ export default class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Get a model's index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @return Promise<void>
      */
-    getIndex(constructor) {
+    getIndex(modelConstructor) {
         return this.#processFetch(
-            this.#generateURL([constructor.toString()]),
+            this.#generateURL([modelConstructor.name]),
             this.#getReadOptions(),
             {},
         );
@@ -87,13 +87,13 @@ export default class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Put a model's index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {object} index
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
-    putIndex(constructor, index) {
-        return this.#processFetch(this.#generateURL([constructor.toString()]), {
+    putIndex(modelConstructor, index) {
+        return this.#processFetch(this.#generateURL([modelConstructor.name]), {
             ...this.#getWriteOptions(),
             body: JSON.stringify(index),
         });
@@ -101,13 +101,13 @@ export default class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Get a model's raw search index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<object>
      */
-    getSearchIndex(constructor) {
+    getSearchIndex(modelConstructor) {
         return this.#processFetch(
-            this.#generateURL([constructor.toString(), 'search']),
+            this.#generateURL([modelConstructor.name, 'search']),
             this.#getReadOptions(),
             {},
         );
@@ -115,13 +115,13 @@ export default class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Put a model's raw and compiled search index data
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {Record<string, object>} index
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
-    putSearchIndex(constructor, index) {
-        return this.#processFetch(this.#generateURL([constructor.toString(), 'search']), {
+    putSearchIndex(modelConstructor, index) {
+        return this.#processFetch(this.#generateURL([modelConstructor.name, 'search']), {
             ...this.#getWriteOptions(),
             body: JSON.stringify(index),
         });
