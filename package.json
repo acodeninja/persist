@@ -12,7 +12,7 @@
   },
   "exports": {
     ".": "./exports/default.js",
-    "./engine/*": "./exports/engine/*.js"
+    "./storage/*": "./exports/storage/*.js"
   },
   "repository": {
     "url": "https://github.com/acodeninja/persist"

@@ -1,5 +1,12 @@
 import lunr from 'lunr';
 
+export class SearchResult {
+    constructor(model, score) {
+        this.model = model;
+        this.score = score;
+    }
+}
+
 export default class SearchIndex {
     #index;
     #model;
@@ -13,11 +20,19 @@ export default class SearchIndex {
         }
     }
 
+    /**
+     *
+     * @param {string} query
+     * @return {Array<SearchResult>}
+     */
     search(query) {
-        return (this.#compiledIndex ?? this.#compileIndex()).search(query).map(doc => ({
-            score: doc.score,
-            model: this.#model.fromData(this.#index[doc.ref]),
-        }));
+        return this.searchIndex
+            .search(query)
+            .map(doc => new SearchResult(this.#model.fromData(this.#index[doc.ref]), doc.score));
+    }
+
+    get searchIndex() {
+        return this.#compiledIndex ?? this.#compileIndex();
     }
 
     #compileIndex() {

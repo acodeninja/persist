@@ -1,0 +1,138 @@
+openapi: 3.1.0
+
+info:
+  title: Persist Generic HTTP API
+  version: 1.0.0
+
+paths:
+  /{model}/{id}:
+    get:
+      summary: Retrieve an existing model instance.
+      parameters:
+        - in: path
+          name: model
+          schema:
+            type: string
+          required: true
+          description: Name of the model
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Unique identifier for a model
+      responses:
+        '200':
+          description: Successful update operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        '404':
+          description: Model not found
+    put:
+      summary: Create or update an existing model instance.
+      parameters:
+        - in: path
+          name: model
+          schema:
+            type: string
+          required: true
+          description: Name of the model
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Unique identifier for a model
+      requestBody:
+        description: Update or create a model instance.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Model'
+        required: true
+      responses:
+        '200':
+          description: Successful update operation
+        '201':
+          description: Successful create operation
+        '422':
+          description: Validation exception
+    delete:
+      summary: Delete an instance of a model
+      parameters:
+        - in: path
+          name: model
+          schema:
+            type: string
+          required: true
+          description: Name of the model
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Unique identifier for a model
+      responses:
+        '204':
+          description: Successful operation
+        '422':
+          description: Validation exception
+  /{model}:
+    get:
+      summary: Retrieve an index of the current models.
+      parameters:
+        - in: path
+          name: model
+          schema:
+            type: string
+          required: true
+          description: Name of the model
+      responses:
+        '200':
+          description: Successful update operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelIndex'
+        '404':
+          description: Model not found
+  /{model}/search:
+    get:
+      summary: Retrieve a search index of the current models.
+      parameters:
+        - in: path
+          name: model
+          schema:
+            type: string
+          required: true
+          description: Name of the model
+      responses:
+        '200':
+          description: Successful update operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelIndex'
+        '404':
+          description: Model not found
+
+components:
+  schemas:
+    Model:
+      required:
+        - id
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+    ModelIndex:
+      properties:
+        "{model}/{id}":
+          type: object
+          additionalProperties: true
+          properties:
+            id:
+              type: string

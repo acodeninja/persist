@@ -9,14 +9,14 @@ When you bundle or minify JavaScript code for production, class names are often 
 To avoid this problem, you have two options:
 
 1. Disable class name mangling in your minifier.
-2. Use `this.setMinifiedName(name)` to manually specify the model's name.
+2. Use `this.withName(name)` to manually specify the model's name.
 
 ```javascript
 import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Type.Model {
     static {
-        this.setMinifiedName('Person');
+        this.withName('Person');
         this.name = Persist.Type.String.required;
     }
 }
@@ -60,12 +60,12 @@ When implementing thee `HTTP` engine for code that runs in the web browser, you 
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import HTTPStorageEngine from "@acodeninja/persist/engine/storage/http";
+import HTTPStorageEngine from "@acodeninja/persist/storage/http";
 
-Persist.addEngine('remote', HTTPStorageEngine, {
-    host: 'https://api.example.com',
+Persist.registerConnection('people', new HTTPStorageEngine({
+    baseUrl: 'https://api.example.com',
     fetch: fetch.bind(window),
-});
+}));
 ```
 
 This will ensure that `fetch` can access the window context which is required for it to function.

@@ -11,19 +11,20 @@ Let's consider the following models:
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        this.name = Persist.Type.String.required;
+        this.name = Persist.Property.String.required;
         this.address = () => Address;
         this.indexProperties = () => ['name', 'address.postcode'];
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
-        this.indexProperties = () => ['postcode'];
+        this.address = Persist.Property.String.required;
+        this.postcode = Persist.Property.String.required;
+        this.people = () => Persist.Property.Array.of(Person)
+        this.indexProperties = () => ['postcode', 'people.[*].name'];
     }
 }
 ```
@@ -39,14 +40,12 @@ To query for a `Person` called `Joe Bloggs` an exact query can be written:
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import Person from "./Person";
-import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileStorageEngine
-    .configure(configuration)
-    .find(Person, {
-        name: {$is: 'Joe Bloggs'},
-    });
+const connection = Persist.getConnections('people');
+
+await connection.find(Person, {
+    name: {$is: 'Joe Bloggs'},
+});
 ```
 
 ## Querying Partial Matches
@@ -55,14 +54,30 @@ To query for a `Person` with name `Joe` a contains query can be written:
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import Person from "./Person";
-import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileStorageEngine
-    .configure(configuration)
-    .find(Person, {
-        name: {$contains: 'Joe'},
-    });
+const connection = Persist.getConnections('people');
+
+await connection.find(Person, {
+    name: {$contains: 'Joe'},
+});
+```
+
+## Querying One-to-Many Model links
+
+To query for all instances of `Address` with a linked `Person` with a name that contains `Joe` you can write:
+
+```javascript
+import Persist from "@acodeninja/persist";
+
+const connection = Persist.getConnections('people');
+
+await connection.find(Address, {
+    people: {
+        $contains: {
+            name: {$contains: 'Joe'},
+        },
+    },
+});
 ```
 
 ## Querying Combination Matches
@@ -71,18 +86,16 @@ To query for a `Person` who lives at `SW1 1AA` a combination of contains and exa
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import Person from "./Person";
-import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileStorageEngine
-    .configure(configuration)
-    .find(Person, {
-        address: {
-            $contains: {
-                postcode: {$is: 'SW1 1AA'},
-            },
+const connection = Persist.getConnections('people');
+
+await connection.find(Person, {
+    address: {
+        $contains: {
+            postcode: {$is: 'SW1 1AA'},
         },
-    });
+    },
+});
 ```
 
 ## Multiple Queries
@@ -91,17 +104,15 @@ To query for anyone called `Joe Bloggs` who lives in the `SW1` postcode area, we
 
 ```javascript
 import Persist from "@acodeninja/persist";
-import Person from "./Person";
-import FileStorageEngine from "@acodeninja/persist/engine/storage/file"
 
-FileStorageEngine
-    .configure(configuration)
-    .find(Person, {
-        name: {$is: 'Joe Bloggs'},
-        address: {
-            $contains: {
-                postcode: {$contains: 'SW1'},
-            },
+const connection = Persist.getConnections('people');
+
+await connection.find(Person, {
+    name: {$is: 'Joe Bloggs'},
+    address: {
+        $contains: {
+            postcode: {$contains: 'SW1'},
         },
-    });
+    },
+});
 ```

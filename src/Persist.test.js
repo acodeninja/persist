@@ -1,33 +1,20 @@
 import {expect, test} from '@jest/globals';
+import Connection from './Connection.js';
 import Persist from './Persist.js';
-import Type from './type/index.js';
+import Property from './data/Property.js';
+import {TestStorageEngine} from '../test/fixtures/Engine.js';
 
-class TestEngine {
-    static configure(configuration = {}) {
-        class ConfiguredTestEngine extends TestEngine {
-            static configuration = configuration;
-        }
-
-        return ConfiguredTestEngine;
-    }
-}
-
-test('includes Type', () => {
-    expect(Persist.Type).toBe(Type);
+test('includes Property', () => {
+    expect(Persist.Property).toBe(Property);
 });
 
-test('.addEngine(group, engine, configuration) adds and configures an engine', () => {
-    Persist.addEngine('one', TestEngine, {test: true});
+test('.getConnection(name) retrieves a registered connection', () => {
+    const engine = new TestStorageEngine();
+    Persist.registerConnection('one', engine);
 
-    expect(Persist._engine.one.TestEngine.configuration).toStrictEqual({test: true});
+    expect(Persist.getConnection('one')).toBeInstanceOf(Connection);
 });
 
-test('.getEngine(group, engine) retrieves an engine', () => {
-    Persist.addEngine('one', TestEngine, {test: true});
-
-    expect(Persist.getEngine('one', TestEngine).configuration).toStrictEqual({test: true});
-});
-
-test('.getEngine(group, nonEngine) retrieves no engines', () => {
-    expect(Persist.getEngine('two', TestEngine)).toBe(null);
+test('.getConnection(name) retrieves no engines', () => {
+    expect(Persist.getConnection('two')).toBeUndefined();
 });
