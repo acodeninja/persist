@@ -12,6 +12,22 @@ import {describe, expect, test} from '@jest/globals';
 import FindIndex from './FindIndex.js';
 
 describe('FindIndex', () => {
+    describe('mismatched data types', () => {
+        describe('when expecting an iterable', () => {
+            test('returns no results', () => {
+                const model = SimpleModelWithFullIndexFactory();
+
+                const index = new FindIndex(SimpleModelWithFullIndex, {
+                    [model.id]: model.toIndexData(),
+                });
+
+                const results = index.query({number: {$contains: 'nothing'}});
+
+                expect(results).toStrictEqual([]);
+            });
+        });
+    });
+
     describe('exact matches', () => {
         test('FindIndex.query(query) finds exact string matches with primitive type', () => {
             const model = SimpleModelWithFullIndexFactory();
