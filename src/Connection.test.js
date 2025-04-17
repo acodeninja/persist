@@ -444,7 +444,7 @@ describe('connection.put()', () => {
                     await connection.put(editedModel);
                 });
 
-                test('.getModel() is called once', async () => {
+                test('.getModel() is called once', () => {
                     expect(engine.getModel).toHaveBeenCalledTimes(1);
                 });
 
@@ -3115,7 +3115,7 @@ describe('connection.search()', () => {
             expect(await connection.search(model.constructor, 'xyz')).toStrictEqual([]);
         });
 
-        test('.getSearchIndex() was called with the model', async () => {
+        test('.getSearchIndex() was called with the model', () => {
             expect(engine.getSearchIndex).toHaveBeenCalledWith(model.constructor);
         });
     });
@@ -3138,7 +3138,7 @@ describe('connection.search()', () => {
             ]);
         });
 
-        test('.getSearchIndex() was called with the model', async () => {
+        test('.getSearchIndex() was called with the model', () => {
             expect(engine.getSearchIndex).toHaveBeenCalledWith(model.constructor);
         });
     });
@@ -3468,7 +3468,10 @@ describe('connection.transaction()', () => {
                 });
 
                 test('.putModel() is called with the old main model\'s data', () => {
-                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {...model.toData(), string: 'old'});
+                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {
+                        ...model.toData(),
+                        string: 'old',
+                    });
                 });
 
                 test('.putModel() is called with the linked model\'s data', () => {
