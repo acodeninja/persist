@@ -15,7 +15,7 @@ class Persist {
         ValidationError,
     };
 
-    static #connections = {};
+    static #connections = new Map();
 
     /**
      * Register a new connection.
@@ -25,9 +25,11 @@ class Persist {
      * @return {Connection}
      */
     static registerConnection(name, storage, models) {
-        this.#connections[name] = new Connection(storage, models);
+        const connection = new Connection(storage, models);
 
-        return this.getConnection(name);
+        Persist.#connections.set(name, connection);
+
+        return connection;
     }
 
     /**
@@ -36,7 +38,7 @@ class Persist {
      * @return {Connection|undefined}
      */
     static getConnection(name) {
-        return this.#connections[name];
+        return Persist.#connections.get(name);
     }
 }
 
