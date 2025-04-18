@@ -48,7 +48,7 @@ class S3StorageEngine extends StorageEngine {
 
     /**
      * Upload an object to S3
-     * @param {object} model - The model object to upload.
+     * @param {Object} model - The model object to upload.
      * @returns {Promise<void>}
      */
     async putModel(model) {
@@ -87,7 +87,7 @@ class S3StorageEngine extends StorageEngine {
      * Get a model's index data
      * @param {Model.constructor} modelConstructor
      * @throws MethodNotImplementedStorageEngineError
-     * @return Promise<object>
+     * @return Promise<Record<String, Object>>
      */
     async getIndex(modelConstructor) {
         const Key = this.#generatePath([modelConstructor.name, '_index.json']);
@@ -106,7 +106,7 @@ class S3StorageEngine extends StorageEngine {
     /**
      * Put a model's index data
      * @param {Model.constructor} modelConstructor
-     * @param {object} index
+     * @param {Record<String, Object>} index
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */

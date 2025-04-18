@@ -13,7 +13,7 @@ export default class StorageEngine {
      * @param {string} _id
      * @throws MethodNotImplementedStorageEngineError
      * @throws ModelNotFoundStorageEngineError
-     * @return Promise<Model>
+     * @return Promise<Object>
      */
     getModel(_id) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('getModel', this));
@@ -21,7 +21,7 @@ export default class StorageEngine {
 
     /**
      * Update a model
-     * @param {object} _model
+     * @param {Object} _model
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
@@ -44,7 +44,7 @@ export default class StorageEngine {
      * Get a model's index data
      * @param {Model.constructor} _modelConstructor
      * @throws MethodNotImplementedStorageEngineError
-     * @return Promise<void>
+     * @return Promise<Record<String, Object>>
      */
     getIndex(_modelConstructor) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('getIndex', this));
@@ -53,7 +53,7 @@ export default class StorageEngine {
     /**
      * Put a model's index data
      * @param {Model.constructor} _modelConstructor
-     * @param {object} _data
+     * @param {Record<String, Object>} _data
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
@@ -65,7 +65,7 @@ export default class StorageEngine {
      * Get a model's raw search index data
      * @param {Model.constructor} _modelConstructor
      * @throws MethodNotImplementedStorageEngineError
-     * @return Promise<object>
+     * @return Promise<Record<String, Object>>
      */
     getSearchIndex(_modelConstructor) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('getSearchIndex', this));
@@ -76,7 +76,7 @@ export default class StorageEngine {
      * @param {Model.constructor} _constructor
      * @param {Record<string, object>} _index
      * @throws MethodNotImplementedStorageEngineError
-     * @return Promise<void>
+     * @return Promise<Record<String, Object>>
      */
     putSearchIndex(_constructor, _index) {
         return Promise.reject(new MethodNotImplementedStorageEngineError('putSearchIndex', this));

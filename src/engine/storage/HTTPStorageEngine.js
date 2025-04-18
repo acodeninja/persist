@@ -29,7 +29,7 @@ export default class HTTPStorageEngine extends StorageEngine {
      * Get a model
      * @param {string} id
      * @throws ModelNotFoundStorageEngineError
-     * @return Promise<Model>
+     * @return Promise<Object>
      */
     getModel(id) {
         return this.#processFetch(this.#generateURL([id]), this.#getReadOptions())
@@ -43,7 +43,7 @@ export default class HTTPStorageEngine extends StorageEngine {
 
     /**
      * Update a model
-     * @param {object} model
+     * @param {Object} model
      * @throws HTTPRequestFailedError
      * @return Promise<void>
      */
@@ -75,7 +75,7 @@ export default class HTTPStorageEngine extends StorageEngine {
     /**
      * Get a model's index data
      * @param {Model.constructor} modelConstructor
-     * @return Promise<void>
+     * @return Promise<Record<String, Object>>
      */
     getIndex(modelConstructor) {
         return this.#processFetch(
@@ -88,7 +88,7 @@ export default class HTTPStorageEngine extends StorageEngine {
     /**
      * Put a model's index data
      * @param {Model.constructor} modelConstructor
-     * @param {object} index
+     * @param {Record<String, Object>} index
      * @throws MethodNotImplementedStorageEngineError
      * @return Promise<void>
      */
@@ -103,7 +103,7 @@ export default class HTTPStorageEngine extends StorageEngine {
      * Get a model's raw search index data
      * @param {Model.constructor} modelConstructor
      * @throws MethodNotImplementedStorageEngineError
-     * @return Promise<object>
+     * @return Promise<Record<String, Object>>
      */
     getSearchIndex(modelConstructor) {
         return this.#processFetch(
