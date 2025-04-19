@@ -291,16 +291,16 @@ export default class Connection {
                                 if (!modelsToDelete.includes(m.id)) modelsToDelete.push(m.id);
                                 modelsToProcess.push(m);
                             } else {
-                                const modelConstructor = this.#getModelConstructorFromId(m.id);
+                                const foundModelConstructor = this.#getModelConstructorFromId(m.id);
                                 m[linkName] = undefined;
                                 modelsToPut.push(m);
 
-                                indexActions[modelConstructor.name] = indexActions[modelConstructor.name] ?? [];
-                                indexActions[modelConstructor.name].push(['reindex', m]);
+                                indexActions[foundModelConstructor.name] = indexActions[foundModelConstructor.name] ?? [];
+                                indexActions[foundModelConstructor.name].push(['reindex', m]);
 
                                 if (m.constructor.searchProperties().length) {
-                                    searchIndexActions[modelConstructor.name] = searchIndexActions[modelConstructor.name] ?? [];
-                                    searchIndexActions[modelConstructor.name].push(['reindex', m]);
+                                    searchIndexActions[foundModelConstructor.name] = searchIndexActions[foundModelConstructor.name] ?? [];
+                                    searchIndexActions[foundModelConstructor.name].push(['reindex', m]);
                                 }
                             }
                         }),
