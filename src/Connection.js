@@ -189,11 +189,12 @@ export default class Connection {
 
             if (modelToProcessHasChanged) modelsToPut.push(modelToProcess);
 
+            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
+
             if (
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toIndexData(), modelToProcess.toIndexData()))
             ) {
-                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
                 modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
                 modelsToReindex[modelToProcessConstructor].push(modelToProcess);
             }
@@ -202,7 +203,6 @@ export default class Connection {
                 Boolean(modelToProcess.constructor.searchProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toSearchData(), modelToProcess.toSearchData()))
             ) {
-                const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
                 modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
                 modelsToReindexSearch[modelToProcessConstructor].push(modelToProcess);
             }
@@ -277,7 +277,8 @@ export default class Connection {
 
             if (!modelsToDelete.includes(currentModel.id)) modelsToDelete.push(currentModel.id);
 
-            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
+            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
+
             indexActions[modelToProcessConstructor] = indexActions[modelToProcessConstructor] ?? [];
             searchIndexActions[modelToProcessConstructor] = searchIndexActions[modelToProcessConstructor] ?? [];
 
