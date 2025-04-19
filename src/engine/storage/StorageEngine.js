@@ -1,5 +1,3 @@
-import {Transaction} from '../../Connection.js';
-
 export default class StorageEngine {
     /**
      * @param {Object} configuration
@@ -143,31 +141,49 @@ export class DeleteHasUnintendedConsequencesStorageEngineError extends StorageEn
 }
 
 /**
+ * Represents a transactional operation to be executed, typically queued and later committed.
  *
- * @param {Array<Transaction>} transactions
+ * Stores the method to invoke, the arguments to apply, and tracks the result or error state
+ * of the transaction once it's processed.
+ *
+ * @class Operation
+ */
+export class Operation {
+    constructor(method, ...args) {
+        this.method = method;
+        this.args = args;
+        this.original = undefined;
+        this.error = undefined;
+        this.committed = false;
+    }
+}
+
+/**
+ *
+ * @param {Array<Operation>} transactions
  * @param {StorageEngine} engine
  * @return {StorageEngine}
  */
-export function CreateTransactionalStorageEngine(transactions, engine) {
+export function CreateTransactionalStorageEngine(operations, engine) {
     const transactionalEngine = Object.create(engine);
 
     transactionalEngine.putModel = (...args) => {
-        transactions.push(new Transaction('putModel', ...args));
+        operations.push(new Operation('putModel', ...args));
         return Promise.resolve();
     };
 
     transactionalEngine.deleteModel = (...args) => {
-        transactions.push(new Transaction('deleteModel', ...args));
+        operations.push(new Operation('deleteModel', ...args));
         return Promise.resolve();
     };
 
     transactionalEngine.putIndex = (...args) => {
-        transactions.push(new Transaction('putIndex', ...args));
+        operations.push(new Operation('putIndex', ...args));
         return Promise.resolve();
     };
 
     transactionalEngine.putSearchIndex = (...args) => {
-        transactions.push(new Transaction('putSearchIndex', ...args));
+        operations.push(new Operation('putSearchIndex', ...args));
         return Promise.resolve();
     };
 
