@@ -223,7 +223,7 @@ export default class Connection {
                 const index = await this.#storage.getIndex(modelConstructor);
 
                 await this.#storage.putIndex(modelConstructor, {
-                    ...index || {},
+                    ...index,
                     ...Object.fromEntries(models.map(m => [m.id, m.toIndexData()])),
                 });
             })),
@@ -232,7 +232,7 @@ export default class Connection {
                 const index = await this.#storage.getSearchIndex(modelConstructor);
 
                 await this.#storage.putSearchIndex(modelConstructor, {
-                    ...index || {},
+                    ...index,
                     ...Object.fromEntries(models.map(m => [m.id, m.toSearchData()])),
                 });
             })),
@@ -437,9 +437,9 @@ export default class Connection {
 
         const engine = CreateTransactionalStorageEngine(transactions, this.#storage);
 
-        const connection = new this.constructor(engine, this.#cache, Object.values(this.#models));
+        const transaction = new this.constructor(engine, this.#cache, Object.values(this.#models));
 
-        connection.commit = async () => {
+        transaction.commit = async () => {
             try {
                 for (const [index, transaction] of transactions.entries()) {
                     try {
@@ -448,6 +448,12 @@ export default class Connection {
 
                         if (transaction.method === 'deleteModel')
                             transactions[index].original = await this.#storage.getModel(transaction.args[0]);
+
+                        if (transaction.method === 'putIndex')
+                            transactions[index].original = await this.#storage.getIndex(transaction.args[0]);
+
+                        if (transaction.method === 'putSearchIndex')
+                            transactions[index].original = await this.#storage.getSearchIndex(transaction.args[0]);
 
                         await this.#storage[transaction.method](...transaction.args);
 
@@ -458,17 +464,24 @@ export default class Connection {
                     }
                 }
             } catch (error) {
-                await Promise.all(
-                    transactions
-                        .filter(t => t.committed && t.original)
-                        .map(t => this.#storage.putModel(t.original)),
-                );
+                for (const transaction of transactions) {
+                    if (transaction.committed && transaction.original) {
+                        if (['putModel', 'deleteModel'].includes(transaction.method))
+                            await this.#storage.putModel(transaction.original);
+
+                        if ('putIndex' === transaction.method)
+                            await this.#storage.putIndex(transaction.args[0], transaction.original);
+
+                        if ('putSearchIndex' === transaction.method)
+                            await this.#storage.putSearchIndex(transaction.args[0], transaction.original);
+                    }
+                }
 
                 throw new CommitFailedTransactionError(transactions, error);
             }
         };
 
-        return connection;
+        return transaction;
     }
 
     /**

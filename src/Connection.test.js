@@ -3208,8 +3208,8 @@ describe('connection.transaction()', () => {
                     expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
                 });
 
-                test('.getIndex() is called twice', () => {
-                    expect(engine.getIndex).toHaveBeenCalledTimes(2);
+                test('.getIndex() is called four times', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(4);
                 });
 
                 test('.getIndex() is called for the main model', () => {
@@ -3236,8 +3236,8 @@ describe('connection.transaction()', () => {
                     });
                 });
 
-                test('.getSearchIndex() is called twice', () => {
-                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+                test('.getSearchIndex() is called four times', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(4);
                 });
 
                 test('.getSearchIndex() is called for the main model', () => {
@@ -3307,8 +3307,8 @@ describe('connection.transaction()', () => {
                     expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
                 });
 
-                test('.getIndex() is called twice', () => {
-                    expect(engine.getIndex).toHaveBeenCalledTimes(2);
+                test('.getIndex() is called four times', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(4);
                 });
 
                 test('.getIndex() is called for the main model', () => {
@@ -3335,8 +3335,8 @@ describe('connection.transaction()', () => {
                     });
                 });
 
-                test('.getSearchIndex() is called twice', () => {
-                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+                test('.getSearchIndex() is called four times', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(4);
                 });
 
                 test('.getSearchIndex() is called for the main model', () => {
@@ -3349,7 +3349,7 @@ describe('connection.transaction()', () => {
             });
         });
 
-        describe('and the second write operation in the transaction fails', () => {
+        describe('and the second putModel operation in the transaction fails', () => {
             const engine = new TestStorageEngine();
             const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
@@ -3421,33 +3421,33 @@ describe('connection.transaction()', () => {
             });
 
             describe('and committing the transaction', () => {
-                beforeAll(() => {
+                let error = null;
+
+                beforeAll(async () => {
                     engine.putModel.mockImplementation(m => {
                         if (m.id === model.linked.id) {
                             throw new Error('Something went wrong');
                         }
                     });
+
+                    await transaction.commit().catch(e => error = e);
                 });
 
-                test('transaction.commit throws a CommitFailedTransactionError', async () => {
-                    let error = null;
-
-                    try {
-                        await transaction.commit();
-                    } catch (e) {
-                        error = e;
-                    } finally {
+                describe('the commit transaction error object', () => {
+                    test('is of type CommitFailedTransactionError', () => {
                         expect(error).toBeInstanceOf(CommitFailedTransactionError);
+                    });
+
+                    test('has an appropriate error message', () => {
                         expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                    });
+
+                    test('includes the causing error', () => {
                         expect(error).toHaveProperty('error', new Error('Something went wrong'));
+                    });
+
+                    test('includes a list of transactions and their status', () => {
                         expect(error).toHaveProperty('transactions', expect.arrayContaining([
-                            expect.objectContaining({
-                                args: [model.toData()],
-                                committed: true,
-                                error: undefined,
-                                method: 'putModel',
-                                original: {...model.toData(), string: 'old'},
-                            }),
                             expect.objectContaining({
                                 args: [model.linked.toData()],
                                 committed: false,
@@ -3456,7 +3456,7 @@ describe('connection.transaction()', () => {
                                 original: {...model.linked.toData(), string: 'old'},
                             }),
                         ]));
-                    }
+                    });
                 });
 
                 test('.putModel() is called twice', () => {
@@ -3480,6 +3480,330 @@ describe('connection.transaction()', () => {
 
                 test('.putIndex() is not called', () => {
                     expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+            });
+        });
+
+        describe('and the second putIndex operation in the transaction fails', () => {
+            const model = LinkedModelWithSearchIndexFactory();
+            const engine = new TestStorageEngine();
+            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const transaction = connection.transaction();
+            engine.getModel.mockImplementation(id => {
+                if (id === model.id) {
+                    return Promise.resolve({
+                        ...model.toData(),
+                        string: 'old',
+                    });
+                }
+                if (id === model.linked.id) {
+                    return Promise.resolve({
+                        ...model.linked.toData(),
+                        string: 'old',
+                    });
+                }
+                return Promise.reject(new ModelNotFoundStorageEngineError(id));
+            });
+
+            beforeAll(() => transaction.put(model));
+
+            test('.getModel() is called twice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('.putModel() is not called', () => {
+                expect(engine.putModel).not.toHaveBeenCalled();
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called for the main model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called for the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is not called', () => {
+                expect(engine.putIndex).not.toHaveBeenCalled();
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called for the main model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called for the linked model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is not called', () => {
+                expect(engine.putSearchIndex).not.toHaveBeenCalled();
+            });
+
+            describe('and committing the transaction', () => {
+                let error = null;
+
+                beforeAll(async () => {
+                    engine.putIndex.mockImplementation(modelConstructor => {
+                        if (modelConstructor === SimpleModelWithSearchIndex)
+                            throw new Error('Something went wrong');
+                    });
+
+                    await transaction.commit().catch(e => error = e);
+                });
+
+                describe('the commit transaction error object', () => {
+                    test('is of type CommitFailedTransactionError', () => {
+                        expect(error).toBeInstanceOf(CommitFailedTransactionError);
+                    });
+
+                    test('has an appropriate error message', () => {
+                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                    });
+
+                    test('includes the causing error', () => {
+                        expect(error).toHaveProperty('error', new Error('Something went wrong'));
+                    });
+
+                    test('includes a list of transactions and their status', () => {
+                        expect(error).toHaveProperty('transactions', expect.arrayContaining([
+                            expect.objectContaining({
+                                args: [model.linked.constructor, {[model.linked.id]: model.linked.toIndexData()}],
+                                committed: false,
+                                error: new Error('Something went wrong'),
+                                method: 'putIndex',
+                                original: {},
+                            }),
+                        ]));
+                    });
+                });
+
+                test('.putModel() is called four times', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.putModel() is called with the new main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(1, model.toData());
+                });
+
+                test('.putModel() is called with the old main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {
+                        ...model.toData(),
+                        string: 'old',
+                    });
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                });
+
+                test('.putIndex() is called thrice', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(3);
+                });
+
+                test('.putIndex() is called with the updated index for main model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {
+                        [model.id]: model.toIndexData(),
+                    });
+                });
+
+                test('.putIndex() is called with the updated index for linked model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {
+                        [model.linked.id]: model.linked.toIndexData(),
+                    });
+                });
+
+                test('.putIndex() is called with the old index for main model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {});
+                });
+            });
+        });
+
+        describe('and the second putSearchIndex operation in the transaction fails', () => {
+            const engine = new TestStorageEngine();
+            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const model = LinkedModelWithSearchIndexFactory();
+            const transaction = connection.transaction();
+            engine.getModel.mockImplementation(id => {
+                if (id === model.id) {
+                    return Promise.resolve({
+                        ...model.toData(),
+                        string: 'old',
+                    });
+                }
+                if (id === model.linked.id) {
+                    return Promise.resolve({
+                        ...model.linked.toData(),
+                        string: 'old',
+                    });
+                }
+                return Promise.reject(new ModelNotFoundStorageEngineError(id));
+            });
+
+            beforeAll(() => transaction.put(model));
+
+            test('.getModel() is called twice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('.putModel() is not called', () => {
+                expect(engine.putModel).not.toHaveBeenCalled();
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called for the main model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called for the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is not called', () => {
+                expect(engine.putIndex).not.toHaveBeenCalled();
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called for the main model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called for the linked model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is not called', () => {
+                expect(engine.putSearchIndex).not.toHaveBeenCalled();
+            });
+
+            describe('and committing the transaction', () => {
+                let error = null;
+
+                beforeAll(async () => {
+                    engine.putSearchIndex.mockImplementation(modelConstructor => {
+                        if (modelConstructor === SimpleModelWithSearchIndex)
+                            throw new Error('Something went wrong');
+                    });
+
+                    await transaction.commit().catch(e => error = e);
+                });
+
+                describe('the commit transaction error object', () => {
+                    test('is of type CommitFailedTransactionError', () => {
+                        expect(error).toBeInstanceOf(CommitFailedTransactionError);
+                    });
+
+                    test('has an appropriate error message', () => {
+                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                    });
+
+                    test('includes the causing error', () => {
+                        expect(error).toHaveProperty('error', new Error('Something went wrong'));
+                    });
+
+                    test('includes a list of transactions and their status', () => {
+                        expect(error).toHaveProperty('transactions', expect.arrayContaining([
+                            expect.objectContaining({
+                                args: [model.linked.constructor, {[model.linked.id]: model.linked.toSearchData()}],
+                                committed: false,
+                                error: new Error('Something went wrong'),
+                                method: 'putSearchIndex',
+                                original: {},
+                            }),
+                        ]));
+                    });
+                });
+
+                test('.putModel() is called four times', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.putModel() is called with the new main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(1, model.toData());
+                });
+
+                test('.putModel() is called with the old main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {
+                        ...model.toData(),
+                        string: 'old',
+                    });
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                });
+
+                test('.putIndex() is called four times', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(4);
+                });
+
+                test('.putIndex() is called with the updated index for main model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {
+                        [model.id]: model.toIndexData(),
+                    });
+                });
+
+                test('.putIndex() is called with the old index for main model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {});
+                });
+
+                test('.putIndex() is called with the updated index for linked model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {
+                        [model.linked.id]: model.linked.toIndexData(),
+                    });
+                });
+
+                test('.putIndex() is called with the old index for linked model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {});
+                });
+
+                test('.putSearchIndex() is called thrice', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledTimes(3);
+                });
+
+                test('.putSearchIndex() is called with the updated index for main model', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {
+                        [model.id]: model.toSearchData(),
+                    });
+                });
+
+                test('.putSearchIndex() is called with the old index for main model', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {});
+                });
+
+                test('.putSearchIndex() is called with the updated index for linked model', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {
+                        [model.linked.id]: model.linked.toSearchData(),
+                    });
                 });
             });
         });

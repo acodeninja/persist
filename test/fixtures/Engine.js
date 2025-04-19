@@ -6,13 +6,13 @@ import {jest} from '@jest/globals';
  * @extends StorageEngine
  */
 export class TestStorageEngine extends StorageEngine {
-    constructor(configuration = {}, models = null) {
-        super(configuration, models);
+    constructor(configuration = {}) {
+        super(configuration);
         this.deleteModel = jest.fn();
         this.putSearchIndex = jest.fn();
-        this.getSearchIndex = jest.fn();
+        this.getSearchIndex = jest.fn().mockResolvedValue({});
         this.putIndex = jest.fn();
-        this.getIndex = jest.fn();
+        this.getIndex = jest.fn().mockResolvedValue({});
         this.putModel = jest.fn();
         this.getModel = jest.fn().mockImplementation((id) => Promise.reject(new ModelNotFoundStorageEngineError(id)));
     }
