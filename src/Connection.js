@@ -42,11 +42,11 @@ export default class Connection {
      * @return {Promise<Model>}
      */
     async get(modelId) {
-        const constructor = this.#getModelConstructorFromId(modelId);
+        const modelConstructor = this.#getModelConstructorFromId(modelId);
 
         const data = await this.#storage.getModel(modelId);
 
-        return constructor.fromData(data);
+        return modelConstructor.fromData(data);
     }
 
     /**
@@ -268,8 +268,8 @@ export default class Connection {
             const links = this.#getLinksFor(modelToProcess.constructor);
             Object.values(Object.fromEntries(await Promise.all(
                 Object.entries(linkedModels)
-                    .map(async ([constructor, updatableModels]) => [
-                        constructor,
+                    .map(async ([modelConstructor, updatableModels]) => [
+                        modelConstructor,
                         await Promise.all(updatableModels.map(async m => {
                             const upToDateModel = modelCache[m.id] ?? await this.get(m.id);
                             modelCache[upToDateModel.id] = upToDateModel;
@@ -377,13 +377,13 @@ export default class Connection {
      *   Must include: '+foo bar' must include 'foo' and may include 'bar'
      *   Must not include: '-foo bar' must not include 'foo' and may include 'bar'
      *   Mixed include: '+foo -bar' must include 'foo' must not include 'bar'
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {string} query
      * @return {Promise<Array<SearchResult>>}
      */
-    async search(constructor, query) {
-        const searchIndex = await this.#storage.getSearchIndex(constructor)
-            .then(index => new SearchIndex(constructor, index));
+    async search(modelConstructor, query) {
+        const searchIndex = await this.#storage.getSearchIndex(modelConstructor)
+            .then(index => new SearchIndex(modelConstructor, index));
 
         return searchIndex.search(query);
     }
@@ -391,13 +391,13 @@ export default class Connection {
     /**
      * Find using a structured query and indexed fields.
      *
-     * @param {Model.constructor} constructor
+     * @param {Model.constructor} modelConstructor
      * @param {Object} query
      * @return {Promise<Array<SearchResult>>}
      */
-    async find(constructor, query) {
-        const findIndex = await this.#storage.getIndex(constructor)
-            .then(index => new FindIndex(constructor, index));
+    async find(modelConstructor, query) {
+        const findIndex = await this.#storage.getIndex(modelConstructor)
+            .then(index => new FindIndex(modelConstructor, index));
 
         return findIndex.query(query);
     }
@@ -467,11 +467,11 @@ export default class Connection {
      */
     #getModelConstructorFromId(modelId) {
         const modelName = modelId.split('/')[0];
-        const constructor = this.#models[modelName];
+        const modelConstructor = this.#models[modelName];
 
-        if (!constructor) throw new ModelNotRegisteredConnectionError(modelName, this.#storage);
+        if (!modelConstructor) throw new ModelNotRegisteredConnectionError(modelName, this.#storage);
 
-        return constructor;
+        return modelConstructor;
     }
 
     /**
@@ -577,11 +577,11 @@ export class MissingArgumentsConnectionError extends ConnectionError {
  */
 export class ModelNotRegisteredConnectionError extends ConnectionError {
     /**
-     * @param {Model|String} constructor
+     * @param {Model|String} modelConstructor
      * @param {Connection} connection
      */
-    constructor(constructor, connection) {
-        const modelName = typeof constructor === 'string' ? constructor : constructor.constructor.name;
+    constructor(modelConstructor, connection) {
+        const modelName = typeof modelConstructor === 'string' ? modelConstructor : modelConstructor.constructor.name;
         super(`The model ${modelName} is not registered in the storage engine ${connection.constructor.name}`);
     }
 }
