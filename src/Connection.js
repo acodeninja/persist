@@ -19,12 +19,6 @@ export default class Connection {
 
     /**
      * @private
-     * @property {CacheEngine|undefined}
-     */
-    #cache;
-
-    /**
-     * @private
      * @property {Record<String, Model.constructor>}
      */
     #models;
@@ -32,12 +26,10 @@ export default class Connection {
     /**
      * Create a new connection
      * @param {StorageEngine} storage
-     * @param {CacheEngine|undefined} cache
      * @param {Array<Model.constructor>} models
      */
-    constructor(storage, cache, models) {
+    constructor(storage, models) {
         this.#storage = storage;
-        this.#cache = cache;
         this.#models = Object.fromEntries((models ?? []).map(model => [model.name, model]));
 
         if (!this.#storage) throw new MissingArgumentsConnectionError('No storage engine provided');
@@ -420,7 +412,7 @@ export default class Connection {
 
         const engine = CreateTransactionalStorageEngine(operations, this.#storage);
 
-        const transaction = new this.constructor(engine, this.#cache, Object.values(this.#models));
+        const transaction = new this.constructor(engine, Object.values(this.#models));
 
         transaction.commit = async () => {
             try {
