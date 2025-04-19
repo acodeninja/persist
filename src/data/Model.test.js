@@ -125,10 +125,10 @@ describe('model.validate()', () => {
 
 describe('Model.indexedPropertiesResolved()', () => {
     describe.each([
-        [SimpleModel, []],
-        [CircularLinkedModel, ['linked.id']],
-        [LinkedModelWithSearchIndex, ['linked.id', 'string']],
-        [LinkedManyModelWithIndex, ['linked.[*].id', 'string', 'linked.[*].string']],
+        [SimpleModel, ['id']],
+        [CircularLinkedModel, ['linked.id', 'id']],
+        [LinkedModelWithSearchIndex, ['linked.id', 'string', 'id']],
+        [LinkedManyModelWithIndex, ['linked.[*].id', 'string', 'linked.[*].string', 'id']],
     ])('with a %s', (modelConstructor, expectedIndex) => {
         test(`returns ${expectedIndex}`, () => {
             expect(modelConstructor.indexedPropertiesResolved()).toEqual(expectedIndex);

@@ -157,33 +157,37 @@ export default class Connection {
                 throw new ModelNotRegisteredConnectionError(modelToProcess, this.#storage);
 
             modelToProcess.validate();
-            const currentModel = await this.get(modelToProcess.id).catch(() => null);
+
+            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
+            const currentModel = await this.hydrate(modelToProcess).catch(() => null);
 
             const modelToProcessHasChanged = !_.isEqual(currentModel?.toData() || {}, modelToProcess.toData());
 
             if (modelToProcessHasChanged) modelsToPut.push(modelToProcess);
 
-            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
+            const modelToProcessConstructorName = modelToProcessConstructor.name;
 
             if (
                 Boolean(modelToProcess.constructor.indexedProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toIndexData(), modelToProcess.toIndexData()))
             ) {
-                modelsToReindex[modelToProcessConstructor] = modelsToReindex[modelToProcessConstructor] || [];
-                modelsToReindex[modelToProcessConstructor].push(modelToProcess);
+                modelsToReindex[modelToProcessConstructorName] = modelsToReindex[modelToProcessConstructorName] || [];
+                modelsToReindex[modelToProcessConstructorName].push(modelToProcess);
             }
 
             if (
                 Boolean(modelToProcess.constructor.searchProperties().length) &&
                 (!currentModel || !_.isEqual(currentModel.toSearchData(), modelToProcess.toSearchData()))
             ) {
-                modelsToReindexSearch[modelToProcessConstructor] = modelsToReindexSearch[modelToProcessConstructor] || [];
-                modelsToReindexSearch[modelToProcessConstructor].push(modelToProcess);
+                modelsToReindexSearch[modelToProcessConstructorName] = modelsToReindexSearch[modelToProcessConstructorName] || [];
+                modelsToReindexSearch[modelToProcessConstructorName].push(modelToProcess);
             }
 
-            for (const [field, value] of Object.entries(modelToProcess)) {
-                if (Model.isModel(value)) {
-                    await processModel(modelToProcess[field]);
+            for (const [_name, property] of Object.entries(modelToProcess)) {
+                if (Model.isModel(property)) {
+                    await processModel(property);
+                } else if (Array.isArray(property) && Model.isModel(property[0])) {
+                    await Promise.all(property.map(processModel));
                 }
             }
         };
@@ -251,17 +255,15 @@ export default class Connection {
 
             if (!modelsToDelete.includes(currentModel.id)) modelsToDelete.push(currentModel.id);
 
-            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id).name;
+            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
 
-            indexActions[modelToProcessConstructor] = indexActions[modelToProcessConstructor] ?? [];
-            searchIndexActions[modelToProcessConstructor] = searchIndexActions[modelToProcessConstructor] ?? [];
+            indexActions[modelToProcessConstructor.name] = indexActions[modelToProcessConstructor.name] ?? [];
+            searchIndexActions[modelToProcessConstructor.name] = searchIndexActions[modelToProcessConstructor.name] ?? [];
 
-            if (currentModel.constructor.indexedPropertiesResolved().length) {
-                indexActions[modelToProcessConstructor].push(['delete', modelToProcess]);
-            }
+            indexActions[modelToProcessConstructor.name].push(['delete', modelToProcess]);
 
             if (currentModel.constructor.searchProperties().length) {
-                searchIndexActions[modelToProcessConstructor].push(['delete', modelToProcess]);
+                searchIndexActions[modelToProcessConstructor.name].push(['delete', modelToProcess]);
             }
 
             const linkedModels = await this.#getInstancesLinkedTo(modelToProcess, indexCache);
@@ -289,13 +291,16 @@ export default class Connection {
                                 if (!modelsToDelete.includes(m.id)) modelsToDelete.push(m.id);
                                 modelsToProcess.push(m);
                             } else {
+                                const modelConstructor = this.#getModelConstructorFromId(m.id);
                                 m[linkName] = undefined;
                                 modelsToPut.push(m);
 
-                                indexActions[this.#getModelConstructorFromId(m.id)].push(['reindex', m]);
+                                indexActions[modelConstructor.name] = indexActions[modelConstructor.name] ?? [];
+                                indexActions[modelConstructor.name].push(['reindex', m]);
 
                                 if (m.constructor.searchProperties().length) {
-                                    searchIndexActions[this.#getModelConstructorFromId(m.id)].push(['reindex', m]);
+                                    searchIndexActions[modelConstructor.name] = searchIndexActions[modelConstructor.name] ?? [];
+                                    searchIndexActions[modelConstructor.name].push(['reindex', m]);
                                 }
                             }
                         }),
@@ -309,6 +314,7 @@ export default class Connection {
         await processModel(model);
 
         const unrequestedDeletions = modelsToDelete.filter(m => !propagateTo.includes(m));
+
         if (unrequestedDeletions.length) {
             throw new DeleteHasUnintendedConsequencesStorageEngineError(model.id, {
                 willDelete: unrequestedDeletions,
@@ -351,8 +357,8 @@ export default class Connection {
         ]);
 
         await Promise.all([
-            Promise.all(modelsToDelete.map(m => this.#storage.deleteModel(m))),
             Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData()))),
+            Promise.all(modelsToDelete.map(m => this.#storage.deleteModel(m))),
             Promise.all(
                 Object.entries(indexCache)
                     .map(([constructorName, index]) => this.#storage.putIndex(this.#models[constructorName], index)),
