@@ -3966,19 +3966,30 @@ describe('connection.transaction()', () => {
             });
 
             describe('and committing the transaction', () => {
-                engine.deleteModel.mockRejectedValue(new Error('Something went wrong'));
+                let error = null;
 
-                test('transaction.commit throws a CommitFailedTransactionError', async () => {
-                    let error = null;
+                beforeAll(async () => {
+                    engine.deleteModel.mockRejectedValue(new Error('Something went wrong'));
 
-                    try {
-                        await transaction.commit();
-                    } catch (e) {
+                    await transaction.commit().catch(e => {
                         error = e;
-                    } finally {
+                    });
+                });
+
+                describe('the commit transaction error object', () => {
+                    test('is of type CommitFailedTransactionError', () => {
                         expect(error).toBeInstanceOf(CommitFailedTransactionError);
+                    });
+
+                    test('has an appropriate error message', () => {
                         expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                    });
+
+                    test('includes the causing error', () => {
                         expect(error).toHaveProperty('error', new Error('Something went wrong'));
+                    });
+
+                    test('includes a list of transactions and their status', () => {
                         expect(error).toHaveProperty('transactions', expect.arrayContaining([
                             expect.objectContaining({
                                 args: [model.id],
@@ -3988,7 +3999,7 @@ describe('connection.transaction()', () => {
                                 original: {...model.toData(), string: 'old'},
                             }),
                         ]));
-                    }
+                    });
                 });
 
                 test('.putModel() is not called', () => {
