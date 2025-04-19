@@ -19,6 +19,12 @@ export class TestStorageEngine extends StorageEngine {
     }
 }
 
+/**
+ * Create a test storage engine with given initial models
+ *
+ * @param {Array<Model>} initialModels
+ * @return {TestStorageEngine}
+ */
 export function TestStorageEngineFactory(initialModels = []) {
     const engine  = new TestStorageEngine({});
 
