@@ -53,7 +53,7 @@ describe('new Connection', () => {
 describe('connection.get()', () => {
     describe('when a model is not registered', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, []);
+        const connection = new Connection(engine, []);
         const modelId = 'UnregisteredModel/111111111111';
 
         test('throws a ModelNotRegisteredConnectionError', async () => {
@@ -71,7 +71,7 @@ describe('connection.get()', () => {
 
     describe('when a model does not exist', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
         const modelId = 'SimpleModel/111111111111';
 
         beforeAll(() => engine.getModel.mockRejectedValue(new ModelNotFoundStorageEngineError(modelId)));
@@ -91,7 +91,7 @@ describe('connection.get()', () => {
 
     describe('when a model exists', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
         const model = SimpleModelFactory();
 
         beforeAll(() => {
@@ -112,7 +112,7 @@ describe('connection.hydrate()', () => {
     describe('when a model with many links exists', () => {
         const model = LinkedManyModelWithIndexFactory();
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [
+        const connection = new Connection(engine, [
             LinkedManyModelWithIndex,
             SimpleModelWithIndex,
         ]);
@@ -146,7 +146,7 @@ describe('connection.hydrate()', () => {
     describe('when a model with one to one links exists', () => {
         const model = LinkedModelWithIndexFactory();
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [
+        const connection = new Connection(engine, [
             LinkedModelWithIndex,
             SimpleModelWithIndex,
         ]);
@@ -180,7 +180,7 @@ describe('connection.hydrate()', () => {
     describe('when a model with circular links exists', () => {
         const model = CircularLinkedModelFactory();
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [
+        const connection = new Connection(engine, [
             CircularLinkedModel,
         ]);
 
@@ -213,7 +213,7 @@ describe('connection.hydrate()', () => {
     describe('when a model with circular many links exists', () => {
         const model = CircularManyLinkedModelFactory();
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [
+        const connection = new Connection(engine, [
             CircularManyLinkedModel,
         ]);
 
@@ -248,7 +248,7 @@ describe('connection.put()', () => {
     describe('when the model is not registered', () => {
         const model = SimpleModelFactory();
         const engine = new TestStorageEngine({}, []);
-        const connection = new Connection(engine, undefined, []);
+        const connection = new Connection(engine, []);
 
         test('.put(model) throws a ModelNotRegisteredConnectionError', async () => {
             await expect(connection.put(model))
@@ -264,7 +264,7 @@ describe('connection.put()', () => {
             describe('and the model does not exist', () => {
                 const model = SimpleModelFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModel]);
+                const connection = new Connection(engine, [SimpleModel]);
 
                 beforeAll(() => connection.put(model));
 
@@ -296,7 +296,7 @@ describe('connection.put()', () => {
             describe('and the model exists but is unchanged', () => {
                 const model = SimpleModelFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModel]);
+                const connection = new Connection(engine, [SimpleModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(model.toData());
@@ -331,7 +331,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModel]);
+                const connection = new Connection(engine, [SimpleModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -368,7 +368,7 @@ describe('connection.put()', () => {
             describe('and the model does not exist', () => {
                 const model = SimpleModelWithIndexFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+                const connection = new Connection(engine, [SimpleModelWithIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -402,7 +402,7 @@ describe('connection.put()', () => {
             describe('and the model exists but is unchanged', () => {
                 const model = SimpleModelWithIndexFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+                const connection = new Connection(engine, [SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(model.toData());
@@ -437,7 +437,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+                const connection = new Connection(engine, [SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -478,7 +478,7 @@ describe('connection.put()', () => {
                     editedModel.string = 'updated';
 
                     const engine = new TestStorageEngine();
-                    const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+                    const connection = new Connection(engine, [SimpleModelWithIndex]);
 
                     beforeAll(async () => {
                         engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -508,7 +508,7 @@ describe('connection.put()', () => {
                 editedModel.boolean = false;
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+                const connection = new Connection(engine, [SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -545,7 +545,7 @@ describe('connection.put()', () => {
             describe('and the model does not exist', () => {
                 const model = SimpleModelWithSearchIndexFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -590,7 +590,7 @@ describe('connection.put()', () => {
             describe('and the model exists but is unchanged', () => {
                 const model = SimpleModelWithSearchIndexFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(model.toData());
@@ -633,7 +633,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -685,7 +685,7 @@ describe('connection.put()', () => {
                     editedModel.string = 'updated';
 
                     const engine = new TestStorageEngine();
-                    const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+                    const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
                     beforeAll(async () => {
                         engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -732,7 +732,7 @@ describe('connection.put()', () => {
                 editedModel.date = new Date('2021-01-01');
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockResolvedValueOnce(existingModel.toData());
@@ -779,7 +779,7 @@ describe('connection.put()', () => {
             describe('and both models do not exist', () => {
                 const model = LinkedModelFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModel, SimpleModel]);
+                const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
                 beforeAll(() => connection.put(model));
 
@@ -819,7 +819,7 @@ describe('connection.put()', () => {
             describe('and the model exists but is unchanged', () => {
                 const model = LinkedModelFactory();
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModel, SimpleModel]);
+                const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -863,7 +863,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModel, SimpleModel]);
+                const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -915,7 +915,7 @@ describe('connection.put()', () => {
                 editedModel.linked.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModel, SimpleModel]);
+                const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -965,7 +965,7 @@ describe('connection.put()', () => {
                 const model = LinkedModelWithIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithIndex, SimpleModelWithIndex]);
+                const connection = new Connection(engine, [LinkedModelWithIndex, SimpleModelWithIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -1026,7 +1026,7 @@ describe('connection.put()', () => {
                 const model = LinkedModelWithIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithIndex, SimpleModelWithIndex]);
+                const connection = new Connection(engine, [LinkedModelWithIndex, SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1070,7 +1070,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithIndex, SimpleModelWithIndex]);
+                const connection = new Connection(engine, [LinkedModelWithIndex, SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1142,7 +1142,7 @@ describe('connection.put()', () => {
                 editedModel.linked.number = 32.65;
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithIndex, SimpleModelWithIndex]);
+                const connection = new Connection(engine, [LinkedModelWithIndex, SimpleModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1208,7 +1208,7 @@ describe('connection.put()', () => {
                 const model = LinkedModelWithSearchIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -1293,7 +1293,7 @@ describe('connection.put()', () => {
                 const model = LinkedModelWithSearchIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1345,7 +1345,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1439,7 +1439,7 @@ describe('connection.put()', () => {
                 editedModel.linked.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+                const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1529,7 +1529,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModel]);
+                const connection = new Connection(engine, [CircularLinkedModel]);
 
                 beforeAll(() => connection.put(model));
 
@@ -1570,7 +1570,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModel]);
+                const connection = new Connection(engine, [CircularLinkedModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1614,7 +1614,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModel]);
+                const connection = new Connection(engine, [CircularLinkedModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1666,7 +1666,7 @@ describe('connection.put()', () => {
                 editedModel.linked.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModel]);
+                const connection = new Connection(engine, [CircularLinkedModel]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1715,7 +1715,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelWithIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -1768,7 +1768,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelWithIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1812,7 +1812,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1880,7 +1880,7 @@ describe('connection.put()', () => {
                     editedModel.string = 'updated';
 
                     const engine = new TestStorageEngine();
-                    const connection = new Connection(engine, undefined, [CircularLinkedModelWithIndex]);
+                    const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
 
                     beforeAll(async () => {
                         engine.getModel.mockImplementation(id => {
@@ -1917,7 +1917,7 @@ describe('connection.put()', () => {
                 editedModel.linked.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -1979,7 +1979,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelWithSearchIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
                 beforeAll(() => connection.put(model));
 
@@ -2051,7 +2051,7 @@ describe('connection.put()', () => {
                 const model = CircularLinkedModelWithSearchIndexFactory();
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -2103,7 +2103,7 @@ describe('connection.put()', () => {
                 editedModel.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -2183,7 +2183,7 @@ describe('connection.put()', () => {
                     editedModel.string = 'updated';
 
                     const engine = new TestStorageEngine();
-                    const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+                    const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
                     beforeAll(async () => {
                         engine.getModel.mockImplementation(id => {
@@ -2236,7 +2236,7 @@ describe('connection.put()', () => {
                 editedModel.linked.string = 'updated';
 
                 const engine = new TestStorageEngine();
-                const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
                 beforeAll(async () => {
                     engine.getModel.mockImplementation(id => {
@@ -2323,7 +2323,7 @@ describe('connection.delete()', () => {
     describe('when the model is not registered', () => {
         const model = SimpleModelFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, []);
+        const connection = new Connection(engine, []);
 
         test('.delete() throws a ModelNotRegisteredConnectionError', async () => {
             await expect(connection.delete(model))
@@ -2337,7 +2337,7 @@ describe('connection.delete()', () => {
     describe('when a model does not exist', () => {
         const model = SimpleModelFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
 
         test('.delete() throws a ModelNotFoundStorageEngineError', async () => {
             await expect(connection.delete(model))
@@ -2351,7 +2351,7 @@ describe('connection.delete()', () => {
     describe('when a simple model exists', () => {
         const model = SimpleModelFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
 
         beforeAll(async () => {
             engine.getModel.mockResolvedValue(model);
@@ -2382,7 +2382,7 @@ describe('connection.delete()', () => {
     describe('when a one way linked model exists', () => {
         const model = LinkedModelFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [LinkedModel, SimpleModel]);
+        const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
         beforeAll(async () => {
             engine.getModel.mockResolvedValue(model);
@@ -2416,7 +2416,7 @@ describe('connection.delete()', () => {
     describe('when a model with an index exists', () => {
         const model = SimpleModelWithIndexFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [SimpleModelWithIndex]);
+        const connection = new Connection(engine, [SimpleModelWithIndex]);
 
         beforeAll(async () => {
             engine.getModel.mockResolvedValue(model);
@@ -2462,7 +2462,7 @@ describe('connection.delete()', () => {
     describe('when a model with a search index exists', () => {
         const model = SimpleModelWithSearchIndexFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [SimpleModelWithSearchIndex]);
+        const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
 
         beforeAll(async () => {
             engine.getModel.mockResolvedValue(model);
@@ -2527,7 +2527,7 @@ describe('connection.delete()', () => {
     describe('when a model with a non-required circular link exists', () => {
         const model = CircularLinkedModelFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [CircularLinkedModel]);
+        const connection = new Connection(engine, [CircularLinkedModel]);
 
         beforeAll(async () => {
             engine.getModel.mockImplementation((id) => {
@@ -2596,7 +2596,7 @@ describe('connection.delete()', () => {
     describe('when a model with a non-required circular link with a search index exists', () => {
         const model = CircularLinkedModelWithSearchIndexFactory();
         const engine = new TestStorageEngine({});
-        const connection = new Connection(engine, undefined, [CircularLinkedModelWithSearchIndex]);
+        const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
         beforeAll(async () => {
             engine.getModel.mockImplementation((id) => {
@@ -2684,7 +2684,7 @@ describe('connection.delete()', () => {
         describe('and .delete() is called without propagate', () => {
             const model = CircularRequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({});
-            const connection = new Connection(engine, undefined, [CircularRequiredLinkedModelWithSearchIndex]);
+            const connection = new Connection(engine, [CircularRequiredLinkedModelWithSearchIndex]);
 
             beforeAll(() => {
                 engine.getModel.mockImplementation((id) => {
@@ -2751,7 +2751,7 @@ describe('connection.delete()', () => {
         describe('and .delete() is called with propagate', () => {
             const model = CircularRequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({});
-            const connection = new Connection(engine, undefined, [CircularRequiredLinkedModelWithSearchIndex]);
+            const connection = new Connection(engine, [CircularRequiredLinkedModelWithSearchIndex]);
 
             beforeAll(async () => {
                 engine.getModel.mockImplementation((id) => {
@@ -2832,7 +2832,7 @@ describe('connection.delete()', () => {
         describe('and .delete() is called without propagate', () => {
             const model = RequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({});
-            const connection = new Connection(engine, undefined, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
             beforeAll(() => {
                 engine.getModel.mockImplementation((id) => {
@@ -2898,7 +2898,7 @@ describe('connection.delete()', () => {
         describe('and .delete() is called with propagate', () => {
             const model = RequiredLinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine({});
-            const connection = new Connection(engine, undefined, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [RequiredLinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
             beforeAll(async () => {
                 engine.getModel.mockImplementation((id) => {
@@ -3004,7 +3004,7 @@ describe('connection.delete()', () => {
 describe('connection.find()', () => {
     describe('when there is no index', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModelWithFullIndex]);
+        const connection = new Connection(engine, [SimpleModelWithFullIndex]);
 
         beforeAll(() => engine.getIndex.mockResolvedValue({}));
 
@@ -3023,7 +3023,7 @@ describe('connection.find()', () => {
 
     describe('when no models match the query', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModelWithFullIndex]);
+        const connection = new Connection(engine, [SimpleModelWithFullIndex]);
         const model = SimpleModelWithFullIndexFactory();
 
         beforeAll(() => engine.getIndex.mockResolvedValue({
@@ -3045,7 +3045,7 @@ describe('connection.find()', () => {
 
     describe('when some models match the query', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModelWithFullIndex]);
+        const connection = new Connection(engine, [SimpleModelWithFullIndex]);
         const model1 = SimpleModelWithFullIndexFactory();
         const model2 = SimpleModelWithFullIndexFactory();
 
@@ -3071,7 +3071,7 @@ describe('connection.find()', () => {
 
     describe('when all models match the query', () => {
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModelWithFullIndex]);
+        const connection = new Connection(engine, [SimpleModelWithFullIndex]);
         const model1 = SimpleModelWithFullIndexFactory();
         const model2 = SimpleModelWithFullIndexFactory();
 
@@ -3103,7 +3103,7 @@ describe('connection.search()', () => {
         const model = SimpleModelWithSearchIndexFactory();
         model.string = 'abc';
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
 
         beforeAll(() => {
             engine.getSearchIndex.mockResolvedValue({
@@ -3124,7 +3124,7 @@ describe('connection.search()', () => {
         const model = SimpleModelWithSearchIndexFactory();
         model.string = 'abc';
         const engine = new TestStorageEngine();
-        const connection = new Connection(engine, undefined, [SimpleModel]);
+        const connection = new Connection(engine, [SimpleModel]);
 
         beforeAll(() => {
             engine.getSearchIndex.mockResolvedValue({
@@ -3148,7 +3148,7 @@ describe('connection.transaction()', () => {
     describe('when calling put', () => {
         describe('and the transaction succeeds', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
@@ -3253,7 +3253,7 @@ describe('connection.transaction()', () => {
 
         describe('when the main model does not exist', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
@@ -3351,7 +3351,7 @@ describe('connection.transaction()', () => {
 
         describe('and the second putModel operation in the transaction fails', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
@@ -3489,7 +3489,7 @@ describe('connection.transaction()', () => {
         describe('and the second putIndex operation in the transaction fails', () => {
             const model = LinkedModelWithSearchIndexFactory();
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
                 if (id === model.id) {
@@ -3640,7 +3640,7 @@ describe('connection.transaction()', () => {
 
         describe('and the second putSearchIndex operation in the transaction fails', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
@@ -3818,7 +3818,7 @@ describe('connection.transaction()', () => {
     describe('when calling delete', () => {
         describe('and the transaction succeeds', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
@@ -3885,7 +3885,7 @@ describe('connection.transaction()', () => {
 
         describe('and the second write operation in the transaction fails', () => {
             const engine = new TestStorageEngine();
-            const connection = new Connection(engine, undefined, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
             const model = LinkedModelWithSearchIndexFactory();
             const transaction = connection.transaction();
             engine.getModel.mockImplementation(id => {
