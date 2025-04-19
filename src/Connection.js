@@ -539,13 +539,11 @@ export default class Connection {
                     })),
             )
             .flat()
-            .reduce((accumulator, {containingModel, propertyName, propertyProperty}) => ({
-                ...accumulator,
-                [containingModel]: {
-                    ...accumulator[containingModel] || {},
-                    [propertyName]: propertyProperty,
-                },
-            }), {});
+            .reduce((accumulator, {containingModel, propertyName, propertyProperty}) => {
+                accumulator[containingModel] = accumulator[containingModel] ?? {};
+                accumulator[containingModel][propertyName] = propertyProperty;
+                return accumulator;
+            }, {});
     }
 
     /**
