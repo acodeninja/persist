@@ -8,24 +8,6 @@ import SearchIndex from './data/SearchIndex.js';
 import _ from 'lodash';
 
 /**
- * Represents a transactional operation to be executed, typically queued and later committed.
- *
- * Stores the method to invoke, the arguments to apply, and tracks the result or error state
- * of the transaction once it's processed.
- *
- * @class Transaction
- */
-export class Transaction {
-    constructor(method, ...args) {
-        this.method = method;
-        this.args = args;
-        this.original = undefined;
-        this.error = undefined;
-        this.committed = false;
-    }
-}
-
-/**
  * @class Connection
  */
 export default class Connection {
@@ -434,51 +416,51 @@ export default class Connection {
      * @return {Connection}
      */
     transaction() {
-        const transactions = [];
+        const operations = [];
 
-        const engine = CreateTransactionalStorageEngine(transactions, this.#storage);
+        const engine = CreateTransactionalStorageEngine(operations, this.#storage);
 
         const transaction = new this.constructor(engine, this.#cache, Object.values(this.#models));
 
         transaction.commit = async () => {
             try {
-                for (const [index, transaction] of transactions.entries()) {
+                for (const [index, operation] of operations.entries()) {
                     try {
-                        if (transaction.method === 'putModel')
-                            transactions[index].original = await this.#storage.getModel(transaction.args[0].id).catch(() => undefined);
+                        if (operation.method === 'putModel')
+                            operations[index].original = await this.#storage.getModel(operation.args[0].id).catch(() => undefined);
 
-                        if (transaction.method === 'deleteModel')
-                            transactions[index].original = await this.#storage.getModel(transaction.args[0]);
+                        if (operation.method === 'deleteModel')
+                            operations[index].original = await this.#storage.getModel(operation.args[0]);
 
-                        if (transaction.method === 'putIndex')
-                            transactions[index].original = await this.#storage.getIndex(transaction.args[0]);
+                        if (operation.method === 'putIndex')
+                            operations[index].original = await this.#storage.getIndex(operation.args[0]);
 
-                        if (transaction.method === 'putSearchIndex')
-                            transactions[index].original = await this.#storage.getSearchIndex(transaction.args[0]);
+                        if (operation.method === 'putSearchIndex')
+                            operations[index].original = await this.#storage.getSearchIndex(operation.args[0]);
 
-                        await this.#storage[transaction.method](...transaction.args);
+                        await this.#storage[operation.method](...operation.args);
 
-                        transactions[index].committed = true;
+                        operations[index].committed = true;
                     } catch (error) {
-                        transactions[index].error = error;
+                        operations[index].error = error;
                         throw error;
                     }
                 }
             } catch (error) {
-                for (const transaction of transactions) {
-                    if (transaction.committed && transaction.original) {
-                        if (['putModel', 'deleteModel'].includes(transaction.method))
-                            await this.#storage.putModel(transaction.original);
+                for (const operation of operations) {
+                    if (operation.committed && operation.original) {
+                        if (['putModel', 'deleteModel'].includes(operation.method))
+                            await this.#storage.putModel(operation.original);
 
-                        if ('putIndex' === transaction.method)
-                            await this.#storage.putIndex(transaction.args[0], transaction.original);
+                        if ('putIndex' === operation.method)
+                            await this.#storage.putIndex(operation.args[0], operation.original);
 
-                        if ('putSearchIndex' === transaction.method)
-                            await this.#storage.putSearchIndex(transaction.args[0], transaction.original);
+                        if ('putSearchIndex' === operation.method)
+                            await this.#storage.putSearchIndex(operation.args[0], operation.original);
                     }
                 }
 
-                throw new CommitFailedTransactionError(transactions, error);
+                throw new CommitFailedTransactionError(operations, error);
             }
         };
 
@@ -632,11 +614,11 @@ class TransactionError extends Error {
 export class CommitFailedTransactionError extends TransactionError {
     /**
      *
-     * @param {Array<Transaction>} transactions
+     * @param {Array<Operation>} transactions
      * @param {Error} error
      */
     constructor(transactions, error) {
-        super('Transaction failed to commit.');
+        super('Operation failed to commit.');
         this.transactions = transactions;
         this.error = error;
     }

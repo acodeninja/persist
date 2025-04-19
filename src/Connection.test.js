@@ -3441,7 +3441,7 @@ describe('connection.transaction()', () => {
                     });
 
                     test('has an appropriate error message', () => {
-                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                        expect(error).toHaveProperty('message', 'Operation failed to commit.');
                     });
 
                     test('includes the causing error', () => {
@@ -3577,7 +3577,7 @@ describe('connection.transaction()', () => {
                     });
 
                     test('has an appropriate error message', () => {
-                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                        expect(error).toHaveProperty('message', 'Operation failed to commit.');
                     });
 
                     test('includes the causing error', () => {
@@ -3729,7 +3729,7 @@ describe('connection.transaction()', () => {
                     });
 
                     test('has an appropriate error message', () => {
-                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                        expect(error).toHaveProperty('message', 'Operation failed to commit.');
                     });
 
                     test('includes the causing error', () => {
@@ -3982,7 +3982,7 @@ describe('connection.transaction()', () => {
                     });
 
                     test('has an appropriate error message', () => {
-                        expect(error).toHaveProperty('message', 'Transaction failed to commit.');
+                        expect(error).toHaveProperty('message', 'Operation failed to commit.');
                     });
 
                     test('includes the causing error', () => {
