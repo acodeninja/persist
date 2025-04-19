@@ -199,6 +199,7 @@ class Model {
                 .filter(([_name, type]) => !type._type && !this.isModel(type) && !type._items?._type && (this.isModel(type._items) || this.isModel(type()._items)))
                 .map(([name, _type]) => `${name}.[*].id`),
             ...this.indexedProperties(),
+            'id',
         ];
     }
 
