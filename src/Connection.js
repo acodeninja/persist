@@ -452,10 +452,10 @@ export default class Connection {
                         if (['putModel', 'deleteModel'].includes(operation.method))
                             await this.#storage.putModel(operation.original);
 
-                        if ('putIndex' === operation.method)
+                        if (operation.method === 'putIndex')
                             await this.#storage.putIndex(operation.args[0], operation.original);
 
-                        if ('putSearchIndex' === operation.method)
+                        if (operation.method === 'putSearchIndex')
                             await this.#storage.putSearchIndex(operation.args[0], operation.original);
                     }
                 }
