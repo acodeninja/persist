@@ -3430,7 +3430,9 @@ describe('connection.transaction()', () => {
                         }
                     });
 
-                    await transaction.commit().catch(e => error = e);
+                    await transaction.commit().catch(e => {
+                        error = e;
+                    });
                 });
 
                 describe('the commit transaction error object', () => {
@@ -3564,7 +3566,9 @@ describe('connection.transaction()', () => {
                             throw new Error('Something went wrong');
                     });
 
-                    await transaction.commit().catch(e => error = e);
+                    await transaction.commit().catch(e => {
+                        error = e;
+                    });
                 });
 
                 describe('the commit transaction error object', () => {
@@ -3714,7 +3718,9 @@ describe('connection.transaction()', () => {
                             throw new Error('Something went wrong');
                     });
 
-                    await transaction.commit().catch(e => error = e);
+                    await transaction.commit().catch(e => {
+                        error = e;
+                    });
                 });
 
                 describe('the commit transaction error object', () => {
