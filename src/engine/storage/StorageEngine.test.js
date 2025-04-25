@@ -1,12 +1,12 @@
 import StorageEngine, {MethodNotImplementedStorageEngineError} from './StorageEngine.js';
 import {describe, expect, test} from '@jest/globals';
-import {EmptyModel} from '../../../test/fixtures/Model.js';
+import {SimpleModel} from '../../../test/fixtures/Model.js';
 
 describe('UnimplementedStorageEngine', () => {
     class UnimplementedStorageEngine extends StorageEngine {
     }
 
-    const storageEngine = new UnimplementedStorageEngine({}, [EmptyModel]);
+    const storageEngine = new UnimplementedStorageEngine({}, [SimpleModel]);
 
     describe.each([
         'getModel',
@@ -18,7 +18,7 @@ describe('UnimplementedStorageEngine', () => {
         'putSearchIndex',
     ])('when the storage engine does not implement %s', (method) => {
         test(`a ${method} is not implemented error is thrown`, async () => {
-            await expect(storageEngine[method](new EmptyModel()))
+            await expect(storageEngine[method](new SimpleModel()))
                 .rejects.toThrowError({
                     instanceOf: MethodNotImplementedStorageEngineError,
                     message: `The method ${method} is not implemented in the storage engine UnimplementedStorageEngine`,

@@ -1,9 +1,9 @@
 import {describe, expect, test} from '@jest/globals';
-import {EmptyModel} from '../fixtures/Model.js';
 import HTTPStorageEngine from '@acodeninja/persist/storage/http';
 import Persist from '@acodeninja/persist';
 import {S3Client} from '@aws-sdk/client-s3';
 import S3StorageEngine from '@acodeninja/persist/storage/s3';
+import {SimpleModel} from '../fixtures/Model.js';
 
 describe('creating models', () => {
     describe('a basic model', () => {
@@ -98,7 +98,7 @@ describe('working with data storage engines', () => {
             const connection = Persist.registerConnection(
                 connectionName,
                 s3StorageEngine,
-                [EmptyModel],
+                [SimpleModel],
             );
 
             test('allows using the connection', () => {
@@ -126,7 +126,7 @@ describe('working with data storage engines', () => {
             const connection = Persist.registerConnection(
                 connectionName,
                 httpStorageEngine,
-                [EmptyModel],
+                [SimpleModel],
             );
 
             test('allows using the connection', () => {

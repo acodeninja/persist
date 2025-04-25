@@ -1,18 +1,18 @@
+import SearchIndex, {SearchResult} from './SearchIndex.js';
 import {
-    EmptyModel,
+    SimpleModel,
     SimpleModelWithSearchIndex,
     SimpleModelWithSearchIndexFactory,
 } from '../../test/fixtures/Model.js';
-import SearchIndex, {SearchResult} from './SearchIndex.js';
 import {describe, expect, test} from '@jest/globals';
 
 describe('new SearchIndex', () => {
     describe('when a model has not search properties', () => {
-        const model = new EmptyModel();
+        const model = new SimpleModel();
         const index = {[model.id]: model.toSearchData()};
 
         test('throws NoIndexAvailableSearchIndexError', () => {
-            expect(() => new SearchIndex(EmptyModel, index)).toThrow();
+            expect(() => new SearchIndex(SimpleModel, index)).toThrow();
         });
     });
 
