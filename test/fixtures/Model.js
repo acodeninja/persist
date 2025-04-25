@@ -2,18 +2,11 @@ import Model from '../../src/data/Model.js';
 import Property from '../../src/data/Property.js';
 
 /**
- * @class EmptyModel
+ * @class SimpleModel
  * @extends Model
  */
-export class EmptyModel extends Model {
-}
-
-/**
- * @class SimpleModel
- * @extends EmptyModel
- */
-export class SimpleModel extends EmptyModel {
-    static string = Property.String;
+export class SimpleModel extends Model {
+    static string = Property.String.required;
     static number = Property.Number;
     static boolean = Property.Boolean;
     static date = Property.Date;
@@ -22,7 +15,6 @@ export class SimpleModel extends EmptyModel {
     static arrayOfBoolean = Property.Array.of(Property.Boolean);
     static arrayOfDate = Property.Array.of(Property.Date);
     static stringSlug = Property.Slug.of('string');
-    static indexProperties = () => ['string', 'date'];
 }
 
 /**
@@ -44,8 +36,9 @@ export function SimpleModelFactory() {
 
 /**
  * @class SimpleModelWithIndex
+ * @extends Model
  */
-export class SimpleModelWithIndex extends EmptyModel {
+export class SimpleModelWithIndex extends Model {
     static string = Property.String;
     static number = Property.Number;
     static boolean = Property.Boolean;
@@ -77,8 +70,9 @@ export function SimpleModelWithIndexFactory() {
 
 /**
  * @class SimpleModelWithFullIndex
+ * @extends Model
  */
-export class SimpleModelWithFullIndex extends EmptyModel {
+export class SimpleModelWithFullIndex extends Model {
     static string = Property.String;
     static number = Property.Number;
     static boolean = Property.Boolean;
@@ -120,8 +114,9 @@ export function SimpleModelWithFullIndexFactory() {
 
 /**
  * @class SimpleModelWithSearchIndex
+ * @extends Model
  */
-export class SimpleModelWithSearchIndex extends EmptyModel {
+export class SimpleModelWithSearchIndex extends Model {
     static string = Property.String;
     static number = Property.Number;
     static boolean = Property.Boolean;
@@ -149,12 +144,12 @@ export function SimpleModelWithSearchIndexFactory() {
 
 /**
  * @class LinkedModel
- * @extends EmptyModel
+ * @extends Model
  */
-export class LinkedModel extends EmptyModel {
+export class LinkedModel extends Model {
     static {
-        this.string = Property.String;
-        this.linked = SimpleModel;
+        LinkedModel.string = Property.String;
+        LinkedModel.linked = SimpleModel;
     }
 }
 
@@ -172,9 +167,9 @@ export function LinkedModelFactory() {
 
 /**
  * @class LinkedModelWithIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class LinkedModelWithIndex extends EmptyModel {
+export class LinkedModelWithIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = () => SimpleModelWithIndex;
@@ -196,9 +191,9 @@ export function LinkedModelWithIndexFactory() {
 
 /**
  * @class LinkedManyModelWithIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class LinkedManyModelWithIndex extends EmptyModel {
+export class LinkedManyModelWithIndex extends Model {
     static string = Property.String;
     static linked = () => Property.Array.of(SimpleModelWithIndex);
     static indexedProperties = () => ['string', 'linked.[*].string'];
@@ -217,10 +212,33 @@ export function LinkedManyModelWithIndexFactory() {
 }
 
 /**
- * @class LinkedModelWithSearchIndex
- * @extends EmptyModel
+ * @class LinkedManyModelWithSearchIndex
+ * @extends Model
  */
-export class LinkedModelWithSearchIndex extends EmptyModel {
+export class LinkedManyModelWithSearchIndex extends Model {
+    static string = Property.String;
+    static linked = () => Property.Array.of(SimpleModelWithSearchIndex);
+    static indexedProperties = () => ['string', 'linked.[*].string'];
+    static searchProperties = () => ['string', 'linked.[*].string'];
+}
+
+/**
+ * Factory for a LinkedManyModelWithSearchIndex
+ * @return {LinkedManyModelWithSearchIndex}
+ */
+export function LinkedManyModelWithSearchIndexFactory() {
+    const linked = SimpleModelWithSearchIndexFactory();
+    return new LinkedManyModelWithSearchIndex({
+        string: 'string',
+        linked: [linked],
+    });
+}
+
+/**
+ * @class LinkedModelWithSearchIndex
+ * @extends Model
+ */
+export class LinkedModelWithSearchIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = () => SimpleModelWithSearchIndex;
@@ -243,9 +261,9 @@ export function LinkedModelWithSearchIndexFactory() {
 
 /**
  * @class CircularLinkedModel
- * @extends EmptyModel
+ * @extends Model
  */
-export class CircularLinkedModel extends EmptyModel {
+export class CircularLinkedModel extends Model {
     static {
         this.string = Property.String;
         this.linked = () => CircularLinkedModel;
@@ -266,9 +284,9 @@ export function CircularLinkedModelFactory() {
 
 /**
  * @class CircularManyLinkedModel
- * @extends EmptyModel
+ * @extends Model
  */
-export class CircularManyLinkedModel extends EmptyModel {
+export class CircularManyLinkedModel extends Model {
     static {
         this.string = Property.String;
         this.linked = Property.Array.of(CircularManyLinkedModel);
@@ -289,9 +307,9 @@ export function CircularManyLinkedModelFactory() {
 
 /**
  * @class CircularLinkedModelWithIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class CircularLinkedModelWithIndex extends EmptyModel {
+export class CircularLinkedModelWithIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = () => CircularLinkedModelWithIndex;
@@ -313,9 +331,9 @@ export function CircularLinkedModelWithIndexFactory() {
 
 /**
  * @class CircularLinkedModelWithSearchIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class CircularLinkedModelWithSearchIndex extends EmptyModel {
+export class CircularLinkedModelWithSearchIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = () => CircularLinkedModelWithSearchIndex;
@@ -338,9 +356,9 @@ export function CircularLinkedModelWithSearchIndexFactory() {
 
 /**
  * @class CircularRequiredLinkedModelWithSearchIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class CircularRequiredLinkedModelWithSearchIndex extends EmptyModel {
+export class CircularRequiredLinkedModelWithSearchIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = () => CircularRequiredLinkedModelWithSearchIndex.required;
@@ -363,9 +381,9 @@ export function CircularRequiredLinkedModelWithSearchIndexFactory() {
 
 /**
  * @class RequiredLinkedModelWithSearchIndex
- * @extends EmptyModel
+ * @extends Model
  */
-export class RequiredLinkedModelWithSearchIndex extends EmptyModel {
+export class RequiredLinkedModelWithSearchIndex extends Model {
     static {
         this.string = Property.String;
         this.linked = SimpleModelWithSearchIndex.required;
