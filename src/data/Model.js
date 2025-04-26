@@ -309,37 +309,39 @@ class Model {
      */
     static get properties() {
         const props = {};
+        const chain = [];
 
-        // Traverse the prototype chain
         let current = this;
         while (current !== Function.prototype) {
-            // Get all property names of the current class
-            Object.getOwnPropertyNames(current)
-                .filter(key =>
-                    ![
-                        'properties',
-                        'required',
-                        'length',
-                        'prototype',
-                        'name',
-                        'withName',
-                        'isModel',
-                        'isDryModel',
+            chain.push(current);
+            current = Object.getPrototypeOf(current);
+        }
+
+        for (const item of chain) {
+            for (const property of Object.getOwnPropertyNames(item)) {
+                if (
+                    [
+                        '_required',
                         'fromData',
-                        'searchProperties',
                         'indexedProperties',
                         'indexedPropertiesResolved',
-                        '_required',
-                    ].includes(key),
-                )
-                .forEach(key => {
-                    // Only set the property if it hasn't been defined higher in the chain
-                    if (!(key in props)) {
-                        props[key] = current[key];
-                    }
-                });
+                        'isDryModel',
+                        'isModel',
+                        'length',
+                        'name',
+                        'properties',
+                        'prototype',
+                        'required',
+                        'searchProperties',
+                        'toString',
+                        'withName',
+                    ].includes(property)
+                ) continue;
 
-            current = Object.getPrototypeOf(current);
+                if (Object.keys(props).includes(property)) continue;
+
+                props[property] = item[property];
+            }
         }
 
         return Object.assign(this, props);
