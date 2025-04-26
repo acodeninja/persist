@@ -163,7 +163,7 @@ class Model {
             static _required = true;
         }
 
-        Object.defineProperty(Required, 'name', {value: `${this.toString()}`});
+        Object.defineProperty(Required, 'name', {value: this.name});
 
         return Required;
     }
@@ -192,11 +192,17 @@ class Model {
      */
     static indexedPropertiesResolved() {
         return [
-            ...Object.entries(this)
-                .filter(([_name, type]) => !type._type && (this.isModel(type) || this.isModel(type())))
+            ...Object.entries(this.properties)
+                .filter(([name, type]) => !['indexedProperties', 'searchProperties'].includes(name) && !type._type && (this.isModel(type) || (typeof type === 'function' && this.isModel(type()))))
                 .map(([name, _type]) => `${name}.id`),
-            ...Object.entries(this)
-                .filter(([_name, type]) => !type._type && !this.isModel(type) && !type._items?._type && (this.isModel(type._items) || this.isModel(type()._items)))
+            ...Object.entries(this.properties)
+                .filter(([_name, type]) => {
+                    return !Model.isModel(type) && (
+                        (type._type === 'array' && this.isModel(type._items))
+                        ||
+                        (!type._type && typeof type === 'function' && this.isModel(type()._items))
+                    );
+                })
                 .map(([name, _type]) => `${name}.[*].id`),
             ...this.indexedProperties(),
             'id',
@@ -294,6 +300,49 @@ class Model {
      */
     static withName(name) {
         Object.defineProperty(this, 'name', {value: name});
+    }
+
+    /**
+     * Discover model properties all the way up the prototype chain.
+     *
+     * @return {Model}
+     */
+    static get properties() {
+        const props = {};
+
+        // Traverse the prototype chain
+        let current = this;
+        while (current !== Function.prototype) {
+            // Get all property names of the current class
+            Object.getOwnPropertyNames(current)
+                .filter(key =>
+                    ![
+                        'properties',
+                        'required',
+                        'length',
+                        'prototype',
+                        'name',
+                        'withName',
+                        'isModel',
+                        'isDryModel',
+                        'fromData',
+                        'searchProperties',
+                        'indexedProperties',
+                        'indexedPropertiesResolved',
+                        '_required',
+                    ].includes(key),
+                )
+                .forEach(key => {
+                    // Only set the property if it hasn't been defined higher in the chain
+                    if (!(key in props)) {
+                        props[key] = current[key];
+                    }
+                });
+
+            current = Object.getPrototypeOf(current);
+        }
+
+        return Object.assign(this, props);
     }
 }
 

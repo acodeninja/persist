@@ -149,7 +149,7 @@ describe('validating a model', () => {
         });
 
         test('validation error includes a list of errors', () => {
-            expect(error).toHaveProperty('errors', [{
+            expect(error.errors).toStrictEqual([{
                 instancePath: '',
                 keyword: 'required',
                 message: 'must have required property \'requiredString\'',

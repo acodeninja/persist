@@ -132,7 +132,9 @@ export class ModelNotFoundStorageEngineError extends StorageEngineError {
 export class DeleteHasUnintendedConsequencesStorageEngineError extends StorageEngineError {
     /**
      * @param {string} modelId
-     * @param {object} consequences
+     * @param {Object} consequences
+     * @param {Array<String>?} consequences.willDelete
+     * @param {Array<String>?} consequences.willUpdate
      */
     constructor(modelId, consequences) {
         super(`Deleting ${modelId} has unintended consequences`);

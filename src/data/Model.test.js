@@ -30,15 +30,38 @@ describe('new Model', () => {
 
 describe('model.toData()', () => {
     describe.each([
-        [SimpleModel, SimpleModelFactory],
-        [CircularLinkedModel, CircularLinkedModelFactory],
-        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory],
-        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory],
-    ])('with a %s', (modelConstructor, modelFactory) => {
+        [SimpleModel, SimpleModelFactory, {
+            id: expect.stringMatching(/^SimpleModel\/[A-Z0-9]+/),
+            arrayOfBoolean: [true],
+            arrayOfDate: [expect.stringMatching(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+/)],
+            arrayOfNumber: [1.4],
+            arrayOfString: ['string'],
+            boolean: true,
+            date: expect.stringMatching(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+/),
+            number: 1.4,
+            string: 'string',
+            stringSlug: 'string',
+        }],
+        [CircularLinkedModel, CircularLinkedModelFactory, {
+            id: expect.stringMatching(/^CircularLinkedModel\/[A-Z0-9]+/),
+            string: 'string',
+            linked: {id: expect.stringMatching(/^CircularLinkedModel\/[A-Z0-9]+/)},
+        }],
+        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory, {
+            id: expect.stringMatching(/^LinkedModelWithSearchIndex\/[A-Z0-9]+/),
+            string: 'string',
+            linked: {id: expect.stringMatching(/^SimpleModelWithSearchIndex\/[A-Z0-9]+/)},
+        }],
+        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory, {
+            id: expect.stringMatching(/^LinkedManyModelWithIndex\/[A-Z0-9]+/),
+            string: 'string',
+            linked: [{id: expect.stringMatching(/^SimpleModelWithIndex\/[A-Z0-9]+/)}],
+        }],
+    ])('with a %s', (modelConstructor, modelFactory, expected) => {
         const model = modelFactory();
 
         test('returns an object representation of the model', () => {
-            expect(model.toData()).toStrictEqual(expect.objectContaining({string: 'string'}));
+            expect(model.toData()).toStrictEqual(expected);
         });
     });
 });

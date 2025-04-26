@@ -30,7 +30,7 @@ export default class Connection {
      */
     constructor(storage, models) {
         this.#storage = storage;
-        this.#models = Object.fromEntries((models ?? []).map(model => [model.name, model]));
+        this.#models = this.#resolveModels(Object.fromEntries((models ?? []).map(model => [model.name, model])));
 
         if (!this.#storage) throw new MissingArgumentsConnectionError('No storage engine provided');
     }
@@ -58,11 +58,10 @@ export default class Connection {
      *
      * and fetches all data for a model.
      * @param {Object} dryModel
+     * @param {Map?} modelCache
      * @return {Promise<Model>}
      */
-    async hydrate(dryModel) {
-        const hydratedModels = {};
-
+    async hydrate(dryModel, modelCache = new Map()) {
         /**
          * Recursively hydrates a single model and its nested properties.
          *
@@ -70,7 +69,7 @@ export default class Connection {
          * @returns {Promise<Model>} The hydrated model instance.
          */
         const hydrateModel = async (modelToProcess) => {
-            hydratedModels[modelToProcess.id] = modelToProcess;
+            modelCache.set(modelToProcess.id, modelToProcess);
 
             for (const [name, property] of Object.entries(modelToProcess)) {
                 if (Model.isDryModel(property)) {
@@ -82,6 +81,8 @@ export default class Connection {
                 }
             }
 
+            modelCache.set(modelToProcess.id, modelToProcess);
+
             return modelToProcess;
         };
 
@@ -92,14 +93,12 @@ export default class Connection {
          * @returns {Promise<Model>} The fully hydrated sub-model.
          */
         const hydrateSubModel = async (property) => {
-            if (hydratedModels[property.id]) {
-                return hydratedModels[property.id];
-            }
+            if (modelCache.has(property.id)) return modelCache.get(property.id);
 
             const subModel = await this.get(property.id);
 
             const hydratedSubModel = await hydrateModel(subModel);
-            hydratedModels[property.id] = hydratedSubModel;
+            modelCache.set(property.id, hydratedSubModel);
             return hydratedSubModel;
         };
 
@@ -111,20 +110,18 @@ export default class Connection {
          */
         const hydrateModelList = async (property) => {
             const newModelList = await Promise.all(property.map(subModel => {
-                if (hydratedModels[subModel.id]) {
-                    return hydratedModels[subModel.id];
-                }
+                if (modelCache.has(subModel.id)) return modelCache.get(subModel.id);
 
                 return this.get(subModel.id);
             }));
 
             return Promise.all(newModelList.map(async subModel => {
-                if (hydratedModels[subModel.id]) {
-                    return hydratedModels[subModel.id];
-                }
+                if (modelCache.has(subModel.id)) return modelCache.get(subModel.id);
 
                 const hydratedSubModel = await hydrateModel(subModel);
-                hydratedModels[hydratedSubModel.id] = hydratedSubModel;
+
+                modelCache.set(hydratedSubModel.id, hydratedSubModel);
+
                 return hydratedSubModel;
             }));
         };
@@ -153,7 +150,7 @@ export default class Connection {
 
             processedModels.push(modelToProcess.id);
 
-            if (!Object.keys(this.#models).includes(modelToProcess.constructor.name))
+            if (!this.#models.has(modelToProcess.constructor.name))
                 throw new ModelNotRegisteredConnectionError(modelToProcess, this.#storage);
 
             modelToProcess.validate();
@@ -197,7 +194,7 @@ export default class Connection {
         await Promise.all([
             Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData()))),
             Promise.all(Object.entries(modelsToReindex).map(async ([constructorName, models]) => {
-                const modelConstructor = this.#models[constructorName];
+                const modelConstructor = this.#models.get(constructorName);
                 const index = await this.#storage.getIndex(modelConstructor);
 
                 await this.#storage.putIndex(modelConstructor, {
@@ -206,7 +203,7 @@ export default class Connection {
                 });
             })),
             Promise.all(Object.entries(modelsToReindexSearch).map(async ([constructorName, models]) => {
-                const modelConstructor = this.#models[constructorName];
+                const modelConstructor = this.#models.get(constructorName);
                 const index = await this.#storage.getSearchIndex(modelConstructor);
 
                 await this.#storage.putSearchIndex(modelConstructor, {
@@ -219,158 +216,148 @@ export default class Connection {
 
     /**
      * Delete a model and update indexes that reference it
-     * @param {Model} model
-     * @param {Array<string>} propagateTo - List of model ids that are expected to be deleted
+     * @param {Model} subject
+     * @param {Array<string>} propagateTo - List of model ids that are expected to be deleted or updated.
      * @throws {ModelNotRegisteredConnectionError}
      * @throws {ModelNotFoundStorageEngineError}
      */
-    async delete(model, propagateTo = []) {
-        const processedModels = [];
-        const modelsToDelete = [];
-        const modelsToPut = [];
-        const indexCache = {};
-        const indexActions = {};
-        const searchIndexCache = {};
-        const searchIndexActions = {};
-        const modelCache = {};
+    async delete(subject, propagateTo = []) {
+        const modelCache = new Map();
+        const modelsToCheck = this.#findLinkedModelClasses(subject);
+        const modelsToDelete = new Set([subject.id]);
+        const modelsToUpdate = new Set();
+        const indexesToUpdate = new Set();
+        const searchIndexesToUpdate = new Set();
 
-        propagateTo.push(model.id);
+        subject = await this.hydrate(subject, modelCache);
 
-        /**
-         * Process a model for deletion
-         * @param {Model} modelToProcess
-         * @return {Promise<void>}
-         */
-        const processModel = async (modelToProcess) => {
-            if (processedModels.includes(modelToProcess.id)) return;
+        if (!propagateTo.includes(subject.id)) {
+            propagateTo.push(subject.id);
+        }
 
-            processedModels.push(modelToProcess.id);
+        // Populate index and search index cache.
+        const [indexCache, searchIndexCache] = await this.#getModelIndexes(modelsToCheck);
 
-            const modelsToProcess = [];
-            if (!Object.keys(this.#models).includes(modelToProcess.constructor.name))
-                throw new ModelNotRegisteredConnectionError(modelToProcess, this.#storage);
+        // Add model to be removed to index caches.
+        if (!indexCache.has(subject.constructor.name)) {
+            indexCache.set(subject.constructor.name, (await this.#storage.getIndex(subject.constructor)));
+        }
 
-            const currentModel = modelCache[modelToProcess.id] ?? await this.get(modelToProcess.id);
-            modelCache[currentModel.id] = currentModel;
+        if (!searchIndexCache.has(subject.constructor.name)) {
+            searchIndexCache.set(subject.constructor.name, (await this.#storage.getSearchIndex(subject.constructor)));
+        }
 
-            if (!modelsToDelete.includes(currentModel.id)) modelsToDelete.push(currentModel.id);
+        // Populate model cache
+        for (const [[modelName, propertyName, type, direction], _modelConstructor] of modelsToCheck) {
+            const query = {};
 
-            const modelToProcessConstructor = this.#getModelConstructorFromId(modelToProcess.id);
+            if (direction === 'up') {
+                if (type === 'one') {
+                    query[propertyName] = {id: {$is: subject.id}};
+                }
 
-            indexActions[modelToProcessConstructor.name] = indexActions[modelToProcessConstructor.name] ?? [];
-            searchIndexActions[modelToProcessConstructor.name] = searchIndexActions[modelToProcessConstructor.name] ?? [];
-
-            indexActions[modelToProcessConstructor.name].push(['delete', modelToProcess]);
-
-            if (currentModel.constructor.searchProperties().length) {
-                searchIndexActions[modelToProcessConstructor.name].push(['delete', modelToProcess]);
+                if (type === 'many') {
+                    query[propertyName] = {
+                        $contains: {
+                            id: {$is: subject.id},
+                        },
+                    };
+                }
             }
 
-            const linkedModels = await this.#getInstancesLinkedTo(modelToProcess, indexCache);
-            const links = this.#getLinksFor(modelToProcess.constructor);
-            Object.values(Object.fromEntries(await Promise.all(
-                Object.entries(linkedModels)
-                    .map(async ([modelConstructor, updatableModels]) => [
-                        modelConstructor,
-                        await Promise.all(updatableModels.map(async m => {
-                            const upToDateModel = modelCache[m.id] ?? await this.get(m.id);
-                            modelCache[upToDateModel.id] = upToDateModel;
-                            return upToDateModel;
-                        })),
-                    ]),
-            ))).flat(1)
-                .forEach(m =>
-                    Object.entries(links[m.constructor.name])
-                        .forEach(([linkName, modelConstructor]) => {
-                            if ((
-                                typeof modelConstructor[linkName] === 'function' &&
-                                !/^class/.test(Function.prototype.toString.call(modelConstructor[linkName])) &&
-                                !Model.isModel(modelConstructor[linkName]) ?
-                                    modelConstructor[linkName]() : modelConstructor
-                            )._required) {
-                                if (!modelsToDelete.includes(m.id)) modelsToDelete.push(m.id);
-                                modelsToProcess.push(m);
-                            } else {
-                                const foundModelConstructor = this.#getModelConstructorFromId(m.id);
-                                m[linkName] = undefined;
-                                modelsToPut.push(m);
+            const foundModels =
+                _.isEqual(query, {}) ?
+                    (
+                        Array.isArray(subject[propertyName]) ?
+                            subject[propertyName] : [subject[propertyName]]
+                    ) : new FindIndex(this.#models.get(modelName), indexCache.get(modelName)).query(query);
 
-                                indexActions[foundModelConstructor.name] = indexActions[foundModelConstructor.name] ?? [];
-                                indexActions[foundModelConstructor.name].push(['reindex', m]);
-
-                                if (m.constructor.searchProperties().length) {
-                                    searchIndexActions[foundModelConstructor.name] = searchIndexActions[foundModelConstructor.name] ?? [];
-                                    searchIndexActions[foundModelConstructor.name].push(['reindex', m]);
-                                }
-                            }
-                        }),
-                );
-
-            for (const modelToBeProcessed of modelsToProcess) {
-                await processModel(modelToBeProcessed);
+            for (const foundModel of foundModels) {
+                if (!modelCache.has(foundModel.id)) {
+                    modelCache.set(foundModel.id, await this.hydrate(foundModel, modelCache));
+                }
             }
-        };
 
-        await processModel(model);
+            // for deletes, update models that link to the subject
+            if (direction === 'up') {
+                if (type === 'one') {
+                    for (const foundModel of foundModels) {
+                        const cachedModel = modelCache.get(foundModel.id);
 
-        const unrequestedDeletions = modelsToDelete.filter(m => !propagateTo.includes(m));
+                        if (foundModel.constructor[propertyName]._required) {
+                            modelsToDelete.add(foundModel.id);
+                            continue;
+                        }
 
-        if (unrequestedDeletions.length) {
-            throw new DeleteHasUnintendedConsequencesStorageEngineError(model.id, {
-                willDelete: unrequestedDeletions,
+                        cachedModel[propertyName] = undefined;
+                        modelCache.set(foundModel.id, cachedModel);
+                        modelsToUpdate.add(foundModel.id);
+                    }
+                }
+
+                if (type === 'many') {
+                    for (const foundModel of foundModels) {
+                        const cachedModel = modelCache.get(foundModel.id);
+
+                        cachedModel[propertyName] = cachedModel[propertyName].filter(m => m.id !== subject.id);
+                        modelCache.set(foundModel.id, cachedModel);
+                        modelsToUpdate.add(foundModel.id);
+                    }
+                }
+            }
+        }
+
+        const unrequestedDeletions = [...modelsToDelete].filter(id => !propagateTo.includes(id));
+        const unrequestedUpdates = [...modelsToUpdate].filter(id => !propagateTo.includes(id));
+
+        if (unrequestedDeletions.length || unrequestedUpdates.length) {
+            throw new DeleteHasUnintendedConsequencesStorageEngineError(subject.id, {
+                willDelete: unrequestedDeletions.map(id => modelCache.get(id)),
+                willUpdate: unrequestedUpdates.map(id => modelCache.get(id)),
             });
         }
 
+        for (const modelId of [...modelsToDelete, ...modelsToUpdate]) {
+            const modelConstructorName = modelId.split('/')[0];
+            indexesToUpdate.add(modelConstructorName);
+            if (this.#models.get(modelConstructorName)?.searchProperties().length) {
+                searchIndexesToUpdate.add(modelConstructorName);
+            }
+        }
+
+        for (const indexName of searchIndexesToUpdate) {
+            const index = searchIndexCache.get(indexName);
+
+            for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
+                index[model] = modelCache.get(model).toSearchData();
+            }
+
+            for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
+                delete index[model];
+            }
+
+            searchIndexCache.set(indexName, index);
+        }
+
+        for (const indexName of indexesToUpdate) {
+            const index = indexCache.get(indexName);
+
+            for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
+                index[model] = modelCache.get(model).toIndexData();
+            }
+
+            for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
+                delete index[model];
+            }
+
+            indexCache.set(indexName, index);
+        }
+
         await Promise.all([
-            Promise.all(Object.entries(indexActions).map(async ([constructorName, actions]) => {
-                const modelConstructor = this.#models[constructorName];
-                indexCache[constructorName] = indexCache[constructorName] ?? await this.#storage.getIndex(modelConstructor);
-
-                actions.forEach(([action, actionModel]) => {
-                    if (action === 'delete') {
-                        indexCache[constructorName] = _.omit(indexCache[constructorName], [actionModel.id]);
-                    }
-                    if (action === 'reindex') {
-                        indexCache[constructorName] = {
-                            ...indexCache[constructorName],
-                            [actionModel.id]: actionModel.toIndexData(),
-                        };
-                    }
-                });
-            })),
-            Promise.all(Object.entries(searchIndexActions).map(async ([constructorName, actions]) => {
-                const modelConstructor = this.#models[constructorName];
-                searchIndexCache[constructorName] = searchIndexCache[constructorName] ?? await this.#storage.getSearchIndex(modelConstructor);
-
-                actions.forEach(([action, actionModel]) => {
-                    if (action === 'delete') {
-                        searchIndexCache[constructorName] = _.omit(searchIndexCache[constructorName], [actionModel.id]);
-                    }
-                    if (action === 'reindex') {
-                        searchIndexCache[constructorName] = {
-                            ...searchIndexCache[constructorName],
-                            [actionModel.id]: actionModel.toSearchData(),
-                        };
-                    }
-                });
-            })),
-        ]);
-
-        await Promise.all([
-            Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData()))),
-            Promise.all(modelsToDelete.map(m => this.#storage.deleteModel(m))),
-            Promise.all(
-                Object.entries(indexCache)
-                    .map(([constructorName, index]) => this.#storage.putIndex(this.#models[constructorName], index)),
-            ),
-            Promise.all(
-                Object.entries(searchIndexCache)
-                    .map(([constructorName, index]) =>
-                        this.#models[constructorName].searchProperties().length > 0 ?
-                            this.#storage.putSearchIndex(this.#models[constructorName], index) :
-                            Promise.resolve(),
-                    ),
-            ),
+            Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(modelCache.get(id).toData()))),
+            Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
+            Promise.all([...indexesToUpdate].map(index => this.#storage.putIndex(this.#models.get(index), indexCache.get(index)))),
+            Promise.all([...searchIndexesToUpdate].map(index => this.#storage.putSearchIndex(this.#models.get(index), searchIndexCache.get(index)))),
         ]);
     }
 
@@ -418,7 +405,7 @@ export default class Connection {
 
         const engine = CreateTransactionalStorageEngine(operations, this.#storage);
 
-        const transaction = new this.constructor(engine, Object.values(this.#models));
+        const transaction = new this.constructor(engine, this.#models.values());
 
         transaction.commit = async () => {
             try {
@@ -473,7 +460,7 @@ export default class Connection {
      */
     #getModelConstructorFromId(modelId) {
         const modelName = modelId.split('/')[0];
-        const modelConstructor = this.#models[modelName];
+        const modelConstructor = this.#models.get(modelName);
 
         if (!modelConstructor) throw new ModelNotRegisteredConnectionError(modelName, this.#storage);
 
@@ -481,79 +468,146 @@ export default class Connection {
     }
 
     /**
-     * Get model classes that are directly linked to the given model in either direction
-     * @param {Model.constructor} model
-     * @return {Record<string, Record<string, Model.constructor>>}
+     * Retrieves and caches index and search index information for specified models.
+     *
+     * @private
+     * @async
+     * @param {Array<Array<string, *>>} modelsToCheck - An array of arrays where the first element
+     *   of each inner array is the model name to retrieve indexes for
+     * @returns {Promise<[Map<string, *>, Map<string, *>]>} A promise that resolves to a tuple containing:
+     *   - indexCache: A Map of model names to their corresponding indexes
+     *   - searchIndexCache: A Map of model names to their corresponding search indexes
+     *
+     * @description
+     * This method populates two caches for the specified models:
+     * 1. A regular index cache retrieved via storage.getIndex()
+     * 2. A search index cache retrieved via storage.getSearchIndex()
+     *
+     * If a model's indexes are already cached, they won't be fetched again.
+     * The method uses the internal storage interface to retrieve the indexes.
      */
-    #getLinksFor(model) {
-        return Object.fromEntries(
-            Object.entries(this.#getAllModelLinks())
-                .filter(([modelName, links]) =>
-                    model.name === modelName ||
-                    Object.values(links).some((link) => link.name === model.name),
-                ),
-        );
+    async #getModelIndexes(modelsToCheck) {
+        const indexCache = new Map();
+        const searchIndexCache = new Map();
+
+        for (const [[modelName]] of modelsToCheck) {
+            if (!indexCache.has(modelName)) {
+                indexCache.set(modelName, await this.#storage.getIndex(this.#models.get(modelName)));
+            }
+
+            if (!searchIndexCache.has(modelName)) {
+                searchIndexCache.set(modelName, await this.#storage.getSearchIndex(this.#models.get(modelName)));
+            }
+        }
+
+        return [indexCache, searchIndexCache];
     }
 
     /**
-     * Get all model links
-     * @return {Record<string, Record<string, Model.constructor>>}
+     * Resolves model properties that are factory functions to their class values.
+     *
+     * @private
+     * @param {Object<string, Function>} models - An object mapping model names to model constructor functions
+     * @returns {Map<string, Function>} A map of model names to model constructors with all factory
+     *   function properties class to their bare model instances
+     *
+     * @description
+     * This method processes each property of each model constructor to resolve any factory functions.
+     * It skips:
+     * - Special properties like 'indexedProperties', 'searchProperties', and '_required'
+     * - Properties that are already bare model instances (have a prototype inheriting from Model)
+     * - Properties with a defined '_type' (basic types)
+     *
+     * For all other properties (assumed to be factory functions), it calls the function to get
+     * the class value and updates the model constructor.
      */
-    #getAllModelLinks() {
-        return Object.entries(this.#models)
-            .map(([registeredModelName, registeredModelClass]) =>
-                Object.entries(registeredModelClass)
-                    .map(([propertyName, propertyProperty]) => [
-                        registeredModelName,
-                        propertyName,
-                        typeof propertyProperty === 'function' &&
-                        !/^class/.test(Function.prototype.toString.call(propertyProperty)) &&
-                        !Model.isModel(propertyProperty) ?
-                            propertyProperty() : propertyProperty,
-                    ])
-                    .filter(([_m, _p, type]) => Model.isModel(type))
-                    .map(([containingModel, propertyName, propertyProperty]) => ({
-                        containingModel,
-                        propertyName,
-                        propertyProperty,
-                    })),
-            )
-            .flat()
-            .reduce((accumulator, {containingModel, propertyName, propertyProperty}) => {
-                accumulator[containingModel] = accumulator[containingModel] ?? {};
-                accumulator[containingModel][propertyName] = propertyProperty;
-                return accumulator;
-            }, {});
+    #resolveModels(models) {
+        const resolvedToBareModels = new Map();
+
+        for (const [modelName, modelConstructor] of Object.entries(models)) {
+            for (const [propertyName, propertyType] of Object.entries(modelConstructor)) {
+                // The property is a builtin
+                if ([
+                    'indexedProperties',
+                    'searchProperties',
+                    '_required',
+                ].includes(propertyName)) {
+                    continue;
+                }
+
+                // The property is a bare model
+                if (propertyType.prototype instanceof Model) {
+                    continue;
+                }
+
+                // The property is a basic type
+                if (propertyType._type) {
+                    continue;
+                }
+
+                modelConstructor[propertyName] = propertyType();
+            }
+
+            resolvedToBareModels.set(modelName, modelConstructor);
+        }
+
+        return resolvedToBareModels;
     }
 
     /**
-     * Get model instance that are directly linked to the given model in either direction
-     * @param {Model} model
-     * @param {object} cache
-     * @return {Record<string, Record<string, Model>>}
+     * Finds all model classes that are linked to the specified subject model.
+     *
+     * @private
+     * @param {Object} subject - The subject model instance to find linked model classes for.
+     * @param {string} subject.id - The ID of the subject model, used to identify its constructor.
+     *
+     * @returns {Map<Array<string|'one'|'many'|'up'|'down'>, Function>} A map where:
+     *   - Keys are arrays with the format [modelName, propertyName, cardinality, direction]
+     *     - modelName: The name of the linked model class
+     *     - propertyName: The property name where the link is defined
+     *     - cardinality: Either 'one' (one-to-one) or 'many' (one-to-many)
+     *     - direction: 'down' for links defined in the subject model pointing to other models
+     *                  'up' for links defined in other models pointing to the subject
+     *   - Values are the model constructor functions for the linked classes
+     *
+     * @description
+     * This method identifies four types of relationships:
+     * 1. One-to-one links from subject to other models ('one', 'down')
+     * 2. One-to-many links from subject to other models ('many', 'down')
+     * 3. One-to-one links from other models to subject ('one', 'up')
+     * 4. One-to-many links from other models to subject ('many', 'up')
      */
-    async #getInstancesLinkedTo(model, cache) {
-        return Object.fromEntries(
-            Object.entries(
-                await Promise.all(
-                    Object.entries(this.#getLinksFor(model.constructor))
-                        .map(([name, _index]) =>
-                            cache[name] ? Promise.resolve([name, Object.values(cache[name])]) :
-                                this.#storage.getIndex(this.#models[name])
-                                    .then(i => {
-                                        cache[name] = i;
-                                        return [name, Object.values(i)];
-                                    }),
-                        ),
-                ).then(Object.fromEntries),
-            ).map(([name, index]) => [
-                name,
-                index.map(item => Object.fromEntries(
-                    Object.entries(item)
-                        .filter(([propertyName, property]) => propertyName === 'id' || property?.id === model.id),
-                )).filter(item => Object.keys(item).length > 1),
-            ]),
-        );
+    #findLinkedModelClasses(subject) {
+        const subjectModelConstructor = this.#getModelConstructorFromId(subject.id);
+        const modelsThatLinkToThisSubject = new Map();
+
+        for (const [propertyName, propertyType] of Object.entries(subjectModelConstructor)) {
+            // The model is a one to one link
+            if (propertyType.prototype instanceof Model) {
+                modelsThatLinkToThisSubject.set([propertyType.name, propertyName, 'one', 'down'], propertyType);
+            }
+            // The model is a one to many link
+
+            if (propertyType._items?.prototype instanceof Model) {
+                modelsThatLinkToThisSubject.set([propertyType._items.name, propertyName, 'many', 'down'], propertyType);
+            }
+        }
+
+        for (const [modelName, modelConstructor] of this.#models) {
+            for (const [propertyName, propertyType] of Object.entries(modelConstructor.properties)) {
+                // The model is a one to one link
+                if (propertyType === subjectModelConstructor || propertyType.prototype instanceof subjectModelConstructor) {
+                    modelsThatLinkToThisSubject.set([modelName, propertyName, 'one', 'up'], propertyType);
+                }
+
+                // The model is a one to many link
+                if (propertyType._items === subjectModelConstructor || propertyType._items?.prototype instanceof subjectModelConstructor) {
+                    modelsThatLinkToThisSubject.set([modelName, propertyName, 'many', 'up'], propertyType);
+                }
+            }
+        }
+
+        return modelsThatLinkToThisSubject;
     }
 }
 
