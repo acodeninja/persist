@@ -151,6 +151,8 @@ class Model {
      * @static
      */
     static get required() {
+        const ThisModel = this;
+
         /**
          * A subclass of the current model with the `_required` flag set to `true`.
          * Used to indicate that the property is required during validation or schema generation.
@@ -159,11 +161,11 @@ class Model {
          * @extends {Model}
          * @private
          */
-        class Required extends this {
+        class Required extends ThisModel {
             static _required = true;
         }
 
-        Object.defineProperty(Required, 'name', {value: this.name});
+        Object.defineProperty(Required, 'name', {value: ThisModel.name});
 
         return Required;
     }

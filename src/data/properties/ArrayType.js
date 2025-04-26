@@ -51,12 +51,14 @@ class ArrayType {
              * const requiredArrayOfStrings = ArrayType.of(StringType).required;
              */
             static get required() {
+                const ThisType = this;
+
                 /**
                  * @class RequiredArrayOf
                  * @extends ArrayOf
                  * Represents a required array of a specific type.
                  */
-                class Required extends this {
+                class Required extends ThisType {
                     /** @type {boolean} Indicates that the array is required */
                     static _required = true;
 
@@ -70,7 +72,7 @@ class ArrayType {
                     }
                 }
 
-                Object.defineProperty(Required, 'name', {value: `Required${this.toString()}`});
+                Object.defineProperty(Required, 'name', {value: `Required${ThisType.name}`});
 
                 return Required;
             }

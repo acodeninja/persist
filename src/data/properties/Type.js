@@ -53,6 +53,8 @@ class Type {
      * @returns {Type} A subclass of the current type with `_required` set to `true`.
      */
     static get required() {
+        const ThisType = this;
+
         /**
          * A subclass of the current type with the `_required` flag set to `true`.
          * Used to indicate that the property is required during validation or schema generation.
@@ -61,12 +63,12 @@ class Type {
          * @extends {Type}
          * @private
          */
-        class Required extends this {
+        class Required extends ThisType {
             static _required = true;
         }
 
         // Define the class name as "Required<OriginalTypeName>"
-        Object.defineProperty(Required, 'name', {value: `Required${this.name}`});
+        Object.defineProperty(Required, 'name', {value: `Required${ThisType.name}`});
 
         return Required;
     }
