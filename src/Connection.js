@@ -30,7 +30,7 @@ export default class Connection {
      */
     constructor(storage, models) {
         this.#storage = storage;
-        this.#models = this.#resolveModels(Object.fromEntries((models ?? []).map(model => [model.name, model])));
+        this.#models = resolveModels(Object.fromEntries((models ?? []).map(model => [model.name, model])));
 
         if (!this.#storage) throw new MissingArgumentsConnectionError('No storage engine provided');
     }
@@ -504,57 +504,6 @@ export default class Connection {
     }
 
     /**
-     * Resolves model properties that are factory functions to their class values.
-     *
-     * @private
-     * @param {Object<string, Function>} models - An object mapping model names to model constructor functions
-     * @returns {Map<string, Function>} A map of model names to model constructors with all factory
-     *   function properties class to their bare model instances
-     *
-     * @description
-     * This method processes each property of each model constructor to resolve any factory functions.
-     * It skips:
-     * - Special properties like 'indexedProperties', 'searchProperties', and '_required'
-     * - Properties that are already bare model instances (have a prototype inheriting from Model)
-     * - Properties with a defined '_type' (basic types)
-     *
-     * For all other properties (assumed to be factory functions), it calls the function to get
-     * the class value and updates the model constructor.
-     */
-    #resolveModels(models) {
-        const resolvedToBareModels = new Map();
-
-        for (const [modelName, modelConstructor] of Object.entries(models)) {
-            for (const [propertyName, propertyType] of Object.entries(modelConstructor)) {
-                // The property is a builtin
-                if ([
-                    'indexedProperties',
-                    'searchProperties',
-                    '_required',
-                ].includes(propertyName)) {
-                    continue;
-                }
-
-                // The property is a bare model
-                if (propertyType.prototype instanceof Model) {
-                    continue;
-                }
-
-                // The property is a basic type
-                if (propertyType._type) {
-                    continue;
-                }
-
-                modelConstructor[propertyName] = propertyType();
-            }
-
-            resolvedToBareModels.set(modelName, modelConstructor);
-        }
-
-        return resolvedToBareModels;
-    }
-
-    /**
      * Finds all model classes that are linked to the specified subject model.
      *
      * @private
@@ -609,6 +558,57 @@ export default class Connection {
 
         return modelsThatLinkToThisSubject;
     }
+}
+
+/**
+ * Resolves model properties that are factory functions to their class values.
+ *
+ * @private
+ * @param {Object<string, Function>} models - An object mapping model names to model constructor functions
+ * @returns {Map<string, Function>} A map of model names to model constructors with all factory
+ *   function properties class to their bare model instances
+ *
+ * @description
+ * This method processes each property of each model constructor to resolve any factory functions.
+ * It skips:
+ * - Special properties like 'indexedProperties', 'searchProperties', and '_required'
+ * - Properties that are already bare model instances (have a prototype inheriting from Model)
+ * - Properties with a defined '_type' (basic types)
+ *
+ * For all other properties (assumed to be factory functions), it calls the function to get
+ * the class value and updates the model constructor.
+ */
+function resolveModels(models) {
+    const resolvedToBareModels = new Map();
+
+    for (const [modelName, modelConstructor] of Object.entries(models)) {
+        for (const [propertyName, propertyType] of Object.entries(modelConstructor)) {
+            // The property is a builtin
+            if ([
+                'indexedProperties',
+                'searchProperties',
+                '_required',
+            ].includes(propertyName)) {
+                continue;
+            }
+
+            // The property is a bare model
+            if (propertyType.prototype instanceof Model) {
+                continue;
+            }
+
+            // The property is a basic type
+            if (propertyType._type) {
+                continue;
+            }
+
+            modelConstructor[propertyName] = propertyType();
+        }
+
+        resolvedToBareModels.set(modelName, modelConstructor);
+    }
+
+    return resolvedToBareModels;
 }
 
 /**
