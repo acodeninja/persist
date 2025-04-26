@@ -66,7 +66,7 @@ class Type {
         }
 
         // Define the class name as "Required<OriginalTypeName>"
-        Object.defineProperty(Required, 'name', {value: `Required${this.toString()}`});
+        Object.defineProperty(Required, 'name', {value: `Required${this.name}`});
 
         return Required;
     }

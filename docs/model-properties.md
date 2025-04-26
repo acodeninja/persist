@@ -173,3 +173,34 @@ class RequiredStringModel extends Persist.Model {
     }
 }
 ```
+
+## Custom Property Types
+
+Under the hood, model validation uses the [ajv](https://ajv.js.org/) library with [ajv-formats](https://ajv.js.org/packages/ajv-formats.html) included. Because of this, you can create your own property types.
+
+Say you want to attach an IPv4 address to your models. The following type class can accomplish this.
+
+```javascript
+import Persist from '@acodeninja/persist';
+
+class IPv4Type extends Persist.Property.Type {
+    static {
+        // Set the type of the property to string
+        this._type = 'string';
+        // Use the ajv extended format "ipv4"
+        this._format = 'ipv4';
+        // Ensure that even when minified, the name of the constructor is IPv4
+        Object.defineProperty(this, 'name', {value: 'IPv4'});
+    }
+}
+```
+
+This type can then be used in any model as needed.
+
+```javascript
+import Persist from '@acodeninja/persist';
+
+class StaticIP extends Persist.Model {
+    static ip = IPv4Type.required;
+}
+```
