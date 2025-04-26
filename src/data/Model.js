@@ -308,10 +308,11 @@ class Model {
      * @return {Model}
      */
     static get properties() {
+        const modelClass = this;
         const props = {};
         const chain = [];
 
-        let current = this;
+        let current = modelClass;
         while (current !== Function.prototype) {
             chain.push(current);
             current = Object.getPrototypeOf(current);
@@ -344,7 +345,7 @@ class Model {
             }
         }
 
-        return Object.assign(this, props);
+        return Object.assign(modelClass, props);
     }
 }
 
