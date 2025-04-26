@@ -210,6 +210,20 @@ describe('FindIndex', () => {
 
             expect(results).toStrictEqual([expect.objectContaining(model1.toIndexData())]);
         });
+
+        test('FindIndex.query(query) finds only matches containing for models', () => {
+            const model1 = LinkedManyModelWithIndexFactory();
+            const model2 = LinkedManyModelWithIndexFactory();
+
+            const index = new FindIndex(LinkedManyModelWithIndex, {
+                [model1.id]: model1.toIndexData(),
+                [model2.id]: model2.toIndexData(),
+            });
+
+            const results = index.query({linked: {$contains: {id: {$is: model1.linked[0].id}}}});
+
+            expect(results).toStrictEqual([expect.objectContaining(model1.toIndexData())]);
+        });
     });
 
     describe('multiple match types', () => {
