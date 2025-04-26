@@ -11,6 +11,8 @@ import {
     CircularRequiredLinkedModelWithSearchIndexFactory,
     LinkedManyModelWithIndex,
     LinkedManyModelWithIndexFactory,
+    LinkedManyModelWithSearchIndex,
+    LinkedManyModelWithSearchIndexFactory,
     LinkedModel,
     LinkedModelFactory,
     LinkedModelWithIndex,
@@ -1354,7 +1356,7 @@ describe('connection.put()', () => {
                     });
                 });
 
-                test('.getSearchIndex() is called twice', () => {
+                test('.getSearchIndex() is called once', () => {
                     expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
                 });
 
@@ -2113,7 +2115,7 @@ describe('connection.put()', () => {
                     });
                 });
 
-                test('.getSearchIndex() is called twice', () => {
+                test('.getSearchIndex() is called once', () => {
                     expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
                 });
 
@@ -2444,7 +2446,7 @@ describe('connection.put()', () => {
                     expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
                 });
 
-                test('.getIndex() is called twice', () => {
+                test('.getIndex() is called once', () => {
                     expect(engine.getIndex).toHaveBeenCalledTimes(1);
                 });
 
@@ -2729,7 +2731,7 @@ describe('connection.put()', () => {
                     expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
                 });
 
-                test('.getIndex() is called twice', () => {
+                test('.getIndex() is called once', () => {
                     expect(engine.getIndex).toHaveBeenCalledTimes(1);
                 });
 
@@ -2748,7 +2750,7 @@ describe('connection.put()', () => {
                     });
                 });
 
-                test('.getSearchIndex() is called twice', () => {
+                test('.getSearchIndex() is called once', () => {
                     expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
                 });
 
@@ -3019,7 +3021,7 @@ describe('connection.delete()', () => {
         const connection = new Connection(engine, [SimpleModel]);
 
         test('.delete() throws a ModelNotFoundStorageEngineError', async () => {
-            await expect(connection.delete(model))
+            await expect(connection.delete(model.toData()))
                 .rejects.toThrowError({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: `The model ${model.id} was not found`,
@@ -3032,7 +3034,7 @@ describe('connection.delete()', () => {
         const engine = TestStorageEngineFactory([model]);
         const connection = new Connection(engine, [SimpleModel]);
 
-        beforeAll(() => connection.delete(model));
+        beforeAll(() => connection.delete(model.toData()));
 
         test('.getModel() is called once', () => {
             expect(engine.getModel).toHaveBeenCalledTimes(1);
@@ -3066,12 +3068,12 @@ describe('connection.delete()', () => {
             expect(engine.putIndex).toHaveBeenCalledWith(SimpleModel, {});
         });
 
-        test('.getSearchIndex() is called with the model constructor', () => {
-            expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModel);
-        });
-
         test('.getSearchIndex() is called once', () => {
             expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.getSearchIndex() is called with the model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModel);
         });
 
         test('.putSearchIndex() is not called', () => {
@@ -3084,14 +3086,18 @@ describe('connection.delete()', () => {
         const engine = TestStorageEngineFactory([model]);
         const connection = new Connection(engine, [LinkedModel, SimpleModel]);
 
-        beforeAll(() => connection.delete(model));
+        beforeAll(() => connection.delete(model.toData()));
 
-        test('.getModel() is called once', () => {
-            expect(engine.getModel).toHaveBeenCalledTimes(1);
+        test('.getModel() is called twice', () => {
+            expect(engine.getModel).toHaveBeenCalledTimes(2);
         });
 
         test('.getModel() is called with the main model id', () => {
             expect(engine.getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getModel() is called with the linked model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
         });
 
         test('.deleteModel() is called once', () => {
@@ -3102,8 +3108,16 @@ describe('connection.delete()', () => {
             expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
         });
 
-        test('.getIndex() is called once', () => {
-            expect(engine.getIndex).toHaveBeenCalledTimes(1);
+        test('.getIndex() is called twice', () => {
+            expect(engine.getIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getIndex() is called with the main model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(LinkedModel);
+        });
+
+        test('.getIndex() is called with the linked model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(SimpleModel);
         });
 
         test('.putIndex() is called once', () => {
@@ -3118,8 +3132,16 @@ describe('connection.delete()', () => {
             expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModel);
         });
 
-        test('.getSearchIndex() is called once', () => {
-            expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+        test('.getSearchIndex() is called twice', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getSearchIndex() is called with the main model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModel);
+        });
+
+        test('.getSearchIndex() is called with the linked model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModel);
         });
 
         test('.putSearchIndex() is not called', () => {
@@ -3132,7 +3154,7 @@ describe('connection.delete()', () => {
         const engine = TestStorageEngineFactory([model]);
         const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
 
-        beforeAll(() => connection.delete(model.linked));
+        beforeAll(() => connection.delete(model.linked.toData(), [model.id]));
 
         test('.getModel() is called twice', () => {
             expect(engine.getModel).toHaveBeenCalledTimes(2);
@@ -3166,11 +3188,11 @@ describe('connection.delete()', () => {
             expect(engine.getIndex).toHaveBeenCalledWith(model.linked.constructor);
         });
 
-        test('.putIndex() is called once', () => {
+        test('.putIndex() is called twice', () => {
             expect(engine.putIndex).toHaveBeenCalledTimes(2);
         });
 
-        test('.putIndex() is called with the model constructor', () => {
+        test('.putIndex() is called with the main model constructor', () => {
             expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {
                 [model.id]: {
                     ...model.toIndexData(),
@@ -3201,15 +3223,425 @@ describe('connection.delete()', () => {
 
         test('.putSearchIndex() is called with the model constructor', () => {
             expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {
-                [model.id]: {
-                    ...model.toSearchData(),
-                    linked: undefined,
-                },
+                [model.id]: model.toSearchData(),
             });
         });
 
         test('.putSearchIndex() is called with the linked model constructor', () => {
             expect(engine.putSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {});
+        });
+    });
+
+    describe('when a forwards one way linked model exists', () => {
+        describe('and delete is called with propagate', () => {
+            const model = LinkedModelWithSearchIndexFactory();
+            const engine = TestStorageEngineFactory([model]);
+            const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            beforeAll(() => connection.delete(model.toData(), []));
+
+            test('.getModel() is called twice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+            });
+
+            test('.deleteModel() is called once', () => {
+                expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('.deleteModel() is called with the main model', () => {
+                expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called with the main model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(model.constructor);
+            });
+
+            test('.getIndex() is called with the linked model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(model.linked.constructor);
+            });
+
+            test('.putIndex() is called once', () => {
+                expect(engine.putIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('.putIndex() is called with the main model constructor', () => {
+                expect(engine.putIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {});
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called with the model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called with the model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is called once', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('.putSearchIndex() is called with the model constructor', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex, {});
+            });
+        });
+    });
+
+    describe('when a backwards one to many linked model exists', () => {
+        describe('and delete is called with propagate', () => {
+            const model = LinkedManyModelWithSearchIndexFactory();
+            const otherLinked = SimpleModelWithSearchIndexFactory();
+
+            model.linked.push(otherLinked);
+
+            const engine = TestStorageEngineFactory([model]);
+            const connection = new Connection(engine, [LinkedManyModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            beforeAll(() => connection.delete(model.linked[0].toData(), [model.id]));
+
+            test('.getModel() is called thrice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(3);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the first linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[0].id);
+            });
+
+            test('.getModel() is called with the second linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[1].id);
+            });
+
+            test('.deleteModel() is called once', () => {
+                expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('.deleteModel() is called with the linked model', () => {
+                expect(engine.deleteModel).toHaveBeenCalledWith(model.linked[0].id);
+            });
+
+            test('.putModel() is called once', () => {
+                expect(engine.putModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('.putModel() is called with the main model', () => {
+                expect(engine.putModel).toHaveBeenCalledWith({
+                    ...model.toData(),
+                    linked: [{id: otherLinked.id}],
+                });
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called with the main model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called with the linked model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is called twice', () => {
+                expect(engine.putIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.putIndex() is called with the main model constructor', () => {
+                expect(engine.putIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex, {
+                    [model.id]: {
+                        ...model.toIndexData(),
+                        linked: [{id: otherLinked.id, string: 'string'}],
+                    },
+                });
+            });
+
+            test('.putIndex() is called with the linked model constructor', () => {
+                expect(engine.putIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {
+                    [otherLinked.id]: otherLinked.toIndexData(),
+                });
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called with the main model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called with the linked model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is called twice', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.putSearchIndex() is called with the main model search index', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex, {
+                    [model.id]: {
+                        ...model.toSearchData(),
+                        linked: [{string: 'string'}],
+                    },
+                });
+            });
+
+            test('.putSearchIndex() is called with the linked model search index', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {
+                    [otherLinked.id]: otherLinked.toSearchData(),
+                });
+            });
+        });
+
+        describe('and delete is called without propagate', () => {
+            const model = LinkedManyModelWithSearchIndexFactory();
+
+            model.linked.push(SimpleModelWithSearchIndexFactory());
+
+            const engine = TestStorageEngineFactory([model]);
+            const connection = new Connection(engine, [LinkedManyModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            test('.delete() throws a cannot delete error', async () => {
+                await expect(connection.delete(model.linked[0]))
+                    .rejects.toMatchObject({
+                        message: `Deleting ${model.linked[0].id} has unintended consequences`,
+                        consequences: {
+                            willDelete: [],
+                            willUpdate: [{
+                                ...model,
+                                linked: [model.linked[1]],
+                            }],
+                        },
+                    });
+            });
+
+            test('.getModel() is called thrice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(3);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the first linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[0].id);
+            });
+
+            test('.getModel() is called with the second linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[1].id);
+            });
+
+            test('.deleteModel() is not called', () => {
+                expect(engine.deleteModel).not.toHaveBeenCalled();
+            });
+
+            test('.putModel() is not called', () => {
+                expect(engine.putModel).not.toHaveBeenCalled();
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called with the main model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called with the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is not called', () => {
+                expect(engine.putIndex).not.toHaveBeenCalled();
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.putSearchIndex() is not called', () => {
+                expect(engine.putSearchIndex).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('when a forwards one to many linked model exists', () => {
+        describe('and delete is called with propagate', () => {
+            const model = LinkedManyModelWithSearchIndexFactory();
+            const otherLinked = SimpleModelWithSearchIndexFactory();
+
+            model.linked.push(otherLinked);
+
+            const engine = TestStorageEngineFactory([model]);
+            const connection = new Connection(engine, [LinkedManyModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            beforeAll(() => connection.delete(model.toData(), [model.id]));
+
+            test('.getModel() is called thrice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(3);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the first linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[0].id);
+            });
+
+            test('.getModel() is called with the second linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[1].id);
+            });
+
+            test('.deleteModel() is called once', () => {
+                expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+            });
+
+            test('.deleteModel() is called with the main model', () => {
+                expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.putModel() is not called', () => {
+                expect(engine.putModel).not.toHaveBeenCalled();
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called with the main model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called with the linked model constructor', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is called once', () => {
+                expect(engine.putIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('.putIndex() is called with the main model constructor', () => {
+                expect(engine.putIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex, {});
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called with the main model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called with the linked model constructor', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is called once', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+            });
+
+            test('.putSearchIndex() is called with the main model search index', () => {
+                expect(engine.putSearchIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex, {});
+            });
+        });
+
+        describe('and delete is called without propagate', () => {
+            const model = LinkedManyModelWithSearchIndexFactory();
+
+            model.linked.push(SimpleModelWithSearchIndexFactory());
+
+            const engine = TestStorageEngineFactory([model]);
+            const connection = new Connection(engine, [LinkedManyModelWithSearchIndex, SimpleModelWithSearchIndex]);
+
+            test('.delete() throws a cannot delete error', async () => {
+                await expect(connection.delete(model.linked[0]))
+                    .rejects.toMatchObject({
+                        message: `Deleting ${model.linked[0].id} has unintended consequences`,
+                        consequences: {
+                            willDelete: [],
+                            willUpdate: [{
+                                ...model,
+                                linked: [model.linked[1]],
+                            }],
+                        },
+                    });
+            });
+
+            test('.getModel() is called thrice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(3);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the first linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[0].id);
+            });
+
+            test('.getModel() is called with the second linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked[1].id);
+            });
+
+            test('.deleteModel() is not called', () => {
+                expect(engine.deleteModel).not.toHaveBeenCalled();
+            });
+
+            test('.putModel() is not called', () => {
+                expect(engine.putModel).not.toHaveBeenCalled();
+            });
+
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getIndex() is called with the main model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called with the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putIndex() is not called', () => {
+                expect(engine.putIndex).not.toHaveBeenCalled();
+            });
+
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+            });
+
+            test('.getSearchIndex() is called with the main model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedManyModelWithSearchIndex);
+            });
+
+            test('.getSearchIndex() is called with the linked model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            });
+
+            test('.putSearchIndex() is not called', () => {
+                expect(engine.putSearchIndex).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -3326,7 +3758,7 @@ describe('connection.delete()', () => {
         const engine = TestStorageEngineFactory([model]);
         const connection = new Connection(engine, [CircularLinkedModel]);
 
-        beforeAll(() => connection.delete(model));
+        beforeAll(() => connection.delete(model, [model.linked.id]));
 
         test('.getModel() is called twice', () => {
             expect(engine.getModel).toHaveBeenCalledTimes(2);
@@ -3396,7 +3828,7 @@ describe('connection.delete()', () => {
         const engine = TestStorageEngineFactory([model]);
         const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
 
-        beforeAll(() => connection.delete(model));
+        beforeAll(() => connection.delete(model, [model.linked.id]));
 
         test('.getModel() is called twice', () => {
             expect(engine.getModel).toHaveBeenCalledTimes(2);
@@ -3474,10 +3906,11 @@ describe('connection.delete()', () => {
             const connection = new Connection(engine, [CircularRequiredLinkedModelWithSearchIndex]);
 
             test('.delete() throws a cannot delete error', async () => {
-                await expect(connection.delete(model)).rejects.toMatchObject({
-                    message: `Deleting ${model.id} has unintended consequences`,
+                await expect(connection.delete(model.linked)).rejects.toMatchObject({
+                    message: `Deleting ${model.linked.id} has unintended consequences`,
                     consequences: {
-                        willDelete: [model.linked.id],
+                        willDelete: [model],
+                        willUpdate: [],
                     },
                 });
             });
@@ -3514,8 +3947,8 @@ describe('connection.delete()', () => {
                 expect(engine.putIndex).not.toHaveBeenCalled();
             });
 
-            test('.getSearchIndex() is not called', () => {
-                expect(engine.getSearchIndex).not.toHaveBeenCalled();
+            test('.getSearchIndex() is called once', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
             });
 
             test('.putSearchIndex() is not called', () => {
@@ -3602,7 +4035,7 @@ describe('connection.delete()', () => {
                 await expect(connection.delete(model.linked))
                     .rejects.toMatchObject({
                         message: `Deleting ${model.linked.id} has unintended consequences`,
-                        consequences: {willDelete: [model.id]},
+                        consequences: {willDelete: [model]},
                     });
             });
 
@@ -3626,20 +4059,24 @@ describe('connection.delete()', () => {
                 expect(engine.putModel).not.toHaveBeenCalled();
             });
 
-            test('.getIndex() is called once', () => {
-                expect(engine.getIndex).toHaveBeenCalledTimes(1);
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
             });
 
-            test('.getIndex() is called with the circular model', () => {
+            test('.getIndex() is called with the main model', () => {
                 expect(engine.getIndex).toHaveBeenCalledWith(RequiredLinkedModelWithSearchIndex);
+            });
+
+            test('.getIndex() is called with the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
             });
 
             test('.putIndex() is not called', () => {
                 expect(engine.putIndex).not.toHaveBeenCalled();
             });
 
-            test('.getSearchIndex() is not called', () => {
-                expect(engine.getSearchIndex).not.toHaveBeenCalled();
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
             });
 
             test('.putSearchIndex() is not called', () => {
@@ -3682,7 +4119,7 @@ describe('connection.delete()', () => {
                 expect(engine.putModel).not.toHaveBeenCalled();
             });
 
-            test('.getIndex() is called once', () => {
+            test('.getIndex() is called twice', () => {
                 expect(engine.getIndex).toHaveBeenCalledTimes(2);
             });
 
@@ -3694,7 +4131,7 @@ describe('connection.delete()', () => {
                 expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
             });
 
-            test('.putIndex() is called once', () => {
+            test('.putIndex() is called twice', () => {
                 expect(engine.putIndex).toHaveBeenCalledTimes(2);
             });
 
@@ -4144,7 +4581,7 @@ describe('connection.transaction()', () => {
                     });
                 });
 
-                test('.putModel() is called twice', () => {
+                test('.putModel() is called thrice', () => {
                     expect(engine.putModel).toHaveBeenCalledTimes(3);
                 });
 
@@ -4517,12 +4954,16 @@ describe('connection.transaction()', () => {
 
             beforeAll(() => transaction.delete(model));
 
-            test('.getModel() is called once', () => {
-                expect(engine.getModel).toHaveBeenCalledTimes(1);
+            test('.getModel() is called twice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(2);
             });
 
             test('.getModel() is called with the main model id', () => {
                 expect(engine.getModel).toHaveBeenCalledWith(model.id);
+            });
+
+            test('.getModel() is called with the main model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
             });
 
             test('.deleteModel() is not called', () => {
@@ -4532,16 +4973,20 @@ describe('connection.transaction()', () => {
             describe('and committing the transaction', () => {
                 beforeAll(() => transaction.commit());
 
-                test('.getModel() is called once', () => {
-                    expect(engine.getModel).toHaveBeenCalledTimes(2);
+                test('.getModel() is called thrice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(3);
                 });
 
                 test('.getModel() is called first with the main model id', () => {
                     expect(engine.getModel).toHaveBeenNthCalledWith(1, model.id);
                 });
 
-                test('.getModel() is called second with the main model id', () => {
-                    expect(engine.getModel).toHaveBeenNthCalledWith(2, model.id);
+                test('.getModel() is called second with a linked model id', () => {
+                    expect(engine.getModel).toHaveBeenNthCalledWith(2, model.linked.id);
+                });
+
+                test('.getModel() is called third with a linked model id', () => {
+                    expect(engine.getModel).toHaveBeenNthCalledWith(3, model.id);
                 });
 
                 test('.deleteModel() is called once', () => {
@@ -4562,16 +5007,16 @@ describe('connection.transaction()', () => {
 
             beforeAll(() => transaction.delete(model));
 
-            test('.getModel() is called once', () => {
-                expect(engine.getModel).toHaveBeenCalledTimes(1);
+            test('.getModel() is called twice', () => {
+                expect(engine.getModel).toHaveBeenCalledTimes(2);
             });
 
             test('.getModel() is called with the main model id', () => {
                 expect(engine.getModel).toHaveBeenCalledWith(model.id);
             });
 
-            test('.getModel() is not called with the linked model id', () => {
-                expect(engine.getModel).not.toHaveBeenCalledWith(model.linked.id);
+            test('.getModel() is called with the linked model id', () => {
+                expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
             });
 
             test('.putModel() is not called', () => {
@@ -4582,32 +5027,32 @@ describe('connection.transaction()', () => {
                 expect(engine.deleteModel).not.toHaveBeenCalled();
             });
 
-            test('.getIndex() is called once', () => {
-                expect(engine.getIndex).toHaveBeenCalledTimes(1);
+            test('.getIndex() is called twice', () => {
+                expect(engine.getIndex).toHaveBeenCalledTimes(2);
             });
 
             test('.getIndex() is called for the main model', () => {
                 expect(engine.getIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
             });
 
-            test('.getIndex() is not called for the linked model', () => {
-                expect(engine.getIndex).not.toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            test('.getIndex() is called for the linked model', () => {
+                expect(engine.getIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
             });
 
             test('.putIndex() is not called', () => {
                 expect(engine.putIndex).not.toHaveBeenCalled();
             });
 
-            test('.getSearchIndex() is called once', () => {
-                expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+            test('.getSearchIndex() is called twice', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
             });
 
             test('.getSearchIndex() is called for the main model', () => {
                 expect(engine.getSearchIndex).toHaveBeenCalledWith(LinkedModelWithSearchIndex);
             });
 
-            test('.getSearchIndex() is not called for the linked model', () => {
-                expect(engine.getSearchIndex).not.toHaveBeenCalledWith(SimpleModelWithSearchIndex);
+            test('.getSearchIndex() is called for the linked model', () => {
+                expect(engine.getSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex);
             });
 
             test('.putSearchIndex() is not called', () => {

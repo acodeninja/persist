@@ -39,7 +39,7 @@ class Schema {
             const thisSchema = {};
 
             if (Model.isModel(schemaSegment)) {
-                thisSchema.required = ['id'];
+                thisSchema.required = [];
                 thisSchema.type = 'object';
                 thisSchema.additionalProperties = false;
                 thisSchema.properties = {
@@ -62,7 +62,7 @@ class Schema {
                         thisSchema.properties[name] = {
                             type: 'object',
                             additionalProperties: false,
-                            required: ['id'],
+                            required: [],
                             properties: {
                                 id: {
                                     type: 'string',

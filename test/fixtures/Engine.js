@@ -83,11 +83,13 @@ export function TestStorageEngineFactory(initialModels = []) {
 
     engine.putModel.mockImplementation((modelData) => {
         engineVirtualStorage[modelData.id] = modelData;
+
         return Promise.resolve();
     });
 
     engine.deleteModel.mockImplementation((id) => {
         delete engineVirtualStorage[id];
+
         return Promise.resolve();
     });
 
