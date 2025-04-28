@@ -9,6 +9,7 @@ import _ from 'lodash';
 
 class State {
     constructor() {
+        this.modelCache = new Map();
         this.indexCache = new Map();
         this.searchIndexCache = new Map();
     }
@@ -230,14 +231,13 @@ export default class Connection {
      */
     async delete(subject, propagateTo = []) {
         const state = new State();
-        const modelCache = new Map();
         const modelsToCheck = this.#findLinkedModelClasses(subject);
         const modelsToDelete = new Set([subject.id]);
         const modelsToUpdate = new Set();
         const indexesToUpdate = new Set();
         const searchIndexesToUpdate = new Set();
 
-        subject = await this.hydrate(subject, modelCache);
+        subject = await this.hydrate(subject, state.modelCache);
 
         if (!propagateTo.includes(subject.id)) {
             propagateTo.push(subject.id);
@@ -286,8 +286,8 @@ export default class Connection {
                     ) : new FindIndex(this.#models.get(modelName), state.indexCache.get(modelName)).query(query);
 
             for (const foundModel of foundModels) {
-                if (!modelCache.has(foundModel.id)) {
-                    modelCache.set(foundModel.id, await this.hydrate(foundModel, modelCache));
+                if (!state.modelCache.has(foundModel.id)) {
+                    state.modelCache.set(foundModel.id, await this.hydrate(foundModel, state.modelCache));
                 }
             }
 
@@ -295,7 +295,7 @@ export default class Connection {
             if (direction === 'up') {
                 if (type === 'one') {
                     for (const foundModel of foundModels) {
-                        const cachedModel = modelCache.get(foundModel.id);
+                        const cachedModel = state.modelCache.get(foundModel.id);
 
                         if (foundModel.constructor[propertyName]._required) {
                             modelsToDelete.add(foundModel.id);
@@ -303,17 +303,17 @@ export default class Connection {
                         }
 
                         cachedModel[propertyName] = undefined;
-                        modelCache.set(foundModel.id, cachedModel);
+                        state.modelCache.set(foundModel.id, cachedModel);
                         modelsToUpdate.add(foundModel.id);
                     }
                 }
 
                 if (type === 'many') {
                     for (const foundModel of foundModels) {
-                        const cachedModel = modelCache.get(foundModel.id);
+                        const cachedModel = state.modelCache.get(foundModel.id);
 
                         cachedModel[propertyName] = cachedModel[propertyName].filter(m => m.id !== subject.id);
-                        modelCache.set(foundModel.id, cachedModel);
+                        state.modelCache.set(foundModel.id, cachedModel);
                         modelsToUpdate.add(foundModel.id);
                     }
                 }
@@ -325,8 +325,8 @@ export default class Connection {
 
         if (unrequestedDeletions.length || unrequestedUpdates.length) {
             throw new DeleteHasUnintendedConsequencesStorageEngineError(subject.id, {
-                willDelete: unrequestedDeletions.map(id => modelCache.get(id)),
-                willUpdate: unrequestedUpdates.map(id => modelCache.get(id)),
+                willDelete: unrequestedDeletions.map(id => state.modelCache.get(id)),
+                willUpdate: unrequestedUpdates.map(id => state.modelCache.get(id)),
             });
         }
 
@@ -342,7 +342,7 @@ export default class Connection {
             const index = state.searchIndexCache.get(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
-                index[model] = modelCache.get(model).toSearchData();
+                index[model] = state.modelCache.get(model).toSearchData();
             }
 
             for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
@@ -356,7 +356,7 @@ export default class Connection {
             const index = state.indexCache.get(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
-                index[model] = modelCache.get(model).toIndexData();
+                index[model] = state.modelCache.get(model).toIndexData();
             }
 
             for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
@@ -367,7 +367,7 @@ export default class Connection {
         }
 
         await Promise.all([
-            Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(modelCache.get(id).toData()))),
+            Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(state.modelCache.get(id).toData()))),
             Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
             Promise.all([...indexesToUpdate].map(index => this.#storage.putIndex(this.#models.get(index), state.indexCache.get(index)))),
             Promise.all([...searchIndexesToUpdate].map(index => this.#storage.putSearchIndex(this.#models.get(index), state.searchIndexCache.get(index)))),
