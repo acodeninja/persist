@@ -13,6 +13,33 @@ class State {
         this.indexCache = new Map();
         this.searchIndexCache = new Map();
     }
+
+    /**
+     *
+     * @param {Array<Model.constructor>} modelConstructors
+     * @param {StorageEngine} storage
+     * @return {Promise<void>}
+     */
+    async fetchIndexes(modelConstructors, storage) {
+        await Promise.all(
+            [
+                Promise.all(
+                    modelConstructors
+                        .map(modelConstructor =>
+                            storage.getIndex(modelConstructor)
+                                .then(index => this.indexCache.set(modelConstructor.name, index)),
+                        ),
+                ),
+                Promise.all(
+                    modelConstructors
+                        .map(modelConstructor =>
+                            storage.getSearchIndex(modelConstructor)
+                                .then(index => this.searchIndexCache.set(modelConstructor.name, index)),
+                        ),
+                ),
+            ],
+        );
+    }
 }
 
 /**
@@ -243,22 +270,13 @@ export default class Connection {
             propagateTo.push(subject.id);
         }
 
-        const constructorsToGet = [...new Set([...modelsToCheck.keys(), [subject.constructor.name]].map(([modelConstructorName]) => modelConstructorName))];
+        const relevantModels =
+            [...new Set(
+                [...modelsToCheck.keys(), [subject.constructor.name]]
+                    .map(([modelConstructorName]) => modelConstructorName),
+            )].map(modelConstructorName => this.#models.get(modelConstructorName));
 
-        state.indexCache = new Map(
-            await Promise.all(
-                constructorsToGet
-                    .map(modelConstructorName => this.#models.get(modelConstructorName))
-                    .map(modelConstructor => this.#storage.getIndex(modelConstructor).then(index => [modelConstructor.name, index])),
-            ),
-        );
-        state.searchIndexCache = new Map(
-            await Promise.all(
-                constructorsToGet
-                    .map(modelConstructorName => this.#models.get(modelConstructorName))
-                    .map(modelConstructor => this.#storage.getSearchIndex(modelConstructor).then(index => [modelConstructor.name, index])),
-            ),
-        );
+        await state.fetchIndexes(relevantModels, this.#storage);
 
         // Populate model cache
         for (const [[modelName, propertyName, type, direction], _modelConstructor] of modelsToCheck) {
