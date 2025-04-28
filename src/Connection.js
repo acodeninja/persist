@@ -7,6 +7,13 @@ import Model from './data/Model.js';
 import SearchIndex from './data/SearchIndex.js';
 import _ from 'lodash';
 
+class State {
+    constructor() {
+        this.indexCache = new Map();
+        this.searchIndexCache = new Map();
+    }
+}
+
 /**
  * @class Connection
  */
@@ -222,6 +229,7 @@ export default class Connection {
      * @throws {ModelNotFoundStorageEngineError}
      */
     async delete(subject, propagateTo = []) {
+        const state = new State();
         const modelCache = new Map();
         const modelsToCheck = this.#findLinkedModelClasses(subject);
         const modelsToDelete = new Set([subject.id]);
@@ -235,17 +243,22 @@ export default class Connection {
             propagateTo.push(subject.id);
         }
 
-        // Populate index and search index cache.
-        const [indexCache, searchIndexCache] = await this.#getModelIndexes(modelsToCheck);
+        const constructorsToGet = [...new Set([...modelsToCheck.keys(), [subject.constructor.name]].map(([modelConstructorName]) => modelConstructorName))];
 
-        // Add model to be removed to index caches.
-        if (!indexCache.has(subject.constructor.name)) {
-            indexCache.set(subject.constructor.name, (await this.#storage.getIndex(subject.constructor)));
-        }
-
-        if (!searchIndexCache.has(subject.constructor.name)) {
-            searchIndexCache.set(subject.constructor.name, (await this.#storage.getSearchIndex(subject.constructor)));
-        }
+        state.indexCache = new Map(
+            await Promise.all(
+                constructorsToGet
+                    .map(modelConstructorName => this.#models.get(modelConstructorName))
+                    .map(modelConstructor => this.#storage.getIndex(modelConstructor).then(index => [modelConstructor.name, index])),
+            ),
+        );
+        state.searchIndexCache = new Map(
+            await Promise.all(
+                constructorsToGet
+                    .map(modelConstructorName => this.#models.get(modelConstructorName))
+                    .map(modelConstructor => this.#storage.getSearchIndex(modelConstructor).then(index => [modelConstructor.name, index])),
+            ),
+        );
 
         // Populate model cache
         for (const [[modelName, propertyName, type, direction], _modelConstructor] of modelsToCheck) {
@@ -270,7 +283,7 @@ export default class Connection {
                     (
                         Array.isArray(subject[propertyName]) ?
                             subject[propertyName] : [subject[propertyName]]
-                    ) : new FindIndex(this.#models.get(modelName), indexCache.get(modelName)).query(query);
+                    ) : new FindIndex(this.#models.get(modelName), state.indexCache.get(modelName)).query(query);
 
             for (const foundModel of foundModels) {
                 if (!modelCache.has(foundModel.id)) {
@@ -326,7 +339,7 @@ export default class Connection {
         }
 
         for (const indexName of searchIndexesToUpdate) {
-            const index = searchIndexCache.get(indexName);
+            const index = state.searchIndexCache.get(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = modelCache.get(model).toSearchData();
@@ -336,11 +349,11 @@ export default class Connection {
                 delete index[model];
             }
 
-            searchIndexCache.set(indexName, index);
+            state.searchIndexCache.set(indexName, index);
         }
 
         for (const indexName of indexesToUpdate) {
-            const index = indexCache.get(indexName);
+            const index = state.indexCache.get(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = modelCache.get(model).toIndexData();
@@ -350,14 +363,14 @@ export default class Connection {
                 delete index[model];
             }
 
-            indexCache.set(indexName, index);
+            state.indexCache.set(indexName, index);
         }
 
         await Promise.all([
             Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(modelCache.get(id).toData()))),
             Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
-            Promise.all([...indexesToUpdate].map(index => this.#storage.putIndex(this.#models.get(index), indexCache.get(index)))),
-            Promise.all([...searchIndexesToUpdate].map(index => this.#storage.putSearchIndex(this.#models.get(index), searchIndexCache.get(index)))),
+            Promise.all([...indexesToUpdate].map(index => this.#storage.putIndex(this.#models.get(index), state.indexCache.get(index)))),
+            Promise.all([...searchIndexesToUpdate].map(index => this.#storage.putSearchIndex(this.#models.get(index), state.searchIndexCache.get(index)))),
         ]);
     }
 
@@ -465,42 +478,6 @@ export default class Connection {
         if (!modelConstructor) throw new ModelNotRegisteredConnectionError(modelName, this.#storage);
 
         return modelConstructor;
-    }
-
-    /**
-     * Retrieves and caches index and search index information for specified models.
-     *
-     * @private
-     * @async
-     * @param {Array<Array<string, *>>} modelsToCheck - An array of arrays where the first element
-     *   of each inner array is the model name to retrieve indexes for
-     * @returns {Promise<[Map<string, *>, Map<string, *>]>} A promise that resolves to a tuple containing:
-     *   - indexCache: A Map of model names to their corresponding indexes
-     *   - searchIndexCache: A Map of model names to their corresponding search indexes
-     *
-     * @description
-     * This method populates two caches for the specified models:
-     * 1. A regular index cache retrieved via storage.getIndex()
-     * 2. A search index cache retrieved via storage.getSearchIndex()
-     *
-     * If a model's indexes are already cached, they won't be fetched again.
-     * The method uses the internal storage interface to retrieve the indexes.
-     */
-    async #getModelIndexes(modelsToCheck) {
-        const indexCache = new Map();
-        const searchIndexCache = new Map();
-
-        for (const [[modelName]] of modelsToCheck) {
-            if (!indexCache.has(modelName)) {
-                indexCache.set(modelName, await this.#storage.getIndex(this.#models.get(modelName)));
-            }
-
-            if (!searchIndexCache.has(modelName)) {
-                searchIndexCache.set(modelName, await this.#storage.getSearchIndex(this.#models.get(modelName)));
-            }
-        }
-
-        return [indexCache, searchIndexCache];
     }
 
     /**
