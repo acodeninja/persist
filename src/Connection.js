@@ -7,34 +7,113 @@ import Model from './data/Model.js';
 import SearchIndex from './data/SearchIndex.js';
 import _ from 'lodash';
 
+/**
+ * @class State
+ */
 class State {
-    constructor() {
+    /**
+     * @private
+     * @property {StorageEngine}
+     */
+    #storage;
+
+    constructor(storage) {
         this.modelCache = new Map();
         this.indexCache = new Map();
         this.searchIndexCache = new Map();
+        this.#storage = storage;
+    }
+
+    /**
+     * Get a given index
+     *
+     * @param {string} modelConstructorName
+     * @return {Object}
+     */
+    getIndex(modelConstructorName) {
+        return this.indexCache.get(modelConstructorName)?.index;
+    }
+
+    /**
+     * Get a Map of indexes that have been tainted
+     *
+     * @return {Map<String, Object>}
+     */
+    getTaintedIndexes() {
+        const changedIndexes = [];
+
+        for (const [name, {changed, _index}] of this.indexCache) {
+            if (changed) changedIndexes.push(name);
+        }
+
+        return new Map(changedIndexes.map(i => [i, this.getIndex(i)]));
+    }
+
+    /**
+     * Update a given index
+     *
+     * @param {string} modelConstructorName
+     * @return {Object}
+     */
+    updateIndex(modelConstructorName, index) {
+        this.indexCache.set(modelConstructorName, {index, changed: true});
+    }
+
+    /**
+     * Get a given search index
+     *
+     * @param {string} modelConstructorName
+     * @return {Object}
+     */
+    getSearchIndex(modelConstructorName) {
+        return this.searchIndexCache.get(modelConstructorName)?.index;
+    }
+
+    /**
+     * Get a Map of search indexes that have been tainted
+     *
+     * @return {Map<String, Object>}
+     */
+    getTaintedSearchIndexes() {
+        const changedIndexes = [];
+
+        for (const [name, {changed, _index}] of this.searchIndexCache) {
+            if (changed) changedIndexes.push(name);
+        }
+
+        return new Map(changedIndexes.map(i => [i, this.getSearchIndex(i)]));
+    }
+
+    /**
+     * Update a given search index
+     *
+     * @param {string} modelConstructorName
+     * @return {Object}
+     */
+    updateSearchIndex(modelConstructorName, index) {
+        this.searchIndexCache.set(modelConstructorName, {index, changed: true});
     }
 
     /**
      *
      * @param {Array<Model.constructor>} modelConstructors
-     * @param {StorageEngine} storage
      * @return {Promise<void>}
      */
-    async fetchIndexes(modelConstructors, storage) {
+    async fetchIndexes(modelConstructors) {
         await Promise.all(
             [
                 Promise.all(
                     modelConstructors
                         .map(modelConstructor =>
-                            storage.getIndex(modelConstructor)
-                                .then(index => this.indexCache.set(modelConstructor.name, index)),
+                            this.#storage.getIndex(modelConstructor)
+                                .then(index => this.indexCache.set(modelConstructor.name, {changed: false, index})),
                         ),
                 ),
                 Promise.all(
                     modelConstructors
                         .map(modelConstructor =>
-                            storage.getSearchIndex(modelConstructor)
-                                .then(index => this.searchIndexCache.set(modelConstructor.name, index)),
+                            this.#storage.getSearchIndex(modelConstructor)
+                                .then(index => this.searchIndexCache.set(modelConstructor.name, {changed: false, index})),
                         ),
                 ),
             ],
@@ -257,7 +336,7 @@ export default class Connection {
      * @throws {ModelNotFoundStorageEngineError}
      */
     async delete(subject, propagateTo = []) {
-        const state = new State();
+        const state = new State(this.#storage);
         const modelsToCheck = this.#findLinkedModelClasses(subject);
         const modelsToDelete = new Set([subject.id]);
         const modelsToUpdate = new Set();
@@ -301,7 +380,7 @@ export default class Connection {
                     (
                         Array.isArray(subject[propertyName]) ?
                             subject[propertyName] : [subject[propertyName]]
-                    ) : new FindIndex(this.#models.get(modelName), state.indexCache.get(modelName)).query(query);
+                    ) : new FindIndex(this.#models.get(modelName), state.getIndex(modelName)).query(query);
 
             for (const foundModel of foundModels) {
                 if (!state.modelCache.has(foundModel.id)) {
@@ -357,7 +436,7 @@ export default class Connection {
         }
 
         for (const indexName of searchIndexesToUpdate) {
-            const index = state.searchIndexCache.get(indexName);
+            const index = state.getSearchIndex(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = state.modelCache.get(model).toSearchData();
@@ -367,11 +446,11 @@ export default class Connection {
                 delete index[model];
             }
 
-            state.searchIndexCache.set(indexName, index);
+            state.updateSearchIndex(indexName, index);
         }
 
         for (const indexName of indexesToUpdate) {
-            const index = state.indexCache.get(indexName);
+            const index = state.getIndex(indexName);
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = state.modelCache.get(model).toIndexData();
@@ -381,14 +460,28 @@ export default class Connection {
                 delete index[model];
             }
 
-            state.indexCache.set(indexName, index);
+            state.updateIndex(indexName, index);
         }
 
         await Promise.all([
             Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(state.modelCache.get(id).toData()))),
             Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
-            Promise.all([...indexesToUpdate].map(index => this.#storage.putIndex(this.#models.get(index), state.indexCache.get(index)))),
-            Promise.all([...searchIndexesToUpdate].map(index => this.#storage.putSearchIndex(this.#models.get(index), state.searchIndexCache.get(index)))),
+            Promise.all(
+                state
+                    .getTaintedIndexes()
+                    .entries()
+                    .map(([modelConstructorName, index]) =>
+                        this.#storage.putIndex(this.#models.get(modelConstructorName), index),
+                    ),
+            ),
+            Promise.all(
+                state
+                    .getTaintedSearchIndexes()
+                    .entries()
+                    .map(([modelConstructorName, index]) =>
+                        this.#storage.putSearchIndex(this.#models.get(modelConstructorName), index),
+                    ),
+            ),
         ]);
     }
 
