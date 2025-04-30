@@ -231,6 +231,7 @@ export default class Connection {
      * Persists a model if it has changed, and updates all related models and their indexes
      * @param {Model} model
      * @return {Promise<void>}
+     * @throws {ValidationError|ModelNotRegisteredConnectionError}
      */
     async put(model) {
         const processedModels = [];
