@@ -86,40 +86,64 @@ describe('Model.fromData()', () => {
 
 describe('model.toIndexData()', () => {
     describe.each([
-        [SimpleModel, SimpleModelFactory],
-        [CircularLinkedModel, CircularLinkedModelFactory],
-        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory],
-        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory],
-    ])('with a %s', (modelConstructor, modelFactory) => {
+        [SimpleModel, SimpleModelFactory, {
+            id: expect.stringMatching(/^SimpleModel\/[A-Z0-9]+/),
+        }],
+        [CircularLinkedModel, CircularLinkedModelFactory, {
+            id: expect.stringMatching(/^CircularLinkedModel\/[A-Z0-9]+/),
+            linked: {
+                id: expect.stringMatching(/^CircularLinkedModel\/[A-Z0-9]+/),
+            },
+        }],
+        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory, {
+            id: expect.stringMatching(/^LinkedModelWithSearchIndex\/[A-Z0-9]+/),
+            string: 'string',
+            linked: {
+                id: expect.stringMatching(/^SimpleModelWithSearchIndex\/[A-Z0-9]+/),
+            },
+        }],
+        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory, {
+            id: expect.stringMatching(/^LinkedManyModelWithIndex\/[A-Z0-9]+/),
+            string: 'string',
+            linked: expect.arrayContaining([{
+                id: expect.stringMatching(/^SimpleModelWithIndex\/[A-Z0-9]+/),
+                string: 'string',
+            }]),
+        }],
+    ])('with a %s', (modelConstructor, modelFactory, expectedIndex) => {
         const model = modelFactory();
         const indexData = model.toIndexData();
 
         test('returns an object representation of the indexable fields of the model', () => {
-            model.constructor.indexedProperties().forEach(field => {
-                expect(_.get(model, field)).toEqual(indexData[field]);
-            });
+            expect(indexData).toEqual(expectedIndex);
         });
     });
 });
 
 describe('model.toSearchData()', () => {
     describe.each([
-        [SimpleModel, SimpleModelFactory],
-        [CircularLinkedModel, CircularLinkedModelFactory],
-        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory],
-        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory],
-    ])('with a %s', (modelConstructor, modelFactory) => {
+        [SimpleModel, SimpleModelFactory, {
+            id: expect.stringMatching(/^SimpleModel\/[A-Z0-9]+/),
+        }],
+        [CircularLinkedModel, CircularLinkedModelFactory, {
+            id: expect.stringMatching(/^CircularLinkedModel\/[A-Z0-9]+/),
+        }],
+        [LinkedModelWithSearchIndex, LinkedModelWithSearchIndexFactory, {
+            id: expect.stringMatching(/^LinkedModelWithSearchIndex\/[A-Z0-9]+/),
+            string: 'string',
+        }],
+        [LinkedManyModelWithIndex, LinkedManyModelWithIndexFactory, {
+            id: expect.stringMatching(/^LinkedManyModelWithIndex\/[A-Z0-9]+/),
+        }],
+    ])('with a %s', (modelConstructor, modelFactory, expectedIndex) => {
         const model = modelFactory();
         const indexData = model.toSearchData();
 
         test('returns an object representation of the searchable fields of the model', () => {
-            model.constructor.searchProperties().forEach(field => {
-                expect(_.get(model, field)).toEqual(indexData[field]);
-            });
+            expect(indexData).toEqual(expectedIndex);
         });
     });
 });
-
 
 describe('model.validate()', () => {
     describe.each([
