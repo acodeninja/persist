@@ -510,7 +510,7 @@ export default class Connection {
 
         const engine = CreateTransactionalStorageEngine(operations, this.#storage);
 
-        const transaction = new this.constructor(engine, this.#models.values());
+        const transaction = new this.constructor(engine, [...this.#models.values()]);
 
         transaction.commit = async () => {
             try {
