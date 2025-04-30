@@ -38,7 +38,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model id', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.id}`),
+                    `https://example.com/api/${model.id}`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -56,7 +56,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model id', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL('https://example.com/api/NotAModel/000000000000'),
+                    'https://example.com/api/NotAModel/000000000000',
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -71,7 +71,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
         test('the engine calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/api/${model.id}`),
+                `https://example.com/api/${model.id}`,
                 {
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
                     method: 'PUT',
@@ -89,7 +89,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model id', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.id}`),
+                    `https://example.com/api/${model.id}`,
                     {
                         headers: {Accept: 'application/json'},
                         method: 'DELETE',
@@ -110,7 +110,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model id', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL('https://example.com/api/NotAModel/000000000000'),
+                    'https://example.com/api/NotAModel/000000000000',
                     {
                         headers: {Accept: 'application/json'},
                         method: 'DELETE',
@@ -132,7 +132,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.constructor.name}`),
+                    `https://example.com/api/${model.constructor.name}`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -147,7 +147,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with DeleteObjectCommand', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${SimpleModel}`),
+                    `https://example.com/api/${SimpleModel}`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -165,7 +165,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${model.constructor.name}`),
+                    `https://example.com/api/${model.constructor.name}`,
                     {
                         headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
                         method: 'PUT',
@@ -195,7 +195,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${SimpleModel}/search`),
+                    `https://example.com/api/${model.constructor.name}/search`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -210,7 +210,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${SimpleModel}/search`),
+                    `https://example.com/api/${SimpleModelWithSearchIndex.name}/search`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -225,7 +225,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${SimpleModel}/search`),
+                    `https://example.com/api/${SimpleModel.name}/search`,
                     {headers: {Accept: 'application/json'}},
                 );
             });
@@ -243,7 +243,7 @@ describe('HTTPStorageEngine integration with aws-sdk', () => {
 
             test('the engine calls fetch with the model constructor', () => {
                 expect(fetch).toHaveBeenCalledWith(
-                    new URL(`https://example.com/api/${SimpleModel}/search`),
+                    `https://example.com/api/${SimpleModelWithSearchIndex.name}/search`,
                     {
                         headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
                         method: 'PUT',
