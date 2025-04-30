@@ -189,7 +189,7 @@ export default class HTTPStorageEngine extends StorageEngine {
                 .concat(input)
                 .filter(Boolean)
                 .join('/'),
-        );
+        ).toString();
     }
 }
 

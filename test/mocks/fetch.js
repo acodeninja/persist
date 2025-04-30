@@ -58,7 +58,7 @@ function stubFetch(models, prefix = '') {
 
     const stubbedFetch = jest.fn().mockImplementation((url, opts) => {
         if (opts.method === 'PUT') {
-            resolvedFiles[url.pathname] = JSON.parse(opts.body);
+            resolvedFiles[url] = JSON.parse(opts.body);
             return Promise.resolve({
                 ok: true,
                 status: 200,
@@ -68,7 +68,7 @@ function stubFetch(models, prefix = '') {
 
         if (opts.method === 'DELETE') {
             for (const [path, _value] of Object.entries(resolvedFiles)) {
-                if (url.pathname.endsWith(path)) {
+                if (url.endsWith(path)) {
                     delete resolvedFiles[path];
                     return Promise.resolve({
                         ok: true,
@@ -85,7 +85,7 @@ function stubFetch(models, prefix = '') {
         }
 
         for (const [filename, value] of Object.entries(resolvedFiles)) {
-            if (url.pathname.endsWith(filename)) {
+            if (url.endsWith(filename)) {
                 return Promise.resolve({
                     ok: true,
                     status: 200,

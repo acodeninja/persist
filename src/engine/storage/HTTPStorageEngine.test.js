@@ -39,7 +39,7 @@ describe('HTTPStorageEngine.getModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -63,7 +63,7 @@ describe('HTTPStorageEngine.getModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -87,7 +87,7 @@ describe('HTTPStorageEngine.getModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -108,7 +108,7 @@ describe('HTTPStorageEngine.putModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {
                     body: JSON.stringify(model.toData()),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -136,7 +136,7 @@ describe('HTTPStorageEngine.putModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {
                     body: JSON.stringify(model.toData()),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -161,7 +161,7 @@ describe('HTTPStorageEngine.deleteModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}, method: 'DELETE'},
             );
         });
@@ -185,7 +185,7 @@ describe('HTTPStorageEngine.deleteModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}, method: 'DELETE'},
             );
         });
@@ -209,7 +209,7 @@ describe('HTTPStorageEngine.deleteModel()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.id}`),
+                `https://example.com/${model.id}`,
                 {headers: {Accept: 'application/json'}, method: 'DELETE'});
         });
     });
@@ -235,7 +235,7 @@ describe('HTTPStorageEngine.getIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL('https://example.com/SimpleModel/_index.json'),
+                'https://example.com/SimpleModel',
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -256,7 +256,7 @@ describe('HTTPStorageEngine.getIndex()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL('https://example.com/SimpleModel/_index.json'),
+                'https://example.com/SimpleModel',
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -277,7 +277,7 @@ describe('HTTPStorageEngine.putIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/_index`),
+                `https://example.com/${model.constructor.name}`,
                 {
                     body: JSON.stringify({[model.id]: model.toIndexData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -305,7 +305,7 @@ describe('HTTPStorageEngine.putIndex()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/_index`),
+                `https://example.com/${model.constructor.name}`,
                 {
                     body: JSON.stringify({[model.id]: model.toIndexData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -336,7 +336,7 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/_search_index`),
+                `https://example.com/${model.constructor.name}/search`,
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -357,7 +357,7 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/_search_index`),
+                `https://example.com/${model.constructor.name}/search`,
                 {headers: {Accept: 'application/json'}},
             );
         });
@@ -378,7 +378,7 @@ describe('HTTPStorageEngine.putSearchIndex()', () => {
 
         test('calls fetch with the model constructor', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/_search_index`),
+                `https://example.com/${model.constructor.name}/search`,
                 {
                     body: JSON.stringify({[model.id]: model.toSearchData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
@@ -406,7 +406,7 @@ describe('HTTPStorageEngine.putSearchIndex()', () => {
 
         test('calls fetch with the model id', () => {
             expect(fetch).toHaveBeenCalledWith(
-                new URL(`https://example.com/${model.constructor.name}/search`),
+                `https://example.com/${model.constructor.name}/search`,
                 {
                     body: JSON.stringify({[model.id]: model.toSearchData()}),
                     headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
