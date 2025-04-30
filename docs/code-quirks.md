@@ -39,15 +39,15 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Type.Model {
     static {
-        this.address = () => Address;
+        Person.address = () => Address;
     }
 }
 
 export class Address extends Persist.Type.Model {
     static {
-        this.person = () => Person;
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
+        Address.person = () => Person;
+        Address.address = Persist.Type.String.required;
+        Address.postcode = Persist.Type.String.required;
     }
 }
 ```
