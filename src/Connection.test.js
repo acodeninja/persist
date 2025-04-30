@@ -4807,14 +4807,21 @@ describe('connection.transaction()', () => {
                 });
 
                 test('.putModel() is called with the old main model\'s data', () => {
-                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(4, {
                         ...model.toData(),
                         string: 'old',
                     });
                 });
 
+                test('.putModel() is called with the old linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenNthCalledWith(2, model.linked.toData());
+                });
+
                 test('.putModel() is called with the linked model\'s data', () => {
-                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                    expect(engine.putModel).toHaveBeenNthCalledWith(3, {
+                        ...model.linked.toData(),
+                        string: 'old',
+                    });
                 });
 
                 test('.putIndex() is called thrice', () => {
@@ -4954,11 +4961,11 @@ describe('connection.transaction()', () => {
                 });
 
                 test('.putModel() is called with the old main model\'s data', () => {
-                    expect(engine.putModel).toHaveBeenNthCalledWith(3, model.toData());
+                    expect(engine.putModel).toHaveBeenNthCalledWith(4, model.toData());
                 });
 
                 test('.putModel() is called with the old linked model\'s data', () => {
-                    expect(engine.putModel).toHaveBeenNthCalledWith(4, model.linked.toData());
+                    expect(engine.putModel).toHaveBeenNthCalledWith(3, model.linked.toData());
                 });
 
                 test('.putIndex() is called four times', () => {
@@ -4978,13 +4985,13 @@ describe('connection.transaction()', () => {
                 });
 
                 test('.putIndex() is called with the old main model\'s data', () => {
-                    expect(engine.putIndex).toHaveBeenNthCalledWith(3, LinkedModelWithSearchIndex, {
+                    expect(engine.putIndex).toHaveBeenNthCalledWith(4, LinkedModelWithSearchIndex, {
                         [model.id]: model.toIndexData(),
                     });
                 });
 
                 test('.putIndex() is called with the old linked model\'s data', () => {
-                    expect(engine.putIndex).toHaveBeenNthCalledWith(4, SimpleModelWithSearchIndex, {
+                    expect(engine.putIndex).toHaveBeenNthCalledWith(3, SimpleModelWithSearchIndex, {
                         [model.linked.id]: model.linked.toIndexData(),
                     });
                 });

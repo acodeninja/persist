@@ -537,7 +537,7 @@ export default class Connection {
                     }
                 }
             } catch (error) {
-                for (const operation of operations) {
+                for (const operation of operations.slice().reverse()) {
                     if (operation.committed && operation.original) {
                         if (['putModel', 'deleteModel'].includes(operation.method))
                             await this.#storage.putModel(operation.original);
