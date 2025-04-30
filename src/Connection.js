@@ -26,7 +26,7 @@ class State {
 
     /**
      * Get a given index
-     * @param {Model} modelConstructor
+     * @param {Model.constructor} modelConstructor
      * @return {Object}
      */
     async getIndex(modelConstructor) {
@@ -66,7 +66,7 @@ class State {
 
     /**
      * Get a given search index
-     * @param {Model} modelConstructor
+     * @param {Model.constructor} modelConstructor
      * @return {Object}
      */
     async getSearchIndex(modelConstructor) {
@@ -404,13 +404,14 @@ export default class Connection {
         }
 
         for (const modelId of [...modelsToDelete, ...modelsToUpdate]) {
-            const modelConstructorName = modelId.split('/')[0];
-            await state.getIndex(this.#models.get(modelConstructorName));
-            indexesToUpdate.add(modelConstructorName);
+            const modelConstructor = this.#getModelConstructorFromId(modelId);
 
-            if (this.#models.get(modelConstructorName)?.searchProperties().length) {
-                await state.getSearchIndex(this.#models.get(modelConstructorName));
-                searchIndexesToUpdate.add(modelConstructorName);
+            await state.getIndex(modelConstructor);
+            indexesToUpdate.add(modelConstructor.name);
+
+            if (modelConstructor.searchProperties().length) {
+                await state.getSearchIndex(modelConstructor);
+                searchIndexesToUpdate.add(modelConstructor.name);
             }
         }
 
