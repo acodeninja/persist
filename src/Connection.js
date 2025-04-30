@@ -26,32 +26,37 @@ class State {
 
     /**
      * Get a given index
-     *
-     * @param {string} modelConstructorName
+     * @param {Model} modelConstructor
      * @return {Object}
      */
-    getIndex(modelConstructorName) {
+    async getIndex(modelConstructor) {
+        const modelConstructorName = modelConstructor.name;
+
+        if (!this.indexCache.has(modelConstructorName)) {
+            this.indexCache.set(modelConstructorName, {
+                changed: false,
+                index: await this.#storage.getIndex(modelConstructor),
+            });
+        }
+
         return this.indexCache.get(modelConstructorName)?.index;
     }
 
     /**
      * Get a Map of indexes that have been tainted
-     *
      * @return {Map<String, Object>}
      */
     getTaintedIndexes() {
-        const changedIndexes = [];
-
-        for (const [name, {changed, _index}] of this.indexCache) {
-            if (changed) changedIndexes.push(name);
-        }
-
-        return new Map(changedIndexes.map(i => [i, this.getIndex(i)]));
+        return new Map(
+            this.indexCache
+                .entries()
+                .filter(([_name, cache]) => cache.changed)
+                .map(([name, {index}]) => [name, index]),
+        );
     }
 
     /**
      * Update a given index
-     *
      * @param {string} modelConstructorName
      * @return {Object}
      */
@@ -61,63 +66,42 @@ class State {
 
     /**
      * Get a given search index
-     *
-     * @param {string} modelConstructorName
+     * @param {Model} modelConstructor
      * @return {Object}
      */
-    getSearchIndex(modelConstructorName) {
+    async getSearchIndex(modelConstructor) {
+        const modelConstructorName = modelConstructor.name;
+
+        if (!this.searchIndexCache.has(modelConstructorName)) {
+            this.searchIndexCache.set(modelConstructorName, {
+                changed: false,
+                index: await this.#storage.getSearchIndex(modelConstructor),
+            });
+        }
+
         return this.searchIndexCache.get(modelConstructorName)?.index;
     }
 
     /**
      * Get a Map of search indexes that have been tainted
-     *
      * @return {Map<String, Object>}
      */
     getTaintedSearchIndexes() {
-        const changedIndexes = [];
-
-        for (const [name, {changed, _index}] of this.searchIndexCache) {
-            if (changed) changedIndexes.push(name);
-        }
-
-        return new Map(changedIndexes.map(i => [i, this.getSearchIndex(i)]));
+        return new Map(
+            this.searchIndexCache
+                .entries()
+                .filter(([_name, cache]) => cache.changed)
+                .map(([name, {index}]) => [name, index]),
+        );
     }
 
     /**
      * Update a given search index
-     *
      * @param {string} modelConstructorName
      * @return {Object}
      */
     updateSearchIndex(modelConstructorName, index) {
         this.searchIndexCache.set(modelConstructorName, {index, changed: true});
-    }
-
-    /**
-     *
-     * @param {Array<Model.constructor>} modelConstructors
-     * @return {Promise<void>}
-     */
-    async fetchIndexes(modelConstructors) {
-        await Promise.all(
-            [
-                Promise.all(
-                    modelConstructors
-                        .map(modelConstructor =>
-                            this.#storage.getIndex(modelConstructor)
-                                .then(index => this.indexCache.set(modelConstructor.name, {changed: false, index})),
-                        ),
-                ),
-                Promise.all(
-                    modelConstructors
-                        .map(modelConstructor =>
-                            this.#storage.getSearchIndex(modelConstructor)
-                                .then(index => this.searchIndexCache.set(modelConstructor.name, {changed: false, index})),
-                        ),
-                ),
-            ],
-        );
     }
 }
 
@@ -349,14 +333,6 @@ export default class Connection {
             propagateTo.push(subject.id);
         }
 
-        const relevantModels =
-            [...new Set(
-                [...modelsToCheck.keys(), [subject.constructor.name]]
-                    .map(([modelConstructorName]) => modelConstructorName),
-            )].map(modelConstructorName => this.#models.get(modelConstructorName));
-
-        await state.fetchIndexes(relevantModels, this.#storage);
-
         // Populate model cache
         for (const [[modelName, propertyName, type, direction], _modelConstructor] of modelsToCheck) {
             const query = {};
@@ -380,7 +356,7 @@ export default class Connection {
                     (
                         Array.isArray(subject[propertyName]) ?
                             subject[propertyName] : [subject[propertyName]]
-                    ) : new FindIndex(this.#models.get(modelName), state.getIndex(modelName)).query(query);
+                    ) : new FindIndex(this.#models.get(modelName), await state.getIndex(this.#models.get(modelName))).query(query);
 
             for (const foundModel of foundModels) {
                 if (!state.modelCache.has(foundModel.id)) {
@@ -429,14 +405,17 @@ export default class Connection {
 
         for (const modelId of [...modelsToDelete, ...modelsToUpdate]) {
             const modelConstructorName = modelId.split('/')[0];
+            await state.getIndex(this.#models.get(modelConstructorName));
             indexesToUpdate.add(modelConstructorName);
+
             if (this.#models.get(modelConstructorName)?.searchProperties().length) {
+                await state.getSearchIndex(this.#models.get(modelConstructorName));
                 searchIndexesToUpdate.add(modelConstructorName);
             }
         }
 
         for (const indexName of searchIndexesToUpdate) {
-            const index = state.getSearchIndex(indexName);
+            const index = await state.getSearchIndex(this.#models.get(indexName));
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = state.modelCache.get(model).toSearchData();
@@ -450,7 +429,7 @@ export default class Connection {
         }
 
         for (const indexName of indexesToUpdate) {
-            const index = state.getIndex(indexName);
+            const index = await state.getIndex(this.#models.get(indexName));
 
             for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
                 index[model] = state.modelCache.get(model).toIndexData();
@@ -466,21 +445,19 @@ export default class Connection {
         await Promise.all([
             Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(state.modelCache.get(id).toData()))),
             Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
-            Promise.all(
-                state
-                    .getTaintedIndexes()
-                    .entries()
-                    .map(([modelConstructorName, index]) =>
-                        this.#storage.putIndex(this.#models.get(modelConstructorName), index),
-                    ),
+            Promise.all(state
+                .getTaintedIndexes()
+                .entries()
+                .map(([modelConstructorName, index]) =>
+                    this.#storage.putIndex(this.#models.get(modelConstructorName), index),
+                ),
             ),
-            Promise.all(
-                state
-                    .getTaintedSearchIndexes()
-                    .entries()
-                    .map(([modelConstructorName, index]) =>
-                        this.#storage.putSearchIndex(this.#models.get(modelConstructorName), index),
-                    ),
+            Promise.all(state
+                .getTaintedSearchIndexes()
+                .entries()
+                .map(([modelConstructorName, index]) =>
+                    this.#storage.putSearchIndex(this.#models.get(modelConstructorName), index),
+                ),
             ),
         ]);
     }
