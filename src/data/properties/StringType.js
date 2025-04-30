@@ -15,9 +15,9 @@ class StringType extends Type {
          * @static
          * @property {string} _type - The type identifier for the string type.
          */
-        this._type = 'string';
+        StringType._type = 'string';
 
-        Object.defineProperty(this, 'name', {value: 'String'});
+        Object.defineProperty(StringType, 'name', {value: 'String'});
     }
 }
 

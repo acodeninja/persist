@@ -237,7 +237,7 @@ describe('Model.withName()', () => {
     test('overrides the name of the model', () => {
         class RenamedModel extends Model {
             static {
-                this.withName('AnotherName');
+                RenamedModel.withName('AnotherName');
             }
         }
 

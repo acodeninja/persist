@@ -13,8 +13,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.firstName = Persist.Property.String;
-        this.lastName = Persist.Property.String;
+        Person.firstName = Persist.Property.String;
+        Person.lastName = Persist.Property.String;
     }
 }
 ```
@@ -30,8 +30,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.firstName = Persist.Property.String;
-        this.lastName = Persist.Property.String.required;
+        Person.firstName = Persist.Property.String;
+        Person.lastName = Persist.Property.String.required;
     }
 }
 ```
@@ -45,8 +45,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.markettingEmailsActive = Persist.Property.Boolean;
-        this.accountActive = Persist.Property.Boolean.required;
+        Person.markettingEmailsActive = Persist.Property.Boolean;
+        Person.accountActive = Persist.Property.Boolean.required;
     }
 }
 ```
@@ -60,8 +60,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.loginToken = Persist.Property.Number;
-        this.accountId = Persist.Property.Number.required;
+        Person.loginToken = Persist.Property.Number;
+        Person.accountId = Persist.Property.Number.required;
     }
 }
 ```
@@ -77,8 +77,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.lastLogin = Persist.Property.Date;
-        this.createdAt = Persist.Property.Date.required;
+        Person.lastLogin = Persist.Property.Date;
+        Person.createdAt = Persist.Property.Date.required;
     }
 }
 ```
@@ -94,8 +94,8 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.failedLoginAttempts = Persist.Property.Array.of(Persist.Property.Date);
-        this.fullName = Persist.Property.Array.of(Persist.Property.String).required;
+        Person.failedLoginAttempts = Persist.Property.Array.of(Persist.Property.Date);
+        Person.fullName = Persist.Property.Array.of(Persist.Property.String).required;
     }
 }
 ```
@@ -109,7 +109,7 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.address = Persist.Property.Custom.of({
+        Person.address = Persist.Property.Custom.of({
             type: 'object',
             additionalProperties: false,
             required: ['line1', 'city', 'postcode'],
@@ -140,8 +140,8 @@ import Persist from '@acodeninja/persist';
 
 class Page extends Persist.Model {
     static {
-        this.title = Persist.Property.String;
-        this.slug = Persist.Property.Resolved.Slug.of('title');
+        Page.title = Persist.Property.String;
+        Page.slug = Persist.Property.Resolved.Slug.of('title');
     }
 }
 
@@ -162,14 +162,14 @@ Most types support the `.required` modifier, which will alter validation to enfo
 ```javascript
 class RequiredStringModel extends Persist.Model {
     static {
-        this.requiredString = Type.String.required;
-        this.requiredNumber = Type.Number.required;
-        this.requiredBoolean = Type.Boolean.required;
-        this.requiredDate = Type.Date.required;
-        this.requiredArrayOfString = Type.Array.of(Type.String).required;
-        this.requiredArrayOfNumber = Type.Array.of(Type.Number).required;
-        this.requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
-        this.requiredArrayOfDate = Type.Array.of(Type.Date).required;
+        RequiredStringModel.requiredString = Type.String.required;
+        RequiredStringModel.requiredNumber = Type.Number.required;
+        RequiredStringModel.requiredBoolean = Type.Boolean.required;
+        RequiredStringModel.requiredDate = Type.Date.required;
+        RequiredStringModel.requiredArrayOfString = Type.Array.of(Type.String).required;
+        RequiredStringModel.requiredArrayOfNumber = Type.Array.of(Type.Number).required;
+        RequiredStringModel.requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
+        RequiredStringModel.requiredArrayOfDate = Type.Array.of(Type.Date).required;
     }
 }
 ```
@@ -186,11 +186,11 @@ import Persist from '@acodeninja/persist';
 class IPv4Type extends Persist.Property.Type {
     static {
         // Set the type of the property to string
-        this._type = 'string';
+        IPv4Type._type = 'string';
         // Use the ajv extended format "ipv4"
-        this._format = 'ipv4';
+        IPv4Type._format = 'ipv4';
         // Ensure that even when minified, the name of the constructor is IPv4
-        Object.defineProperty(this, 'name', {value: 'IPv4'});
+        Object.defineProperty(IPv4Type, 'name', {value: 'IPv4'});
     }
 }
 ```

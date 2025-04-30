@@ -6,8 +6,8 @@ import Persist from '../../../src/Persist.js';
  */
 class TestModel extends Persist.Model {
     static {
-        this.withName('TestModel');
-        this.string = Persist.Property.String;
+        TestModel.withName('TestModel');
+        TestModel.string = Persist.Property.String;
     }
 }
 

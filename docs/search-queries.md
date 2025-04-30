@@ -13,17 +13,17 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Type.Model {
     static {
-        this.name = Persist.Type.String.required;
-        this.address = () => Address;
-        this.searchProperties = () => ['name', 'address.address'];
+        Person.name = Persist.Type.String.required;
+        Person.address = () => Address;
+        Person.searchProperties = () => ['name', 'address.address'];
     }
 }
 
 export class Address extends Persist.Type.Model {
     static {
-        this.address = Persist.Type.String.required;
-        this.postcode = Persist.Type.String.required;
-        this.searchProperties = () => ['address', 'postcode'];
+        Address.address = Persist.Type.String.required;
+        Address.postcode = Persist.Type.String.required;
+        Address.searchProperties = () => ['address', 'postcode'];
     }
 }
 ```

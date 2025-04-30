@@ -293,10 +293,10 @@ class Model {
      * @static
      *
      * @example
-     * export default class TestModel {
+     * export default class TestModel extends Model {
      *     static {
-     *         this.withName('TestModel');
-     *         this.string = Persist.Type.String;
+     *         TestModel.withName('TestModel');
+     *         TestModel.string = Persist.Type.String;
      *     }
      * }
      */

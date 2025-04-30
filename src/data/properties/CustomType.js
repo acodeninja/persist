@@ -37,12 +37,12 @@ class CustomType {
         class Custom extends Type {
             static {
                 /** @type {string} The data type, which is 'object' */
-                this._type = 'object';
+                Custom._type = 'object';
 
                 /** @type {Object} The JSON schema that defines the structure and validation rules */
-                this._schema = schema;
+                Custom._schema = schema;
 
-                Object.defineProperty(this, 'name', {value: 'Custom'});
+                Object.defineProperty(Custom, 'name', {value: 'Custom'});
             }
         }
 
@@ -50,7 +50,7 @@ class CustomType {
     }
 
     static {
-        Object.defineProperty(this, 'name', {value: 'Custom'});
+        Object.defineProperty(CustomType, 'name', {value: 'Custom'});
     }
 }
 

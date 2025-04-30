@@ -41,10 +41,10 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.dateOfBirth = Persist.Property.Date.required;
-        this.height = Persist.Property.Number.required;
-        this.isStudent = Persist.Property.Boolean.required;
+        Person.name = Persist.Property.String.required;
+        Person.dateOfBirth = Persist.Property.Date.required;
+        Person.height = Persist.Property.Number.required;
+        Person.isStudent = Persist.Property.Boolean.required;
     }
 }
 ```

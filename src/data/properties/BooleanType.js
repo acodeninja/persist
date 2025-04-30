@@ -15,9 +15,9 @@ class BooleanType extends Type {
          * @static
          * @property {string} _type - The type identifier for BooleanType, set to `'boolean'`.
          */
-        this._type = 'boolean';
+        BooleanType._type = 'boolean';
 
-        Object.defineProperty(this, 'name', {value: 'Boolean'});
+        Object.defineProperty(BooleanType, 'name', {value: 'Boolean'});
     }
 }
 
