@@ -403,17 +403,19 @@ export default class Connection {
             });
         }
 
-        for (const modelId of [...modelsToDelete, ...modelsToUpdate]) {
-            const modelConstructor = this.#getModelConstructorFromId(modelId);
+        await Promise.all(
+            new Set([...modelsToDelete, ...modelsToUpdate].map(this.#getModelConstructorFromId.bind(this)))
+                .values()
+                .map(async modelConstructor => {
+                    await state.getIndex(modelConstructor);
+                    indexesToUpdate.add(modelConstructor.name);
 
-            await state.getIndex(modelConstructor);
-            indexesToUpdate.add(modelConstructor.name);
-
-            if (modelConstructor.searchProperties().length) {
-                await state.getSearchIndex(modelConstructor);
-                searchIndexesToUpdate.add(modelConstructor.name);
-            }
-        }
+                    if (modelConstructor.searchProperties().length) {
+                        await state.getSearchIndex(modelConstructor);
+                        searchIndexesToUpdate.add(modelConstructor.name);
+                    }
+                }),
+        );
 
         for (const indexName of searchIndexesToUpdate) {
             const index = await state.getSearchIndex(this.#models.get(indexName));
