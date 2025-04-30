@@ -548,6 +548,10 @@ export default class Connection {
                         if (operation.method === 'putSearchIndex')
                             await this.#storage.putSearchIndex(operation.args[0], operation.original);
                     }
+
+                    if (operation.method === 'putModel' && operation.committed && !operation.original) {
+                        await this.#storage.deleteModel(operation.args[0].id);
+                    }
                 }
 
                 throw new CommitFailedTransactionError(operations, error);
