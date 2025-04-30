@@ -335,9 +335,7 @@ describe('S3StorageEngine.putIndex()', () => {
         }, []);
 
         test('throws the error', async () => {
-            await expect(() =>
-                engine.putIndex(model.constructor, {[model.id]: model.toIndexData()}),
-            ).rejects.toThrow({
+            await expect(engine.putIndex(model.constructor, {[model.id]: model.toIndexData()})).rejects.toThrow({
                 instanceOf: Error,
                 message: 'unknown',
             });
@@ -452,9 +450,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
         }, []);
 
         test('throws the error', async () => {
-            await expect(() =>
-                engine.putSearchIndex(model.constructor, {[model.id]: model.toSearchData()}),
-            ).rejects.toThrow({
+            await expect(engine.putSearchIndex(model.constructor, {[model.id]: model.toSearchData()})).rejects.toThrow({
                 instanceOf: Error,
                 message: 'unknown',
             });
