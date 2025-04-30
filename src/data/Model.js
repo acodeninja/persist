@@ -296,7 +296,7 @@ class Model {
      * export default class TestModel extends Model {
      *     static {
      *         TestModel.withName('TestModel');
-     *         TestModel.string = Persist.Type.String;
+     *         TestModel.string = Persist.Property.String;
      *     }
      * }
      */

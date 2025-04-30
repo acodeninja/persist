@@ -11,18 +11,18 @@ Let's consider the following models:
 ```javascript
 import Persist from "@acodeninja/persist";
 
-export class Person extends Persist.Type.Model {
+export class Person extends Persist.Model {
     static {
-        Person.name = Persist.Type.String.required;
+        Person.name = Persist.Property.String.required;
         Person.address = () => Address;
         Person.searchProperties = () => ['name', 'address.address'];
     }
 }
 
-export class Address extends Persist.Type.Model {
+export class Address extends Persist.Model {
     static {
-        Address.address = Persist.Type.String.required;
-        Address.postcode = Persist.Type.String.required;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
         Address.searchProperties = () => ['address', 'postcode'];
     }
 }

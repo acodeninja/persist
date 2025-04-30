@@ -162,14 +162,14 @@ Most types support the `.required` modifier, which will alter validation to enfo
 ```javascript
 class RequiredStringModel extends Persist.Model {
     static {
-        RequiredStringModel.requiredString = Type.String.required;
-        RequiredStringModel.requiredNumber = Type.Number.required;
-        RequiredStringModel.requiredBoolean = Type.Boolean.required;
-        RequiredStringModel.requiredDate = Type.Date.required;
-        RequiredStringModel.requiredArrayOfString = Type.Array.of(Type.String).required;
-        RequiredStringModel.requiredArrayOfNumber = Type.Array.of(Type.Number).required;
-        RequiredStringModel.requiredArrayOfBoolean = Type.Array.of(Type.Boolean).required;
-        RequiredStringModel.requiredArrayOfDate = Type.Array.of(Type.Date).required;
+        RequiredStringModel.requiredString = Persist.Property.String.required;
+        RequiredStringModel.requiredNumber = Persist.Property.Number.required;
+        RequiredStringModel.requiredBoolean = Persist.Property.Boolean.required;
+        RequiredStringModel.requiredDate = Persist.Property.Date.required;
+        RequiredStringModel.requiredArrayOfString = Persist.Property.Array.of(Persist.Property.String).required;
+        RequiredStringModel.requiredArrayOfNumber = Persist.Property.Array.of(Persist.Property.Number).required;
+        RequiredStringModel.requiredArrayOfBoolean = Persist.Property.Array.of(Persist.Property.Boolean).required;
+        RequiredStringModel.requiredArrayOfDate = Persist.Property.Array.of(Persist.Property.Date).required;
     }
 }
 ```
