@@ -11,6 +11,7 @@ import {
 import {describe, expect, test} from '@jest/globals';
 import Model from './Model.js';
 import {ValidationError} from '../Schema.js';
+import _ from 'lodash';
 
 describe('new Model', () => {
     const model = SimpleModelFactory();
@@ -95,7 +96,7 @@ describe('model.toIndexData()', () => {
 
         test('returns an object representation of the indexable fields of the model', () => {
             model.constructor.indexedProperties().forEach(field => {
-                expect(model[field]).toEqual(indexData[field]);
+                expect(_.get(model, field)).toEqual(indexData[field]);
             });
         });
     });
@@ -113,7 +114,7 @@ describe('model.toSearchData()', () => {
 
         test('returns an object representation of the searchable fields of the model', () => {
             model.constructor.searchProperties().forEach(field => {
-                expect(model[field]).toEqual(indexData[field]);
+                expect(_.get(model, field)).toEqual(indexData[field]);
             });
         });
     });
