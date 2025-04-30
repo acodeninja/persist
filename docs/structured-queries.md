@@ -4,7 +4,7 @@ Use structured queries when you need to filter a collection of models using a se
 
 ## Indexing Data
 
-To set index properties on a model, define the static function `indexProperties` as an arrow function that returns an array of fields that should be indexed for querying.
+To set index properties on a model, define the static function `indexedProperties` as an arrow function that returns an array of fields that should be indexed for querying.
 
 Let's consider the following models:
 
@@ -15,7 +15,7 @@ export class Person extends Persist.Model {
     static {
         Person.name = Persist.Property.String.required;
         Person.address = () => Address;
-        Person.indexProperties = () => ['name', 'address.postcode'];
+        Person.indexedProperties = () => ['name', 'address.postcode'];
     }
 }
 
@@ -24,7 +24,7 @@ export class Address extends Persist.Model {
         Address.address = Persist.Property.String.required;
         Address.postcode = Persist.Property.String.required;
         Address.people = () => Persist.Property.Array.of(Person)
-        Address.indexProperties = () => ['postcode', 'people.[*].name'];
+        Address.indexedProperties = () => ['postcode', 'people.[*].name'];
     }
 }
 ```
