@@ -45,7 +45,7 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        Person.markettingEmailsActive = Persist.Property.Boolean;
+        Person.marketingEmailsActive = Persist.Property.Boolean;
         Person.accountActive = Persist.Property.Boolean.required;
     }
 }
