@@ -14,7 +14,7 @@ class Schema {
      * It uses AJV for the validation process and integrates with model types and their specific validation rules.
      *
      * @param {Object|Model} rawSchema - The raw schema or model definition to be compiled.
-     * @returns {CompiledSchema} - A class that extends `CompiledSchema`, with the compiled schema and validator attached.
+     * @returns {CompiledSchema} - A compiled schema, ready to validate instances of the model.
      *
      * @example
      * const schemaClass = Schema.compile(MyModelSchema);
