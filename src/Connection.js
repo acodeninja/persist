@@ -173,7 +173,7 @@ export default class Connection {
                 if (Model.isDryModel(property)) {
                     // skipcq: JS-0129
                     modelToProcess[name] = await hydrateSubModel(property);
-                } else if (Array.isArray(property) && Model.isDryModel(property[0])) {
+                } else if (Array.isArray(property) && property.length && Model.isDryModel(property[0])) {
                     // skipcq: JS-0129
                     modelToProcess[name] = await hydrateModelList(property);
                 }
