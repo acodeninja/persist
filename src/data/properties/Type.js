@@ -74,7 +74,7 @@ class Type {
     }
 
     static {
-        Object.defineProperty(this, 'name', {value: 'Type'});
+        Object.defineProperty(Type, 'name', {value: 'Type'});
     }
 }
 

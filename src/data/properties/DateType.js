@@ -15,15 +15,15 @@ class DateType extends Type {
          * @static
          * @property {string} _type - The type identifier for DateType, set to `'string'`.
          */
-        this._type = 'string';
+        DateType._type = 'string';
 
         /**
          * @static
          * @property {string} _format - The format for DateType, set to `'iso-date-time'`.
          */
-        this._format = 'iso-date-time';
+        DateType._format = 'iso-date-time';
 
-        Object.defineProperty(this, 'name', {value: 'Date'});
+        Object.defineProperty(DateType, 'name', {value: 'Date'});
     }
 
     /**

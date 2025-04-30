@@ -9,14 +9,14 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
+        Person.name = Persist.Property.String.required;
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -30,15 +30,15 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.address = () => Address;
+        Person.name = Persist.Property.String.required;
+        Person.address = () => Address;
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -57,16 +57,16 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.address = () => Address;
+        Person.name = Persist.Property.String.required;
+        Person.address = () => Address;
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.person = () => Person;
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.person = () => Person;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -80,16 +80,16 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.addresses = () => Persist.Property.Array.of(Address);
+        Person.name = Persist.Property.String.required;
+        Person.addresses = () => Persist.Property.Array.of(Address);
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.person = () => Person;
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.person = () => Person;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -105,16 +105,16 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.addresses = () => Persist.Property.Array.of(Address);
+        Person.name = Persist.Property.String.required;
+        Person.addresses = () => Persist.Property.Array.of(Address);
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.people = () => Persist.Property.Array.of(Person);
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.people = () => Persist.Property.Array.of(Person);
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```
@@ -130,24 +130,24 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.addresses = () => Persist.Property.Array.of(Abode);
+        Person.name = Persist.Property.String.required;
+        Person.addresses = () => Persist.Property.Array.of(Abode);
     }
 }
 
 export class Abode extends Persist.Model {
     static {
-        this.moveInDate = Persist.Property.Date.required;
-        this.address = () => Address;
-        this.person = () => Person;
+        Abode.moveInDate = Persist.Property.Date.required;
+        Abode.address = () => Address;
+        Abode.person = () => Person;
     }
 }
 
 export class Address extends Persist.Model {
     static {
-        this.people = () => Persist.Property.Array.of(Person);
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.people = () => Persist.Property.Array.of(Person);
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 ```

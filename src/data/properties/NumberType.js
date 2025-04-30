@@ -15,9 +15,9 @@ class NumberType extends Type {
          * @static
          * @property {string} _type - The type identifier for NumberType, set to `'number'`.
          */
-        this._type = 'number';
+        NumberType._type = 'number';
 
-        Object.defineProperty(this, 'name', {value: 'Number'});
+        Object.defineProperty(NumberType, 'name', {value: 'Number'});
     }
 }
 

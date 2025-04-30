@@ -171,9 +171,9 @@ export function LinkedModelFactory() {
  */
 export class LinkedModelWithIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => SimpleModelWithIndex;
-        this.indexedProperties = () => ['string', 'linked.string', 'linked.boolean'];
+        LinkedModelWithIndex.string = Property.String;
+        LinkedModelWithIndex.linked = () => SimpleModelWithIndex;
+        LinkedModelWithIndex.indexedProperties = () => ['string', 'linked.string', 'linked.boolean'];
     }
 }
 
@@ -240,10 +240,10 @@ export function LinkedManyModelWithSearchIndexFactory() {
  */
 export class LinkedModelWithSearchIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => SimpleModelWithSearchIndex;
-        this.indexedProperties = () => ['string'];
-        this.searchProperties = () => ['string'];
+        LinkedModelWithSearchIndex.string = Property.String;
+        LinkedModelWithSearchIndex.linked = () => SimpleModelWithSearchIndex;
+        LinkedModelWithSearchIndex.indexedProperties = () => ['string'];
+        LinkedModelWithSearchIndex.searchProperties = () => ['string'];
     }
 }
 
@@ -265,8 +265,8 @@ export function LinkedModelWithSearchIndexFactory() {
  */
 export class CircularLinkedModel extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => CircularLinkedModel;
+        CircularLinkedModel.string = Property.String;
+        CircularLinkedModel.linked = () => CircularLinkedModel;
     }
 }
 
@@ -288,8 +288,8 @@ export function CircularLinkedModelFactory() {
  */
 export class CircularManyLinkedModel extends Model {
     static {
-        this.string = Property.String;
-        this.linked = Property.Array.of(CircularManyLinkedModel);
+        CircularManyLinkedModel.string = Property.String;
+        CircularManyLinkedModel.linked = Property.Array.of(CircularManyLinkedModel);
     }
 }
 
@@ -311,9 +311,9 @@ export function CircularManyLinkedModelFactory() {
  */
 export class CircularLinkedModelWithIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => CircularLinkedModelWithIndex;
-        this.indexedProperties = () => ['string'];
+        CircularLinkedModelWithIndex.string = Property.String;
+        CircularLinkedModelWithIndex.linked = () => CircularLinkedModelWithIndex;
+        CircularLinkedModelWithIndex.indexedProperties = () => ['string'];
     }
 }
 
@@ -335,10 +335,10 @@ export function CircularLinkedModelWithIndexFactory() {
  */
 export class CircularLinkedModelWithSearchIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => CircularLinkedModelWithSearchIndex;
-        this.indexedProperties = () => ['string'];
-        this.searchProperties = () => ['string'];
+        CircularLinkedModelWithSearchIndex.string = Property.String;
+        CircularLinkedModelWithSearchIndex.linked = () => CircularLinkedModelWithSearchIndex;
+        CircularLinkedModelWithSearchIndex.indexedProperties = () => ['string'];
+        CircularLinkedModelWithSearchIndex.searchProperties = () => ['string'];
     }
 }
 
@@ -360,10 +360,10 @@ export function CircularLinkedModelWithSearchIndexFactory() {
  */
 export class CircularRequiredLinkedModelWithSearchIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = () => CircularRequiredLinkedModelWithSearchIndex.required;
-        this.indexedProperties = () => ['string'];
-        this.searchProperties = () => ['string'];
+        CircularRequiredLinkedModelWithSearchIndex.string = Property.String;
+        CircularRequiredLinkedModelWithSearchIndex.linked = () => CircularRequiredLinkedModelWithSearchIndex.required;
+        CircularRequiredLinkedModelWithSearchIndex.indexedProperties = () => ['string'];
+        CircularRequiredLinkedModelWithSearchIndex.searchProperties = () => ['string'];
     }
 }
 
@@ -385,10 +385,10 @@ export function CircularRequiredLinkedModelWithSearchIndexFactory() {
  */
 export class RequiredLinkedModelWithSearchIndex extends Model {
     static {
-        this.string = Property.String;
-        this.linked = SimpleModelWithSearchIndex.required;
-        this.indexedProperties = () => ['string'];
-        this.searchProperties = () => ['string'];
+        RequiredLinkedModelWithSearchIndex.string = Property.String;
+        RequiredLinkedModelWithSearchIndex.linked = SimpleModelWithSearchIndex.required;
+        RequiredLinkedModelWithSearchIndex.indexedProperties = () => ['string'];
+        RequiredLinkedModelWithSearchIndex.searchProperties = () => ['string'];
     }
 }
 

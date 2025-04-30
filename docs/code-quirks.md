@@ -16,8 +16,8 @@ import Persist from "@acodeninja/persist";
 
 export class Person extends Persist.Type.Model {
     static {
-        this.withName('Person');
-        this.name = Persist.Type.String.required;
+        Person.withName('Person');
+        Person.name = Persist.Type.String.required;
     }
 }
 ```

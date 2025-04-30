@@ -28,10 +28,10 @@ import Persist from '@acodeninja/persist';
 
 class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.dateOfBirth = Persist.Property.Date.required;
-        this.height = Persist.Property.Number.required;
-        this.isStudent = Persist.Property.Boolean.required;
+        Person.name = Persist.Property.String.required;
+        Person.dateOfBirth = Persist.Property.Date.required;
+        Person.height = Persist.Property.Number.required;
+        Person.isStudent = Persist.Property.Boolean.required;
     }
 }
 ```
@@ -45,15 +45,15 @@ Models can be linked to other models by declaring them as properties.
 ```javascript
 class Address extends Persist.Model {
     static {
-        this.address = Persist.Property.String.required;
-        this.postcode = Persist.Property.String.required;
+        Address.address = Persist.Property.String.required;
+        Address.postcode = Persist.Property.String.required;
     }
 }
 
 class Person extends Persist.Model {
     static {
-        this.name = Persist.Property.String.required;
-        this.address = Address;
+        Person.name = Persist.Property.String.required;
+        Person.address = Address;
     }
 }
 ```
