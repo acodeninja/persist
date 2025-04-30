@@ -151,7 +151,7 @@ class Model {
      * @static
      */
     static get required() {
-        const ThisModel = this;
+        const ModelClass = this;
 
         /**
          * A subclass of the current model with the `_required` flag set to `true`.
@@ -161,11 +161,11 @@ class Model {
          * @extends {Model}
          * @private
          */
-        class Required extends ThisModel {
+        class Required extends ModelClass {
             static _required = true;
         }
 
-        Object.defineProperty(Required, 'name', {value: ThisModel.name});
+        Object.defineProperty(Required, 'name', {value: ModelClass.name});
 
         return Required;
     }
@@ -193,20 +193,21 @@ class Model {
      * @static
      */
     static indexedPropertiesResolved() {
+        const ModelClass = this;
         return [
-            ...Object.entries(this.properties)
-                .filter(([name, type]) => !['indexedProperties', 'searchProperties'].includes(name) && !type._type && (this.isModel(type) || (typeof type === 'function' && this.isModel(type()))))
+            ...Object.entries(ModelClass.properties)
+                .filter(([name, type]) => !['indexedProperties', 'searchProperties'].includes(name) && !type._type && (ModelClass.isModel(type) || (typeof type === 'function' && ModelClass.isModel(type()))))
                 .map(([name, _type]) => `${name}.id`),
-            ...Object.entries(this.properties)
+            ...Object.entries(ModelClass.properties)
                 .filter(([_name, type]) => {
                     return !Model.isModel(type) && (
-                        (type._type === 'array' && this.isModel(type._items))
+                        (type._type === 'array' && ModelClass.isModel(type._items))
                         ||
-                        (!type._type && typeof type === 'function' && this.isModel(type()._items))
+                        (!type._type && typeof type === 'function' && ModelClass.isModel(type()._items))
                     );
                 })
                 .map(([name, _type]) => `${name}.[*].id`),
-            ...this.indexedProperties(),
+            ...ModelClass.indexedProperties(),
             'id',
         ];
     }
@@ -230,17 +231,18 @@ class Model {
      * @static
      */
     static fromData(data) {
-        const model = new this();
+        const ModelClass = this;
+        const model = new ModelClass();
 
         for (const [name, value] of Object.entries(data)) {
-            if (this[name]?._resolved) continue;
+            if (ModelClass[name]?._resolved) continue;
 
-            if (this[name]?.name.endsWith('Date')) {
+            if (ModelClass[name]?.name.endsWith('Date')) {
                 model[name] = new Date(value);
                 continue;
             }
 
-            if (this[name]?.name.endsWith('ArrayOf(Date)')) {
+            if (ModelClass[name]?.name.endsWith('ArrayOf(Date)')) {
                 model[name] = data[name].map(d => new Date(d));
                 continue;
             }
@@ -275,7 +277,7 @@ class Model {
     static isDryModel(possibleDryModel) {
         try {
             return (
-                !this.isModel(possibleDryModel) &&
+                !Model.isModel(possibleDryModel) &&
                 Object.keys(possibleDryModel).includes('id') &&
                 new RegExp(/[A-Za-z]+\/[A-Z0-9]+/).test(possibleDryModel.id)
             );
@@ -301,7 +303,8 @@ class Model {
      * }
      */
     static withName(name) {
-        Object.defineProperty(this, 'name', {value: name});
+        const ModelClass = this;
+        Object.defineProperty(ModelClass, 'name', {value: name});
     }
 
     /**
@@ -310,11 +313,11 @@ class Model {
      * @return {Model}
      */
     static get properties() {
-        const modelClass = this;
+        const ModelClass = this;
         const props = {};
         const chain = [];
 
-        let current = modelClass;
+        let current = ModelClass;
         while (current !== Function.prototype) {
             chain.push(current);
             current = Object.getPrototypeOf(current);
@@ -347,7 +350,7 @@ class Model {
             }
         }
 
-        return Object.assign(modelClass, props);
+        return Object.assign(ModelClass, props);
     }
 }
 
