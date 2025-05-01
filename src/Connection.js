@@ -421,11 +421,11 @@ export default class Connection {
         for (const indexName of searchIndexesToUpdate) {
             const index = await state.getSearchIndex(this.#models.get(indexName));
 
-            for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
+            for (const model of [...modelsToUpdate].filter(m => this.#getModelConstructorFromId(m)?.name === indexName)) {
                 index[model] = state.modelCache.get(model).toSearchData();
             }
 
-            for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
+            for (const model of [...modelsToDelete].filter(m => this.#getModelConstructorFromId(m)?.name === indexName)) {
                 delete index[model];
             }
 
@@ -435,11 +435,11 @@ export default class Connection {
         for (const indexName of indexesToUpdate) {
             const index = await state.getIndex(this.#models.get(indexName));
 
-            for (const model of [...modelsToUpdate].filter(i => i.startsWith(indexName))) {
+            for (const model of [...modelsToUpdate].filter(m => this.#getModelConstructorFromId(m)?.name === indexName)) {
                 index[model] = state.modelCache.get(model).toIndexData();
             }
 
-            for (const model of [...modelsToDelete].filter(i => i.startsWith(indexName))) {
+            for (const model of [...modelsToDelete].filter(m => this.#getModelConstructorFromId(m)?.name === indexName)) {
                 delete index[model];
             }
 
