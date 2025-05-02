@@ -29,7 +29,7 @@ describe('regressions', () => {
                 MenuItem.withName('MenuItem');
                 MenuItem.label = Persist.Property.String.required;
                 MenuItem.page = Page.required;
-                MenuItem.indexedProperties = () => ['label', 'pages.title'];
+                MenuItem.indexedProperties = () => ['label', 'page.title'];
             }
         }
 
