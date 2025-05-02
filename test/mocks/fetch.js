@@ -6,7 +6,7 @@ import {jest} from '@jest/globals';
  * @param prefix
  * @return {void|*}
  */
-function stubFetch(models, prefix = '') {
+function stubFetch(models = [], prefix = '') {
     const modelsAddedToFilesystem = [];
 
     /**

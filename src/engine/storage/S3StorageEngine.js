@@ -98,8 +98,11 @@ class S3StorageEngine extends StorageEngine {
             }));
 
             return JSON.parse(await data.Body.transformToString());
-        } catch (_error) {
-            return {};
+        } catch (error) {
+            if (error instanceof NoSuchKey) {
+                return {};
+            }
+            throw error;
         }
     }
 
@@ -135,8 +138,11 @@ class S3StorageEngine extends StorageEngine {
             }));
 
             return JSON.parse(await data.Body.transformToString());
-        } catch (_error) {
-            return {};
+        } catch (error) {
+            if (error instanceof NoSuchKey) {
+                return {};
+            }
+            throw error;
         }
     }
 
