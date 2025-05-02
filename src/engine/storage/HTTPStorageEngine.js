@@ -81,8 +81,12 @@ export default class HTTPStorageEngine extends StorageEngine {
         return this.#processFetch(
             this.#generateURL([modelConstructor.name]),
             this.#getReadOptions(),
-            {},
-        );
+        ).catch(error => {
+            if (error?.response?.status === 404) {
+                return {};
+            }
+            throw error;
+        });
     }
 
     /**
@@ -109,8 +113,12 @@ export default class HTTPStorageEngine extends StorageEngine {
         return this.#processFetch(
             this.#generateURL([modelConstructor.name, 'search']),
             this.#getReadOptions(),
-            {},
-        );
+        ).catch(error => {
+            if (error?.response?.status === 404) {
+                return {};
+            }
+            throw error;
+        });
     }
 
     /**
@@ -158,18 +166,13 @@ export default class HTTPStorageEngine extends StorageEngine {
      *
      * @param {string|URL} url - The URL to fetch.
      * @param {Object} options - The fetch options.
-     * @param {*} [defaultValue] - A default value to return if the fetch fails.
      * @returns {Promise<Object>} The parsed JSON response.
      * @throws {HTTPRequestFailedError} Thrown if the fetch request fails.
      */
-    #processFetch(url, options, defaultValue = undefined) {
+    #processFetch(url, options) {
         return this.configuration.fetch(url, options)
             .then(response => {
                 if (!response.ok) {
-                    if (defaultValue !== undefined) {
-                        return {json: () => Promise.resolve(defaultValue)};
-                    }
-
                     throw new HTTPRequestFailedError(url, options, response);
                 }
 

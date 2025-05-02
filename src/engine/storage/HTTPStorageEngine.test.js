@@ -2,6 +2,7 @@ import HTTPStorageEngine, {HTTPRequestFailedError} from './HTTPStorageEngine.js'
 import {MisconfiguredStorageEngineError, ModelNotFoundStorageEngineError} from './StorageEngine.js';
 import {SimpleModelFactory, SimpleModelWithSearchIndexFactory} from '../../../test/fixtures/Model.js';
 import {beforeAll, describe, expect, jest, test} from '@jest/globals';
+import stubFetch from '../../../test/mocks/fetch.js';
 
 describe('new HTTPStorageEngine', () => {
     describe('when no configuration is provided', () => {
@@ -261,6 +262,34 @@ describe('HTTPStorageEngine.getIndex()', () => {
             );
         });
     });
+
+    describe('when a HTTP error occurs', () => {
+        const model = SimpleModelWithSearchIndexFactory();
+        const fetch = jest.fn();
+        fetch.mockResolvedValue(Response.error());
+        const engine = new HTTPStorageEngine({
+            baseURL: 'https://example.com',
+            fetch,
+        }, []);
+
+        test('throws a failed to fetch error', async () => {
+            await expect(engine.getIndex(model.constructor)).rejects.toThrow('Failed to get https://example.com/SimpleModelWithSearchIndex');
+        });
+    });
+
+    describe('when an unexpected error occurs', () => {
+        const model = SimpleModelWithSearchIndexFactory();
+        const fetch = jest.fn();
+        fetch.mockRejectedValue(new Error('unexpected error'));
+        const engine = new HTTPStorageEngine({
+            baseURL: 'https://example.com',
+            fetch,
+        }, []);
+
+        test('throws the unexpected error', async () => {
+            await expect(engine.getIndex(model.constructor)).rejects.toThrow('unexpected error');
+        });
+    });
 });
 
 describe('HTTPStorageEngine.putIndex()', () => {
@@ -344,8 +373,7 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
 
     describe('when an index does not exist', () => {
         const model = SimpleModelFactory();
-        const fetch = jest.fn();
-        fetch.mockResolvedValue(Response.error());
+        const fetch = stubFetch();
         const engine = new HTTPStorageEngine({
             baseURL: 'https://example.com',
             fetch,
@@ -360,6 +388,34 @@ describe('HTTPStorageEngine.getSearchIndex()', () => {
                 `https://example.com/${model.constructor.name}/search`,
                 {headers: {Accept: 'application/json'}},
             );
+        });
+    });
+
+    describe('when a HTTP error occurs', () => {
+        const model = SimpleModelWithSearchIndexFactory();
+        const fetch = jest.fn();
+        fetch.mockResolvedValue(Response.error());
+        const engine = new HTTPStorageEngine({
+            baseURL: 'https://example.com',
+            fetch,
+        }, []);
+
+        test('throws a failed to fetch error', async () => {
+            await expect(engine.getSearchIndex(model.constructor)).rejects.toThrow('Failed to get https://example.com/SimpleModelWithSearchIndex/search');
+        });
+    });
+
+    describe('when an unexpected error occurs', () => {
+        const model = SimpleModelWithSearchIndexFactory();
+        const fetch = jest.fn();
+        fetch.mockRejectedValue(new Error('unexpected error'));
+        const engine = new HTTPStorageEngine({
+            baseURL: 'https://example.com',
+            fetch,
+        }, []);
+
+        test('throws the unexpected error', async () => {
+            await expect(engine.getSearchIndex(model.constructor)).rejects.toThrow('unexpected error');
         });
     });
 });
