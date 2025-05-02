@@ -13,7 +13,7 @@ export class SearchResult {
 }
 
 /**
- * A full-text search index wrapper using Lunr.js for a given model.
+ * A full-text search index wrapper using Fuse.js for a given model.
  * Supports indexing and querying model data.
  *
  * @class SearchIndex
@@ -39,7 +39,7 @@ export default class SearchIndex {
     }
 
     /**
-     * Performs a search query on the compiled Lunr index.
+     * Performs a search query on the compiled index.
      *
      * @param {string} query - The search string.
      * @return {Array<SearchResult>} An array of search results with model instances and scores.
@@ -51,18 +51,18 @@ export default class SearchIndex {
     }
 
     /**
-     * Lazily compiles and returns the Lunr index instance.
+     * Lazily compiles and returns the index instance.
      *
-     * @return {Fuse} The compiled Lunr index.
+     * @return {Fuse} The compiled index.
      */
     get searchIndex() {
         return this.#compiledIndex ?? this.#compileIndex();
     }
 
     /**
-     * Compiles the Lunr index using the model's search properties.
+     * Compiles the index using the model's search properties.
      *
-     * @return {Fuse} The compiled Lunr index.
+     * @return {Fuse} The compiled index.
      * @private
      */
     #compileIndex() {
