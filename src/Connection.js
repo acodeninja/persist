@@ -468,13 +468,7 @@ export default class Connection {
 
     /**
      * Search the given model's search properties for matching results.
-     *   Wildcards: character '*' can be placed at any location in a query
-     *   Fields: search for a specific field's value with 'field:value'
-     *   Boosting: if foo is important try 'foo^10 bar'
-     *   Fuzzy: 'foo~1' will match 'boo' but not 'bao', 'foo~2' would match 'bao'
-     *   Must include: '+foo bar' must include 'foo' and may include 'bar'
-     *   Must not include: '-foo bar' must not include 'foo' and may include 'bar'
-     *   Mixed include: '+foo -bar' must include 'foo' must not include 'bar'
+     *
      * @param {Model.constructor} modelConstructor
      * @param {string} query
      * @return {Promise<Array<SearchResult>>}

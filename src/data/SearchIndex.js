@@ -1,4 +1,4 @@
-import lunr from 'lunr';
+import Fuse from 'fuse.js';
 
 /**
  * Represents a single search result with the associated model instance and its relevance score.
@@ -47,13 +47,13 @@ export default class SearchIndex {
     search(query) {
         return this.searchIndex
             .search(query)
-            .map(doc => new SearchResult(this.#model.fromData(this.#index[doc.ref]), doc.score));
+            .map(doc => new SearchResult(this.#model.fromData(this.#index[doc.item.id]), doc.score));
     }
 
     /**
      * Lazily compiles and returns the Lunr index instance.
      *
-     * @return {lunr.Index} The compiled Lunr index.
+     * @return {Fuse} The compiled Lunr index.
      */
     get searchIndex() {
         return this.#compiledIndex ?? this.#compileIndex();
@@ -62,22 +62,15 @@ export default class SearchIndex {
     /**
      * Compiles the Lunr index using the model's search properties.
      *
-     * @return {lunr.Index} The compiled Lunr index.
+     * @return {Fuse} The compiled Lunr index.
      * @private
      */
     #compileIndex() {
-        const model = this.#model;
         const index = this.#index;
-        this.#compiledIndex = lunr(function () {
-            this.ref('id');
-
-            for (const field of model.searchProperties()) {
-                this.field(field);
-            }
-
-            Object.values(index).forEach(function (doc) {
-                this.add(doc);
-            }, this);
+        this.#compiledIndex = new Fuse(Object.values(index), {
+            includeScore: true,
+            ignoreDiacritics: true,
+            keys: this.#model.searchProperties().map(p => p.replace(/\[\*]\./g, '')),
         });
 
         return this.#compiledIndex;
