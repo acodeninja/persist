@@ -474,10 +474,20 @@ export default class Connection {
      * @return {Promise<Array<SearchResult>>}
      */
     async search(modelConstructor, query) {
-        const searchIndex = await this.#storage.getSearchIndex(modelConstructor)
-            .then(index => new SearchIndex(modelConstructor, index));
+        const searchIndex = await this.getSearchIndex(modelConstructor);
 
         return searchIndex.search(query);
+    }
+
+    /**
+     * Retrieve a search index to query at your leisure.
+     *
+     * @param {Model.constructor} modelConstructor
+     * @return {SearchIndex}
+     */
+    async getSearchIndex(modelConstructor) {
+        return await this.#storage.getSearchIndex(modelConstructor)
+            .then(index => new SearchIndex(modelConstructor, index));
     }
 
     /**
@@ -488,10 +498,20 @@ export default class Connection {
      * @return {Promise<Array<SearchResult>>}
      */
     async find(modelConstructor, query) {
-        const findIndex = await this.#storage.getIndex(modelConstructor)
-            .then(index => new FindIndex(modelConstructor, index));
+        const findIndex = await this.getIndex(modelConstructor);
 
         return findIndex.query(query);
+    }
+
+    /**
+     * Retrieve a index to query at your leisure.
+     *
+     * @param {Model.constructor} modelConstructor
+     * @return {FindIndex}
+     */
+    async getIndex(modelConstructor) {
+        return await this.#storage.getIndex(modelConstructor)
+            .then(index => new FindIndex(modelConstructor, index));
     }
 
     /**
