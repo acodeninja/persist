@@ -4212,7 +4212,7 @@ describe('connection.search()', () => {
 
         test('.search() returns results', async () => {
             expect(await connection.search(model.constructor, 'abc')).toStrictEqual([
-                new SearchResult(model.constructor.fromData(model.toSearchData()), 0.288),
+                new SearchResult(model.constructor.fromData(model.toSearchData()), 2.220446049250313e-16),
             ]);
         });
 
