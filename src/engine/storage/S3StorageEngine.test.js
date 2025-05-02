@@ -299,6 +299,20 @@ describe('S3StorageEngine.getIndex()', () => {
             }));
         });
     });
+
+    describe('when an unexpected error occurs', () => {
+        const model = SimpleModelFactory();
+        const client = new S3Client();
+        jest.spyOn(client, 'send').mockRejectedValue(new Error('unexpected error'));
+        const engine = new S3StorageEngine({
+            bucket: 's3-bucket',
+            client,
+        }, []);
+
+        test('throws the unexpected error', async () => {
+            await expect(engine.getIndex(model.constructor)).rejects.toThrow('unexpected error');
+        });
+    });
 });
 
 describe('S3StorageEngine.putIndex()', () => {
@@ -412,6 +426,20 @@ describe('S3StorageEngine.getSearchIndex()', () => {
                     Key: `${model.constructor.name}/_search_index.json`,
                 },
             }));
+        });
+    });
+
+    describe('when an unexpected error occurs', () => {
+        const model = SimpleModelFactory();
+        const client = new S3Client();
+        jest.spyOn(client, 'send').mockRejectedValue(new Error('unexpected error'));
+        const engine = new S3StorageEngine({
+            bucket: 's3-bucket',
+            client,
+        }, []);
+
+        test('throws the unexpected error', async () => {
+            await expect(engine.getSearchIndex(model.constructor)).rejects.toThrow('unexpected error');
         });
     });
 });
