@@ -483,10 +483,10 @@ export default class Connection {
      * Retrieve a search index to query at your leisure.
      *
      * @param {Model.constructor} modelConstructor
-     * @return {SearchIndex}
+     * @return {Promise<SearchIndex>}
      */
-    async getSearchIndex(modelConstructor) {
-        return await this.#storage.getSearchIndex(modelConstructor)
+    getSearchIndex(modelConstructor) {
+        return this.#storage.getSearchIndex(modelConstructor)
             .then(index => new SearchIndex(modelConstructor, index));
     }
 
@@ -504,13 +504,13 @@ export default class Connection {
     }
 
     /**
-     * Retrieve a index to query at your leisure.
+     * Retrieve an index to query at your leisure.
      *
      * @param {Model.constructor} modelConstructor
-     * @return {FindIndex}
+     * @return {Promise<FindIndex>}
      */
-    async getIndex(modelConstructor) {
-        return await this.#storage.getIndex(modelConstructor)
+    getIndex(modelConstructor) {
+        return this.#storage.getIndex(modelConstructor)
             .then(index => new FindIndex(modelConstructor, index));
     }
 
