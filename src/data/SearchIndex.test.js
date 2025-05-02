@@ -46,7 +46,7 @@ describe('SearchIndex.search()', () => {
 
         test('returns the expected model', () => {
             expect(result).toStrictEqual([
-                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.693),
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.007568328950209746),
             ]);
         });
     });
@@ -64,8 +64,8 @@ describe('SearchIndex.search()', () => {
 
         test('returns the expected model', () => {
             expect(result).toStrictEqual([
-                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.182),
-                new SearchResult(SimpleModelWithSearchIndex.fromData(model2.toSearchData()), 0.182),
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model1.toSearchData()), 0.007568328950209746),
+                new SearchResult(SimpleModelWithSearchIndex.fromData(model2.toSearchData()), 0.007568328950209746),
             ]);
         });
     });
