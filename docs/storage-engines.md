@@ -23,6 +23,41 @@ export class Tag extends Persist.Model {
 await connection.put(new Tag({tag: 'documentation'}));
 ```
 
+### Versioning with S3 Buckets
+
+When you use versioning with an S3 Bucket, you may have to set `pragma` header and `ResponseCacheControl` metadata on all requests. This can be done by adding middleware for both the `build` and `serialize` steps for each request:
+
+```javascript
+import Persist from "@acodeninja/persist";
+import {S3Client} from "@aws-sdk/client-s3";
+import S3StorageEngine from "@acodeninja/persist/storage/s3";
+
+const client = new S3Client();
+
+client.middlewareStack.add(
+    (next, context) => (args) => {
+        args.request.headers['pragma'] = 'no-cache';
+        return next(args);
+    },
+    {step: 'build'},
+);
+
+client.middlewareStack.add(
+    (next, context) => (args) => {
+        args.input.ResponseCacheControl = 'no-cache';
+        return next(args);
+    },
+    {step: 'serialize'},
+);
+
+const connection = Persist.registerConnection('remote', new S3StorageEngine({
+    bucket: 'test-bucket',
+    client,
+}));
+```
+
+These changes will ensure that all requests are made with a `no-cache` header set for getting and putting objects to the S3 bucket.
+
 ## HTTP Storage StorageEngine
 
 To store models using an HTTP server, use the `HTTP` storage engine. When using the `HTTP` engine in the browser, refer to [code quirks](./code-quirks.md#using-http-engine-in-browser).
