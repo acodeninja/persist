@@ -3,7 +3,6 @@ name: ⚗️ branch workflow
 run-name: ⚗️ @${{ github.triggering_actor }} triggered branch workflow on ${{ github.ref_name }}
 
 on:
-  pull_request:
   push:
     branches:
       - main
@@ -12,7 +11,6 @@ on:
 jobs:
   lint:
     name: 🧹 lint
-    if: github.event_name == 'push' || !contains(fromJSON('["main", "next"]'), github.head_ref)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +20,6 @@ jobs:
 
   test-with-coverage:
     name: 🧪 test
-    if: github.event_name == 'push' || !contains(fromJSON('["main", "next"]'), github.head_ref)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,12 +38,92 @@ jobs:
             --key javascript \
             --value-file "$(realpath ./coverage/lcov.info)"
 
+  create-or-update-release-pr:
+    name: 🔀 create release pr
+    needs: [ lint, test-with-coverage ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        if: github.ref == 'refs/heads/next'
+        with:
+          fetch-depth: 0
+      - uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
+        if: github.ref == 'refs/heads/next'
+      - name: list commits
+        run: |
+          echo 'commits<<EOF' >> $GITHUB_OUTPUT
+          echo "$(git log --format="%s****" origin/main...origin/next)" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+        id: list
+        if: github.ref == 'refs/heads/next'
+      - run: npm i --no-save conventional-commits-parser lodash
+        if: github.ref == 'refs/heads/next'
+      - uses: actions/github-script@v7
+        if: github.ref == 'refs/heads/next'
+        env:
+          COMMITS: ${{ steps.list.outputs.commits }}
+        with:
+          script: |
+            const {CommitParser} = await import('${{ github.workspace }}/node_modules/conventional-commits-parser/dist/index.js');
+            const _ = require('lodash');
+            const parser = new CommitParser({});
+            const commits = JSON.parse(JSON.stringify(Object.fromEntries(Object.entries(
+              _.groupBy(
+                (process.env.COMMITS ?? []).split('****').filter(Boolean).map(parser.parse.bind(parser)),
+                ({footer}) => !footer?.includes('BREAKING CHANGE') ? 'normal' : 'breaking',
+              ),
+            ).map(([type, commits]) => [type, _.groupBy(commits, ({type}) => type)]))));
+            const body = _.template(`
+            <% if (commits.breaking) { %>## Breaking Changes
+            <% for (const [type, cs] of Object.entries(commits.breaking)) { %>
+            ### <%= type.toUpperCase() %>
+            <% for (const c of cs) { %>
+            - <% if (c.scope) { %>(<%= c.scope %>) <% } %><%= c.subject %><% } %><% } %><% } %>
+            <% if (commits.normal) { %>## Changes
+            <% for (const [type, cs] of Object.entries(commits.normal)) { %>
+            ### <%= type.toUpperCase() %>
+            <% for (const c of cs) { %>
+            - <% if (c.scope) { %>(<%= c.scope %>) <% } %><%= c.subject %><% } %><% } %>
+            <% } %>
+            `)({commits});
+            
+            console.log('body');
+            console.log(body);
+            
+            try {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: 'next',
+                base: 'main',
+                title: 'chore: release',
+                body,
+              });
+            } catch (e) {
+              console.log('error', e);
+              const {data: [{number: pull_number}]} = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: 'next',
+                base: 'main',
+              });
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number,
+                title: 'chore: release',
+                body,
+              });
+            }
+
   publish-release:
     name: 📋 publish release
-    if: github.event_name == 'push' && contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
-    needs:
-      - lint
-      - test-with-coverage
+    if: contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
+    needs: [ create-or-update-release-pr ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
