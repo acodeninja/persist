@@ -199,6 +199,11 @@ class Model {
                 .filter(([name, type]) => {
                     if (['indexedProperties', 'searchProperties'].includes(name)) return false;
 
+                    /**
+                     * Detect a one-to-one linked model
+                     * @param maybeIncludesSingleModel
+                     * @return {boolean}
+                     */
                     const includesSingleModel = (maybeIncludesSingleModel) => {
                         if (maybeIncludesSingleModel._type === 'array') return false;
 
