@@ -111,7 +111,7 @@ class Model {
         const output = {id: this.id};
 
         for (const key of keys) {
-            if (_.has(this, key)) {
+            if (_.get(this, key)) {
                 _.set(output, key, _.get(this, key));
             }
 
@@ -196,7 +196,32 @@ class Model {
         const ModelClass = this;
         return [
             ...Object.entries(ModelClass.properties)
-                .filter(([name, type]) => !['indexedProperties', 'searchProperties'].includes(name) && !type._type && (ModelClass.isModel(type) || (typeof type === 'function' && ModelClass.isModel(type()))))
+                .filter(([name, type]) => {
+                    if (['indexedProperties', 'searchProperties'].includes(name)) return false;
+
+                    const includesSingleModel = (maybeIncludesSingleModel) => {
+                        if (maybeIncludesSingleModel._type === 'array') return false;
+
+                        if (Model.isModel(maybeIncludesSingleModel)) return true;
+
+                        if (maybeIncludesSingleModel._items?.some?.(i => ModelClass.isModel(i))) return true;
+
+                        return false;
+                    };
+
+                    if (includesSingleModel(type)) return true;
+
+                    if (
+                        typeof type === 'function' &&
+                        // This differentiates between a function and a class.
+                        // A class prototype is non-writable.
+                        !Object.getOwnPropertyDescriptor(type, 'prototype')
+                    ) {
+                        if (includesSingleModel(type())) return true;
+                    }
+
+                    return false;
+                })
                 .map(([name, _type]) => `${name}.id`),
             ...Object.entries(ModelClass.properties)
                 .filter(([_name, type]) => {

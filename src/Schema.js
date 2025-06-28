@@ -38,8 +38,26 @@ class Schema {
         function BuildSchema(schemaSegment) {
             const thisSchema = {};
 
+            if (schemaSegment?._type === 'anyOf') {
+                thisSchema.anyOf = schemaSegment._items.map(item => Model.isModel(item) ?
+                    {
+                        type: 'object',
+                        additionalProperties: false,
+                        required: schemaSegment._required ? ['id'] : [],
+                        properties: {
+                            id: {
+                                type: 'string',
+                                pattern: `^${item.toString()}/[A-Z0-9]+$`,
+                            },
+                        },
+                    } : BuildSchema(item),
+                );
+
+                return thisSchema;
+            }
+
             if (Model.isModel(schemaSegment)) {
-                thisSchema.required = [];
+                thisSchema.required = ['id'];
                 thisSchema.type = 'object';
                 thisSchema.additionalProperties = false;
                 thisSchema.properties = {
@@ -50,7 +68,7 @@ class Schema {
                 };
 
                 for (const [name, type] of Object.entries(schemaSegment)) {
-                    if (['indexedProperties', 'searchProperties'].includes(name)) continue;
+                    if (['indexedProperties', 'searchProperties', 'id'].includes(name)) continue;
 
                     const property = type instanceof Function && !type.prototype ? type() : type;
 
@@ -70,6 +88,7 @@ class Schema {
                                 },
                             },
                         };
+
                         continue;
                     }
 

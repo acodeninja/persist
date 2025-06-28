@@ -1,3 +1,4 @@
+import AnyType from './properties/AnyType.js';
 import ArrayType from './properties/ArrayType.js';
 import BooleanType from './properties/BooleanType.js';
 import CustomType from './properties/CustomType.js';
@@ -8,6 +9,7 @@ import StringType from './properties/StringType.js';
 import Type from './properties/Type.js';
 
 const Property = {
+    Any: AnyType,
     Array: ArrayType,
     Boolean: BooleanType,
     Custom: CustomType,

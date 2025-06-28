@@ -12,6 +12,10 @@ class SchemaTestLinkedModel extends Model {
 
 }
 
+class SchemaTestLinkedAlternateModel extends Model {
+
+}
+
 class SchemaTestCircularModel extends Model {
     static linked = () => SchemaTestCircularModel;
 }
@@ -33,6 +37,10 @@ class SchemaTestModel extends Model {
     static requiredBoolean = Property.Boolean.required;
     static date = Property.Date;
     static requiredDate = Property.Date.required;
+    static polymorphicPrimitive = Property.Any.of(Property.Boolean, Property.Number, Property.String);
+    static requiredPolymorphicPrimitive = Property.Any.of(Property.Boolean, Property.Number, Property.String).required;
+    static polymorphicModel = Property.Any.of(SchemaTestLinkedModel, SchemaTestLinkedAlternateModel);
+    static requiredPolymorphicModel = Property.Any.of(SchemaTestLinkedModel, SchemaTestLinkedAlternateModel).required;
     static emptyArrayOfStrings = Property.Array.of(Property.String);
     static emptyArrayOfNumbers = Property.Array.of(Property.Number);
     static emptyArrayOfBooleans = Property.Array.of(Property.Boolean);
@@ -62,6 +70,9 @@ describe('validating properties', () => {
             [Property.Array.of(Property.Number), [93.4]],
             [Property.Array.of(Property.Boolean), [true]],
             [Property.Array.of(Property.Date), ['2023-04-11T11:14:25.697Z']],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), 'string'],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), 93.4],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), false],
         ])('a %s property with %s', (property, value) => {
             const validator = Schema.compile(property);
 
@@ -83,6 +94,9 @@ describe('validating properties', () => {
             [Property.Array.of(Property.Boolean), true],
             [Property.Array.of(Property.Date), ['string']],
             [Property.Array.of(Property.Date), '2023-04-11T11:14:25.697Z'],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), ['string']],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), [93.4]],
+            [Property.Any.of(Property.Boolean, Property.Number, Property.String), [false]],
         ])('a %s property with %s', (property, value) => {
             const validator = Schema.compile(property);
 
@@ -121,6 +135,10 @@ describe('validating a model', () => {
             requiredBoolean: undefined,
             date: 'not-a-date',
             requiredDate: undefined,
+            polymorphicPrimitive: {},
+            requiredPolymorphicPrimitive: undefined,
+            polymorphicModel: {},
+            requiredPolymorphicModel: undefined,
             emptyArrayOfStrings: 'not-a-list',
             emptyArrayOfNumbers: 'not-a-list',
             emptyArrayOfBooleans: 'not-a-list',
@@ -176,6 +194,18 @@ describe('validating a model', () => {
             }, {
                 instancePath: '',
                 keyword: 'required',
+                message: 'must have required property \'requiredPolymorphicPrimitive\'',
+                params: {missingProperty: 'requiredPolymorphicPrimitive'},
+                schemaPath: '#/required',
+            }, {
+                instancePath: '',
+                keyword: 'required',
+                message: 'must have required property \'requiredPolymorphicModel\'',
+                params: {missingProperty: 'requiredPolymorphicModel'},
+                schemaPath: '#/required',
+            }, {
+                instancePath: '',
+                keyword: 'required',
                 message: 'must have required property \'requiredLinkedModel\'',
                 params: {missingProperty: 'requiredLinkedModel'},
                 schemaPath: '#/required',
@@ -221,6 +251,30 @@ describe('validating a model', () => {
                 message: 'must match format "iso-date-time"',
                 params: {format: 'iso-date-time'},
                 schemaPath: '#/properties/date/format',
+            }, {
+                instancePath: '/polymorphicPrimitive',
+                keyword: 'type',
+                message: 'must be boolean',
+                params: {type: 'boolean'},
+                schemaPath: '#/properties/polymorphicPrimitive/anyOf/0/type',
+            }, {
+                instancePath: '/polymorphicPrimitive',
+                keyword: 'type',
+                message: 'must be number',
+                params: {type: 'number'},
+                schemaPath: '#/properties/polymorphicPrimitive/anyOf/1/type',
+            }, {
+                instancePath: '/polymorphicPrimitive',
+                keyword: 'type',
+                message: 'must be string',
+                params: {type: 'string'},
+                schemaPath: '#/properties/polymorphicPrimitive/anyOf/2/type',
+            }, {
+                instancePath: '/polymorphicPrimitive',
+                keyword: 'anyOf',
+                message: 'must match a schema in anyOf',
+                params: {},
+                schemaPath: '#/properties/polymorphicPrimitive/anyOf',
             }, {
                 instancePath: '/emptyArrayOfStrings',
                 keyword: 'type',
