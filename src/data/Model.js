@@ -204,9 +204,7 @@ class Model {
 
                         if (Model.isModel(maybeIncludesSingleModel)) return true;
 
-                        if (maybeIncludesSingleModel._items?.some?.(i => ModelClass.isModel(i))) return true;
-
-                        return false;
+                        return Boolean(maybeIncludesSingleModel._items?.some?.(i => ModelClass.isModel(i)));
                     };
 
                     if (includesSingleModel(type)) return true;
