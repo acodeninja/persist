@@ -88,7 +88,7 @@ class Model {
      * @returns {Object} - A representation of the model's indexed data.
      */
     toIndexData() {
-        return this._extractData(this.constructor.indexedPropertiesResolved());
+        return this.#extractData(this.constructor.indexedPropertiesResolved());
     }
 
     /**
@@ -97,7 +97,7 @@ class Model {
      * @returns {Object} - A representation of the model's search data.
      */
     toSearchData() {
-        return this._extractData(this.constructor.searchProperties());
+        return this.#extractData(this.constructor.searchProperties());
     }
 
     /**
@@ -107,7 +107,7 @@ class Model {
      * @returns {Object} - The extracted data.
      * @private
      */
-    _extractData(keys) {
+    #extractData(keys) {
         const output = {id: this.id};
 
         for (const key of keys) {
