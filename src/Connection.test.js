@@ -19,8 +19,20 @@ import {
     LinkedModelWithIndexFactory,
     LinkedModelWithSearchIndex,
     LinkedModelWithSearchIndexFactory,
+    ModelWithPolymorphicLink,
+    ModelWithPolymorphicLinkFactory,
+    ModelWithPolymorphicLinkWithSearchIndex,
+    ModelWithPolymorphicLinkWithSearchIndexFactory,
+    PolymorphicTypeA,
+    PolymorphicTypeAWithSearchIndex,
+    PolymorphicTypeB,
+    PolymorphicTypeBWithSearchIndex,
     RequiredLinkedModelWithSearchIndex,
     RequiredLinkedModelWithSearchIndexFactory,
+    RequiredModelWithPolymorphicLinkWithSearchIndex,
+    RequiredModelWithPolymorphicLinkWithSearchIndexFactory,
+    RequiredPolymorphicTypeAWithSearchIndex,
+    RequiredPolymorphicTypeBWithSearchIndex,
     SimpleModel,
     SimpleModelFactory,
     SimpleModelWithFullIndex,
@@ -2998,6 +3010,785 @@ describe('connection.put()', () => {
             });
         });
     });
+
+    describe.each([PolymorphicTypeA, PolymorphicTypeB])('when the model is a model with polymorphic links (variation %s)', (PolymorphicVariation) => {
+        describe('without an index', () => {
+            describe('and both models do not exist', () => {
+                const model = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                const engine = TestStorageEngineFactory();
+                const connection = new Connection(engine, [ModelWithPolymorphicLink, PolymorphicTypeA, PolymorphicTypeB]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called twice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is called twice', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.toData());
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists but is unchanged', () => {
+                const model = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                const engine = TestStorageEngineFactory([model]);
+                const connection = new Connection(engine, [ModelWithPolymorphicLink, PolymorphicTypeA, PolymorphicTypeB]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called thrice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(3);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is not called', () => {
+                    expect(engine.putModel).not.toHaveBeenCalled();
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists and the main model is changed', () => {
+                const existingModel = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                const editedModel = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                editedModel.id = existingModel.id;
+                editedModel.linked = existingModel.linked;
+                editedModel.label = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+
+                const connection = new Connection(engine, [ModelWithPolymorphicLink, PolymorphicTypeA, PolymorphicTypeB]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called thrice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(3);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.toData());
+                });
+
+                test('.putModel() is not called with the linked model\'s data', () => {
+                    expect(engine.putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists and the linked model is changed', () => {
+                const existingModel = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                const editedModel = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+                editedModel.id = existingModel.id;
+                editedModel.poly = existingModel.poly;
+                editedModel.linked.id = existingModel.linked.id;
+                editedModel.linked.title = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+
+                const connection = new Connection(engine, [ModelWithPolymorphicLink, PolymorphicTypeA, PolymorphicTypeB]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called thrice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(3);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is not called with the main model\'s data', () => {
+                    expect(engine.putModel).not.toHaveBeenCalledWith(editedModel.toData());
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+        });
+
+        describe('with an index', () => {
+            describe('and both models do not exist', () => {
+                const model = CircularLinkedModelWithIndexFactory();
+
+                const engine = TestStorageEngineFactory();
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called twice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is called twice', () => {
+
+                    expect(engine.putModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.toData());
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the circular model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for the main and linked models', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
+                        [model.id]: model.toIndexData(),
+                        [model.linked.id]: model.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists but is unchanged', () => {
+                const model = CircularLinkedModelWithIndexFactory();
+                const engine = TestStorageEngineFactory([model]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is not called', () => {
+                    expect(engine.putModel).not.toHaveBeenCalled();
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists and the main model is changed', () => {
+                const existingModel = CircularLinkedModelWithIndexFactory();
+                const editedModel = CircularLinkedModelWithIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.linked = existingModel.linked;
+                editedModel.string = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.toData());
+                });
+
+                test('.putModel() is not called with the linked model\'s data', () => {
+                    expect(engine.putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the main model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for the main and linked model', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
+                        [editedModel.id]: editedModel.toIndexData(),
+                        [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+
+                describe('and the index already contains other models', () => {
+                    const alreadyIndexedModel = CircularLinkedModelWithIndexFactory();
+                    const existingModel = CircularLinkedModelWithIndexFactory();
+                    const editedModel = CircularLinkedModelWithIndexFactory();
+                    editedModel.id = existingModel.id;
+                    editedModel.linked.id = existingModel.linked.id;
+                    editedModel.string = 'updated';
+
+                    const engine = TestStorageEngineFactory([alreadyIndexedModel, existingModel]);
+                    const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
+
+                    beforeAll(() => connection.put(editedModel));
+
+                    test('.getModel() is called four times', () => {
+                        expect(engine.getModel).toHaveBeenCalledTimes(4);
+                    });
+
+                    test('.getModel() is called with the main model id', () => {
+                        expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                    });
+
+                    test('.getModel() is called with the linked model id', () => {
+                        expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                    });
+
+                    test('.putModel() is called once', () => {
+                        expect(engine.putModel).toHaveBeenCalledTimes(1);
+                    });
+
+                    test('.putModel() is called with the main model\'s data', () => {
+                        expect(engine.putModel).toHaveBeenCalledWith(editedModel.toData());
+                    });
+
+                    test('.putModel() is not called with the linked model\'s data', () => {
+                        expect(engine.putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
+                    });
+
+                    test('.getIndex() is called', () => {
+                        expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
+                    });
+
+                    test('.putIndex() is called with the updated index', () => {
+                        expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
+                            [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                            [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toIndexData(),
+                            [editedModel.id]: editedModel.toIndexData(),
+                            [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                        });
+                    });
+
+                    test('.getSearchIndex() is not called', () => {
+                        expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                    });
+
+                    test('.putSearchIndex() is not called', () => {
+                        expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                    });
+                });
+            });
+
+            describe('and the model exists and the linked model is changed', () => {
+                const existingModel = CircularLinkedModelWithIndexFactory();
+                const editedModel = CircularLinkedModelWithIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.linked.id = existingModel.linked.id;
+                editedModel.linked.string = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+                const connection = new Connection(engine, [CircularLinkedModelWithIndex]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the linked model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for only linked models changes', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithIndex, {
+                        [existingModel.id]: existingModel.toIndexData(),
+                        [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+        });
+
+        describe('with a search index', () => {
+            describe('and both models do not exist', () => {
+                const model = CircularLinkedModelWithSearchIndexFactory();
+                const engine = TestStorageEngineFactory();
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called twice', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is called twice', () => {
+
+                    expect(engine.putModel).toHaveBeenCalledTimes(2);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.toData());
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(model.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the circular model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for the main and linked models', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [model.id]: model.toIndexData(),
+                        [model.linked.id]: model.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is called once', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getSearchIndex() is called for the circular model', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putSearchIndex() is called once', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putSearchIndex() is called for the main and linked models', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [model.id]: model.toSearchData(),
+                        [model.linked.id]: model.linked.toSearchData(),
+                    });
+                });
+            });
+
+            describe('and the model exists but is unchanged', () => {
+                const model = CircularLinkedModelWithSearchIndexFactory();
+
+                const engine = TestStorageEngineFactory([model]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
+
+                beforeAll(() => connection.put(model));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+                });
+
+                test('.putModel() is not called', () => {
+                    expect(engine.putModel).not.toHaveBeenCalled();
+                });
+
+                test('.getIndex() is not called', () => {
+                    expect(engine.getIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putIndex() is not called', () => {
+                    expect(engine.putIndex).not.toHaveBeenCalled();
+                });
+
+                test('.getSearchIndex() is not called', () => {
+                    expect(engine.getSearchIndex).not.toHaveBeenCalled();
+                });
+
+                test('.putSearchIndex() is not called', () => {
+                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('and the model exists and the main model is changed', () => {
+                const existingModel = CircularLinkedModelWithSearchIndexFactory();
+                const editedModel = CircularLinkedModelWithSearchIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.linked = existingModel.linked;
+                editedModel.string = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is called with the main model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.toData());
+                });
+
+                test('.putModel() is not called with the linked model\'s data', () => {
+                    expect(engine.putModel).not.toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the main model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for the main and linked models', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [editedModel.id]: editedModel.toIndexData(),
+                        [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is called once', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getSearchIndex() is called for the main model', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putSearchIndex() is called once', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putSearchIndex() is called for the main and linked models', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [editedModel.id]: editedModel.toSearchData(),
+                        [editedModel.linked.id]: editedModel.linked.toSearchData(),
+                    });
+                });
+
+                describe('and the index already contains other models', () => {
+                    const alreadyIndexedModel = CircularLinkedModelWithSearchIndexFactory();
+                    const existingModel = CircularLinkedModelWithSearchIndexFactory();
+                    const editedModel = CircularLinkedModelWithSearchIndexFactory();
+                    editedModel.id = existingModel.id;
+                    editedModel.linked.id = existingModel.linked.id;
+                    editedModel.string = 'updated';
+
+                    const engine = TestStorageEngineFactory([alreadyIndexedModel, existingModel]);
+                    const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
+
+                    beforeAll(() => connection.put(editedModel));
+
+                    test('.getIndex() is called', () => {
+                        expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                    });
+
+                    test('.putIndex() is called with the updated index', () => {
+                        expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                            [alreadyIndexedModel.id]: alreadyIndexedModel.toIndexData(),
+                            [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toIndexData(),
+                            [editedModel.id]: editedModel.toIndexData(),
+                            [existingModel.linked.id]: existingModel.linked.toIndexData(),
+                        });
+                    });
+
+                    test('.getSearchIndex() is called', () => {
+                        expect(engine.getSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                    });
+
+                    test('.putSearchIndex() is called with the updated index', () => {
+                        expect(engine.putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                            [alreadyIndexedModel.id]: alreadyIndexedModel.toSearchData(),
+                            [alreadyIndexedModel.linked.id]: alreadyIndexedModel.linked.toSearchData(),
+                            [editedModel.id]: editedModel.toSearchData(),
+                            [existingModel.linked.id]: existingModel.linked.toSearchData(),
+                        });
+                    });
+                });
+            });
+
+            describe('and the model exists and the linked model is changed', () => {
+                const existingModel = CircularLinkedModelWithSearchIndexFactory();
+                const editedModel = CircularLinkedModelWithSearchIndexFactory();
+                editedModel.id = existingModel.id;
+                editedModel.linked.id = existingModel.linked.id;
+                editedModel.linked.string = 'updated';
+
+                const engine = TestStorageEngineFactory([existingModel]);
+                const connection = new Connection(engine, [CircularLinkedModelWithSearchIndex]);
+
+                beforeAll(() => connection.put(editedModel));
+
+                test('.getModel() is called four times', () => {
+                    expect(engine.getModel).toHaveBeenCalledTimes(4);
+                });
+
+                test('.getModel() is called with the main model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.id);
+                });
+
+                test('.getModel() is called with the linked model id', () => {
+                    expect(engine.getModel).toHaveBeenCalledWith(editedModel.linked.id);
+                });
+
+                test('.putModel() is called once', () => {
+                    expect(engine.putModel).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putModel() is called with the linked model\'s data', () => {
+                    expect(engine.putModel).toHaveBeenCalledWith(editedModel.linked.toData());
+                });
+
+                test('.getIndex() is called once', () => {
+                    expect(engine.getIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getIndex() is called for the linked model', () => {
+                    expect(engine.getIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putIndex() is called once', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putIndex() is called for the main and linked models', () => {
+                    expect(engine.putIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [existingModel.id]: existingModel.toIndexData(),
+                        [editedModel.linked.id]: editedModel.linked.toIndexData(),
+                    });
+                });
+
+                test('.getSearchIndex() is called once', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.getSearchIndex() is called for the linked model', () => {
+                    expect(engine.getSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex);
+                });
+
+                test('.putSearchIndex() is called once', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+                });
+
+                test('.putSearchIndex() is called for the main and linked models', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledWith(CircularLinkedModelWithSearchIndex, {
+                        [existingModel.id]: existingModel.toSearchData(),
+                        [editedModel.linked.id]: editedModel.linked.toSearchData(),
+                    });
+                });
+            });
+        });
+    });
 });
 
 describe('connection.delete()', () => {
@@ -3129,6 +3920,124 @@ describe('connection.delete()', () => {
         });
     });
 
+    describe.each([
+        PolymorphicTypeA,
+        PolymorphicTypeB,
+    ])('when a one way non-required linked polymorphic model exists (variation %s)', (PolymorphicVariation) => {
+        const model = ModelWithPolymorphicLinkFactory(PolymorphicVariation);
+        const engine = TestStorageEngineFactory([model]);
+        const connection = new Connection(engine, [ModelWithPolymorphicLink, PolymorphicTypeA, PolymorphicTypeB]);
+
+        beforeAll(() => connection.delete(model.toData()));
+
+        test('.getModel() is called twice', () => {
+            expect(engine.getModel).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getModel() is called with the main model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getModel() is called with the linked model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.deleteModel() is called once', () => {
+            expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('.deleteModel() is called with the main model', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getIndex() is called once', () => {
+            expect(engine.getIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.getIndex() is called with the main model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(ModelWithPolymorphicLink);
+        });
+
+        test('.putIndex() is called once', () => {
+            expect(engine.putIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.putIndex() is called with the model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(ModelWithPolymorphicLink, {});
+        });
+
+        test('.getSearchIndex() is not called', () => {
+            expect(engine.getSearchIndex).not.toHaveBeenCalled();
+        });
+
+        test('.putSearchIndex() is not called', () => {
+            expect(engine.putSearchIndex).not.toHaveBeenCalled();
+        });
+    });
+
+    describe.each([
+        RequiredPolymorphicTypeAWithSearchIndex,
+        RequiredPolymorphicTypeBWithSearchIndex,
+    ])('when a one way required linked polymorphic model exists (variation %s)', (PolymorphicVariation) => {
+        const model = RequiredModelWithPolymorphicLinkWithSearchIndexFactory(PolymorphicVariation);
+        const engine = TestStorageEngineFactory([model]);
+        const connection = new Connection(engine, [RequiredModelWithPolymorphicLinkWithSearchIndex, RequiredPolymorphicTypeAWithSearchIndex, RequiredPolymorphicTypeBWithSearchIndex]);
+
+        beforeAll(() => connection.delete(model.toData()));
+
+        test('.getModel() is called twice', () => {
+            expect(engine.getModel).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getModel() is called with the main model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getModel() is called with the linked model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.deleteModel() is called once', () => {
+            expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('.deleteModel() is called with the main model', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getIndex() is called once', () => {
+            expect(engine.getIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.getIndex() is called with the main model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex);
+        });
+
+        test('.putIndex() is called once', () => {
+            expect(engine.putIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.putIndex() is called with the model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex, {});
+        });
+
+        test('.getSearchIndex() is called once', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.getSearchIndex() is called with with the main model', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex);
+        });
+
+        test('.putSearchIndex() is called once', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledTimes(1);
+        });
+
+        test('.putSearchIndex() is called with an empty index', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex, {});
+        });
+    });
+
     describe('when a backwards one way linked model exists', () => {
         const model = LinkedModelWithSearchIndexFactory();
         const engine = TestStorageEngineFactory([model]);
@@ -3209,6 +4118,175 @@ describe('connection.delete()', () => {
 
         test('.putSearchIndex() is called with the linked model constructor', () => {
             expect(engine.putSearchIndex).toHaveBeenCalledWith(SimpleModelWithSearchIndex, {});
+        });
+    });
+
+    describe.each([
+        PolymorphicTypeAWithSearchIndex,
+        PolymorphicTypeBWithSearchIndex,
+    ])('when a backwards one way non-required linked polymorphic model exists (variation %s)', (PolymorphicVariation) => {
+        const model = ModelWithPolymorphicLinkWithSearchIndexFactory(PolymorphicVariation);
+        const engine = TestStorageEngineFactory([model]);
+        const connection = new Connection(engine, [ModelWithPolymorphicLinkWithSearchIndex, PolymorphicTypeAWithSearchIndex, PolymorphicTypeBWithSearchIndex]);
+
+        beforeAll(() => connection.delete(model.linked.toData(), [model.id]));
+
+        test('.getModel() is called twice', () => {
+            expect(engine.getModel).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getModel() is called with the main model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getModel() is called with the linked model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.deleteModel() is called once', () => {
+            expect(engine.deleteModel).toHaveBeenCalledTimes(1);
+        });
+
+        test('.deleteModel() is called with the linked model', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.getIndex() is called twice', () => {
+            expect(engine.getIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getIndex() is called with the main model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(model.constructor);
+        });
+
+        test('.getIndex() is called with the linked model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(model.linked.constructor);
+        });
+
+        test('.putIndex() is called twice', () => {
+            expect(engine.putIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.putIndex() is called with the main model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(ModelWithPolymorphicLinkWithSearchIndex, {
+                [model.id]: {
+                    ...model.toIndexData(),
+                    linked: undefined,
+                },
+            });
+        });
+
+        test('.putIndex() is called with the linked model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(PolymorphicVariation, {});
+        });
+
+        test('.getSearchIndex() is called twice', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getSearchIndex() is called with the main model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(PolymorphicVariation);
+        });
+
+        test('.getSearchIndex() is called with the linked model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(ModelWithPolymorphicLinkWithSearchIndex);
+        });
+
+        test('.putSearchIndex() is called twice', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.putSearchIndex() is called with the model constructor', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledWith(ModelWithPolymorphicLinkWithSearchIndex, {
+                [model.id]: model.toSearchData(),
+            });
+        });
+
+        test('.putSearchIndex() is called with the linked model constructor', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledWith(PolymorphicVariation, {});
+        });
+    });
+
+    describe.each([
+        RequiredPolymorphicTypeAWithSearchIndex,
+        RequiredPolymorphicTypeBWithSearchIndex,
+    ])('when a backwards one way required linked polymorphic model exists (variation %s)', (PolymorphicVariation) => {
+        const model = RequiredModelWithPolymorphicLinkWithSearchIndexFactory(PolymorphicVariation);
+        const engine = TestStorageEngineFactory([model]);
+        const connection = new Connection(engine, [RequiredModelWithPolymorphicLinkWithSearchIndex, RequiredPolymorphicTypeAWithSearchIndex, RequiredPolymorphicTypeBWithSearchIndex]);
+
+        beforeAll(() => connection.delete(model.linked.toData(), [model.id]));
+
+        test('.getModel() is called twice', () => {
+            expect(engine.getModel).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getModel() is called with the main model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getModel() is called with the linked model id', () => {
+            expect(engine.getModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.deleteModel() is called twice', () => {
+            expect(engine.deleteModel).toHaveBeenCalledTimes(2);
+        });
+
+        test('.deleteModel() is called with the linked model', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.linked.id);
+        });
+
+        test('.deleteModel() is called with the main model', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
+        });
+
+        test('.getIndex() is called twice', () => {
+            expect(engine.getIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getIndex() is called with the main model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(model.constructor);
+        });
+
+        test('.getIndex() is called with the linked model constructor', () => {
+            expect(engine.getIndex).toHaveBeenCalledWith(model.linked.constructor);
+        });
+
+        test('.putIndex() is called twice', () => {
+            expect(engine.putIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.putIndex() is called with the main model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex, {});
+        });
+
+        test('.putIndex() is called with the linked model constructor', () => {
+            expect(engine.putIndex).toHaveBeenCalledWith(PolymorphicVariation, {});
+        });
+
+        test('.getSearchIndex() is called twice', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.getSearchIndex() is called with the main model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(PolymorphicVariation);
+        });
+
+        test('.getSearchIndex() is called with the linked model constructor', () => {
+            expect(engine.getSearchIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex);
+        });
+
+        test('.putSearchIndex() is called twice', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledTimes(2);
+        });
+
+        test('.putSearchIndex() is called with the model constructor', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledWith(RequiredModelWithPolymorphicLinkWithSearchIndex, {});
+        });
+
+        test('.putSearchIndex() is called with the linked model constructor', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalledWith(PolymorphicVariation, {});
         });
     });
 

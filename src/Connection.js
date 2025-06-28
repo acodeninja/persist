@@ -622,8 +622,14 @@ export default class Connection {
             if (propertyType.prototype instanceof Model) {
                 modelsThatLinkToThisSubject.set([propertyType.name, propertyName, 'one', 'down'], propertyType);
             }
-            // The model is a one to many link
 
+            propertyType._items?.forEach?.(i => {
+                if (i.prototype instanceof Model) {
+                    modelsThatLinkToThisSubject.set([i.name, propertyName, 'one', 'down'], i);
+                }
+            });
+
+            // The model is a one to many link
             if (propertyType._items?.prototype instanceof Model) {
                 modelsThatLinkToThisSubject.set([propertyType._items.name, propertyName, 'many', 'down'], propertyType);
             }
@@ -635,6 +641,12 @@ export default class Connection {
                 if (propertyType === subjectModelConstructor || propertyType.prototype instanceof subjectModelConstructor) {
                     modelsThatLinkToThisSubject.set([modelName, propertyName, 'one', 'up'], propertyType);
                 }
+
+                propertyType._items?.forEach?.(i => {
+                    if (i === subjectModelConstructor) {
+                        modelsThatLinkToThisSubject.set([modelName, propertyName, 'one', 'up'], i);
+                    }
+                });
 
                 // The model is a one to many link
                 if (propertyType._items === subjectModelConstructor || propertyType._items?.prototype instanceof subjectModelConstructor) {

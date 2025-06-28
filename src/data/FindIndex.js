@@ -102,7 +102,7 @@ class FindIndex {
 
         for (const key of Object.keys(inputQuery)) {
             if (!['$is', '$contains'].includes(key))
-                if (this.#matchesQuery(subject[key], inputQuery[key]))
+                if (this.#matchesQuery(subject?.[key], inputQuery[key]))
                     return true;
         }
 

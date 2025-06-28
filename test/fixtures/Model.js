@@ -402,3 +402,167 @@ export function RequiredLinkedModelWithSearchIndexFactory() {
     main.linked = linked;
     return main;
 }
+
+/**
+ * @class PolymorphicTypeA
+ * @extends Model
+ */
+export class PolymorphicTypeA extends Model {
+    static {
+        PolymorphicTypeA.withName('PolymorphicTypeA');
+        PolymorphicTypeA.title = Property.String.required;
+    }
+}
+
+/**
+ * @class PolymorphicTypeB
+ * @extends Model
+ */
+export class PolymorphicTypeB extends Model {
+    static {
+        PolymorphicTypeB.withName('PolymorphicTypeB');
+        PolymorphicTypeB.title = Property.String.required;
+    }
+}
+
+/**
+ * @class ModelWithPolymorphicLink
+ * @extends Model
+ */
+export class ModelWithPolymorphicLink extends Model {
+    static {
+        ModelWithPolymorphicLink.withName('ModelWithPolymorphicLink');
+        ModelWithPolymorphicLink.label = Property.String.required;
+        ModelWithPolymorphicLink.poly = Property.Any.of(Property.Boolean, Property.Number, Property.String);
+        ModelWithPolymorphicLink.linked = () => Property.Any.of(PolymorphicTypeA, PolymorphicTypeB);
+    }
+}
+
+/**
+ *
+ * @param {PolymorphicTypeA.constructor|PolymorphicTypeB.constructor} LinkedConstructor
+ * @return {ModelWithPolymorphicLink}
+ * @constructor
+ */
+export function ModelWithPolymorphicLinkFactory(LinkedConstructor) {
+    const linked = new LinkedConstructor();
+    linked.title = 'link title';
+    const main = new ModelWithPolymorphicLink();
+    main.linked = linked;
+    main.label = 'label';
+    main.poly = [false, 758, 'string'][Math.floor(Math.random() * 3)];
+
+    return main;
+}
+
+/**
+ * @class RequiredPolymorphicTypeAWithSearchIndex
+ * @extends Model
+ */
+export class RequiredPolymorphicTypeAWithSearchIndex extends Model {
+    static {
+        RequiredPolymorphicTypeAWithSearchIndex.withName('RequiredPolymorphicTypeAWithSearchIndex');
+        RequiredPolymorphicTypeAWithSearchIndex.title = Property.String.required;
+        RequiredPolymorphicTypeAWithSearchIndex.indexedProperties = () => ['title'];
+        RequiredPolymorphicTypeAWithSearchIndex.searchProperties = () => ['title'];
+    }
+}
+
+/**
+ * @class RequiredPolymorphicTypeBWithSearchIndex
+ * @extends Model
+ */
+export class RequiredPolymorphicTypeBWithSearchIndex extends Model {
+    static {
+        RequiredPolymorphicTypeBWithSearchIndex.withName('RequiredPolymorphicTypeBWithSearchIndex');
+        RequiredPolymorphicTypeBWithSearchIndex.title = Property.String.required;
+        RequiredPolymorphicTypeBWithSearchIndex.indexedProperties = () => ['title'];
+        RequiredPolymorphicTypeBWithSearchIndex.searchProperties = () => ['title'];
+    }
+}
+
+/**
+ * @class RequiredModelWithPolymorphicLinkWithSearchIndex
+ * @extends Model
+ */
+export class RequiredModelWithPolymorphicLinkWithSearchIndex extends Model {
+    static {
+        RequiredModelWithPolymorphicLinkWithSearchIndex.withName('RequiredModelWithPolymorphicLinkWithSearchIndex');
+        RequiredModelWithPolymorphicLinkWithSearchIndex.label = Property.String.required;
+        RequiredModelWithPolymorphicLinkWithSearchIndex.linked = () => Property.Any.of(RequiredPolymorphicTypeAWithSearchIndex, RequiredPolymorphicTypeBWithSearchIndex).required;
+        RequiredModelWithPolymorphicLinkWithSearchIndex.indexedProperties = () => ['label'];
+        RequiredModelWithPolymorphicLinkWithSearchIndex.searchProperties = () => ['label'];
+    }
+}
+
+/**
+ *
+ * @param {RequiredPolymorphicTypeAWithSearchIndex.constructor|RequiredPolymorphicTypeBWithSearchIndex.constructor} LinkedConstructor
+ * @return {RequiredModelWithPolymorphicLinkWithSearchIndex}
+ * @constructor
+ */
+export function RequiredModelWithPolymorphicLinkWithSearchIndexFactory(LinkedConstructor) {
+    const linked = new LinkedConstructor();
+    linked.title = 'link title';
+    const main = new RequiredModelWithPolymorphicLinkWithSearchIndex();
+    main.linked = linked;
+    main.label = 'label';
+
+    return main;
+}
+
+/**
+ * @class PolymorphicTypeAWithSearchIndex
+ * @extends Model
+ */
+export class PolymorphicTypeAWithSearchIndex extends Model {
+    static {
+        PolymorphicTypeAWithSearchIndex.withName('PolymorphicTypeAWithSearchIndex');
+        PolymorphicTypeAWithSearchIndex.title = Property.String.required;
+        PolymorphicTypeAWithSearchIndex.indexedProperties = () => ['title'];
+        PolymorphicTypeAWithSearchIndex.searchProperties = () => ['title'];
+    }
+}
+
+/**
+ * @class PolymorphicTypeBWithSearchIndex
+ * @extends Model
+ */
+export class PolymorphicTypeBWithSearchIndex extends Model {
+    static {
+        PolymorphicTypeBWithSearchIndex.withName('PolymorphicTypeBWithSearchIndex');
+        PolymorphicTypeBWithSearchIndex.title = Property.String.required;
+        PolymorphicTypeBWithSearchIndex.indexedProperties = () => ['title'];
+        PolymorphicTypeBWithSearchIndex.searchProperties = () => ['title'];
+    }
+}
+
+/**
+ * @class ModelWithPolymorphicLinkWithSearchIndex
+ * @extends Model
+ */
+export class ModelWithPolymorphicLinkWithSearchIndex extends Model {
+    static {
+        ModelWithPolymorphicLinkWithSearchIndex.withName('ModelWithPolymorphicLinkWithSearchIndex');
+        ModelWithPolymorphicLinkWithSearchIndex.label = Property.String.required;
+        ModelWithPolymorphicLinkWithSearchIndex.linked = () => Property.Any.of(PolymorphicTypeAWithSearchIndex, PolymorphicTypeBWithSearchIndex);
+        ModelWithPolymorphicLinkWithSearchIndex.indexedProperties = () => ['label'];
+        ModelWithPolymorphicLinkWithSearchIndex.searchProperties = () => ['label'];
+    }
+}
+
+/**
+ *
+ * @param {PolymorphicTypeAWithSearchIndex.constructor|PolymorphicTypeBWithSearchIndex.constructor} LinkedConstructor
+ * @return {ModelWithPolymorphicLinkWithSearchIndex}
+ * @constructor
+ */
+export function ModelWithPolymorphicLinkWithSearchIndexFactory(LinkedConstructor) {
+    const linked = new LinkedConstructor();
+    linked.title = 'link title';
+    const main = new ModelWithPolymorphicLinkWithSearchIndex();
+    main.linked = linked;
+    main.label = 'label';
+
+    return main;
+}
