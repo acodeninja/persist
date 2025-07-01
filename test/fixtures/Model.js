@@ -10,6 +10,7 @@ export class SimpleModel extends Model {
     static number = Property.Number;
     static boolean = Property.Boolean;
     static date = Property.Date;
+    static requiredWithDefault = Property.Boolean.required.default(false);
     static arrayOfString = Property.Array.of(Property.String);
     static arrayOfNumber = Property.Array.of(Property.Number);
     static arrayOfBoolean = Property.Array.of(Property.Boolean);

@@ -40,6 +40,7 @@ describe('model.toData()', () => {
             boolean: true,
             date: expect.stringMatching(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+/),
             number: 1.4,
+            requiredWithDefault: false,
             string: 'string',
             stringSlug: 'string',
         }],

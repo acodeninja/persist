@@ -113,7 +113,7 @@ describe('connection.get()', () => {
         const connection = new Connection(engine, [SimpleModel]);
 
         test('returns the model', async () => {
-            expect(await connection.get(model.id)).toEqual(model);
+            expect(await connection.get(model.id)).toEqual({...model, requiredWithDefault: false});
         });
 
         test('.getModel() is called once', () => {

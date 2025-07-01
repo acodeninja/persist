@@ -73,6 +73,33 @@ class Type {
         return Required;
     }
 
+    /**
+     * Returns a version of the type with a default value set.
+     *
+     * @param {*} defaultValue
+     * @return {Type} A subclass of the current type with `_default` set to `defaultValue`.
+     */
+    static default(defaultValue) {
+        const ThisType = this;
+
+        /**
+         * A subclass of the current type with the `_defaults` flag set to the default value.
+         * Used to indicate that the property will default to the value given if none is provided.
+         *
+         * @class
+         * @extends {Type}
+         * @private
+         */
+        class WithDefault extends ThisType {
+            static _default = defaultValue;
+        }
+
+        // Define the class name as "OriginalTypeName"
+        Object.defineProperty(WithDefault, 'name', {value: ThisType.name});
+
+        return WithDefault;
+    }
+
     static {
         Object.defineProperty(Type, 'name', {value: 'Type'});
     }
