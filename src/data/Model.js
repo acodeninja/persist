@@ -60,6 +60,9 @@ class Model {
             if (property._resolved) {
                 model[name] = property.resolve(this);
             }
+            if (model[name] === undefined && property._default !== undefined) {
+                model[name] = property._default;
+            }
         }
 
         return JSON.parse(
