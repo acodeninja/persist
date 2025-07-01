@@ -157,3 +157,38 @@ In this setup:
 - A `Person` can have multiple `Abode` entries (i.e., where they lived and when they moved in).
 - Each `Abode` links a `Person` to an `Address`, while also recording the move-in date.
 - An `Address` can still reference multiple people, making this a flexible and more complex relationship model.
+
+## Polymorphic relationships
+
+When a property of a model can be any of a list of models, you can use a polymorphic relationship.
+
+```javascript
+import Persist from "@acodeninja/persist";
+
+export class Person extends Persist.Model {
+    static {
+        Person.name = Persist.Property.String.required;
+        Person.address = () => Persist.Property.Any.of(GBAddress, USAddress);
+    }
+}
+
+export class GBAddress extends Persist.Model {
+    static {
+        GBAddress.address = Persist.Property.String.required;
+        GBAddress.postcode = Persist.Property.String.required;
+    }
+}
+
+export class USAddress extends Persist.Model {
+    static {
+        USAddress.address = Persist.Property.String.required;
+        USAddress.zipcode = Persist.Property.String.required;
+    }
+}
+```
+
+In this setup:
+
+- A `Person` can have either a `GBAddress` or a `USAddress` depending on which country they live in.
+- A `GBAddress` has a postcode.
+- A `USAddress` has a zip code.

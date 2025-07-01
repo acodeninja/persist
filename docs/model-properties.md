@@ -162,14 +162,49 @@ Most types support the `.required` modifier, which will alter validation to enfo
 ```javascript
 class RequiredStringModel extends Persist.Model {
     static {
-        RequiredStringModel.requiredString = Persist.Property.String.required;
-        RequiredStringModel.requiredNumber = Persist.Property.Number.required;
-        RequiredStringModel.requiredBoolean = Persist.Property.Boolean.required;
-        RequiredStringModel.requiredDate = Persist.Property.Date.required;
-        RequiredStringModel.requiredArrayOfString = Persist.Property.Array.of(Persist.Property.String).required;
-        RequiredStringModel.requiredArrayOfNumber = Persist.Property.Array.of(Persist.Property.Number).required;
-        RequiredStringModel.requiredArrayOfBoolean = Persist.Property.Array.of(Persist.Property.Boolean).required;
-        RequiredStringModel.requiredArrayOfDate = Persist.Property.Array.of(Persist.Property.Date).required;
+        RequiredStringModel.requiredString = 
+            Persist.Property.String.required;
+        RequiredStringModel.requiredNumber = 
+            Persist.Property.Number.required;
+        RequiredStringModel.requiredBoolean = 
+            Persist.Property.Boolean.required;
+        RequiredStringModel.requiredDate = 
+            Persist.Property.Date.required;
+        RequiredStringModel.requiredArrayOfString = 
+            Persist.Property.Array.of(Persist.Property.String).required;
+        RequiredStringModel.requiredArrayOfNumber = 
+            Persist.Property.Array.of(Persist.Property.Number).required;
+        RequiredStringModel.requiredArrayOfBoolean = 
+            Persist.Property.Array.of(Persist.Property.Boolean).required;
+        RequiredStringModel.requiredArrayOfDate = 
+            Persist.Property.Array.of(Persist.Property.Date).required;
+    }
+}
+```
+
+### `.default(defaultValue)`
+
+Most types support the `.default(defaultValue)` modifier, which allows fields to have a default value when the user has not explicitly set one on an instance of the model.
+
+```javascript
+class ModelWithDefaults extends Persist.Model {
+    static {
+        ModelWithDefaults.requiredString = 
+            Persist.Property.String.required.default('string');
+        ModelWithDefaults.requiredNumber = 
+            Persist.Property.Number.required.default(67);
+        ModelWithDefaults.requiredBoolean = 
+            Persist.Property.Boolean.required.default(false);
+        ModelWithDefaults.requiredDate = 
+            Persist.Property.Date.required.default(new Date);
+        ModelWithDefaults.requiredArrayOfString = 
+            Persist.Property.Array.of(Persist.Property.String).required.default(['string']);
+        ModelWithDefaults.requiredArrayOfNumber = 
+            Persist.Property.Array.of(Persist.Property.Number).required.default([45, 22]);
+        ModelWithDefaults.requiredArrayOfBoolean = 
+            Persist.Property.Array.of(Persist.Property.Boolean).required.default([true, false]);
+        ModelWithDefaults.requiredArrayOfDate = 
+            Persist.Property.Array.of(Persist.Property.Date).required.default([new Date]);
     }
 }
 ```
