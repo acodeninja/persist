@@ -46,7 +46,7 @@ describe('CustomType', () => {
         test('CustomType.of(invalidSchema) throws an invalid schema error', () => {
             expect(() => {
                 CustomType.of(invalidSchema);
-            }).toThrowError({
+            }).toThrow({
                 instanceOf: Error,
                 message: 'schema is invalid: data/properties/string/type must be equal to one of the allowed values, data/properties/string/type must be array, data/properties/string/type must match a schema in anyOf',
             });

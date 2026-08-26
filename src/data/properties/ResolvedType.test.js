@@ -33,7 +33,7 @@ describe('UnimplementedResolvedType', () => {
     test('UnimplementedResolvedType raises a not implemented error on resolving', () => {
         expect(() => {
             UnimplementedResolvedType.resolve({});
-        }).toThrowError({
+        }).toThrow({
             instanceOf: Error,
             message: 'UnimplementedResolvedType does not implement resolve(model)',
         });
@@ -42,7 +42,7 @@ describe('UnimplementedResolvedType', () => {
     test('UnimplementedResolvedType.of(propertyName) raises a not implemented error on resolving', () => {
         expect(() => {
             UnimplementedResolvedType.of('name').resolve({});
-        }).toThrowError({
+        }).toThrow({
             instanceOf: Error,
             message: 'ResolvedTypeOf does not implement resolve(model)',
         });
