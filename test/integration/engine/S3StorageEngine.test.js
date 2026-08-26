@@ -101,6 +101,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                     Key: `files/${model.id}.json`,
                     Body: JSON.stringify(model.toData()),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
@@ -197,6 +198,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                         Key: `files/${model.constructor.name}/_index.json`,
                         Body: JSON.stringify({[model.id]: model.toIndexData()}),
                         ContentType: 'application/json',
+                        CacheControl: 'no-cache',
                     },
                 }));
             });
@@ -281,6 +283,7 @@ describe('S3StorageEngine integration with aws-sdk', () => {
                         Key: `files/${model.constructor.name}/_search_index.json`,
                         Body: JSON.stringify({[model.id]: model.toSearchData()}),
                         ContentType: 'application/json',
+                        CacheControl: 'no-cache',
                     },
                 }));
             });

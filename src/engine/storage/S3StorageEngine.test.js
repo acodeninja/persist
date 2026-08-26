@@ -130,6 +130,32 @@ describe('S3StorageEngine.putModel()', () => {
                     Key: `${model.id}.json`,
                     Body: JSON.stringify(model.toData()),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
+                },
+            }));
+        });
+    });
+
+    describe('when a cacheControl is configured', () => {
+        const model = SimpleModelFactory();
+        const client = new S3Client();
+        jest.spyOn(client, 'send').mockResolvedValue(null);
+        const engine = new S3StorageEngine({
+            bucket: 's3-bucket',
+            cacheControl: 'no-store',
+            client,
+        }, []);
+
+        beforeAll(() => engine.putModel(model.toData()));
+
+        test('calls client.send with the configured cacheControl', () => {
+            expect(client.send).toHaveBeenCalledWith(expect.objectContaining({
+                input: {
+                    Bucket: 's3-bucket',
+                    Key: `${model.id}.json`,
+                    Body: JSON.stringify(model.toData()),
+                    ContentType: 'application/json',
+                    CacheControl: 'no-store',
                 },
             }));
         });
@@ -158,6 +184,7 @@ describe('S3StorageEngine.putModel()', () => {
                     Key: `${model.id}.json`,
                     Body: JSON.stringify(model.toData()),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
@@ -334,6 +361,7 @@ describe('S3StorageEngine.putIndex()', () => {
                     Key: `${model.constructor.name}/_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
@@ -362,6 +390,7 @@ describe('S3StorageEngine.putIndex()', () => {
                     Key: `${model.constructor.name}/_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
@@ -463,6 +492,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
                     Key: `${model.constructor.name}/_search_index.json`,
                     Body: JSON.stringify({[model.id]: model.toIndexData()}),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
@@ -491,6 +521,7 @@ describe('S3StorageEngine.putSearchIndex()', () => {
                     Key: `${model.constructor.name}/_search_index.json`,
                     Body: JSON.stringify({[model.id]: model.toSearchData()}),
                     ContentType: 'application/json',
+                    CacheControl: 'no-cache',
                 },
             }));
         });
