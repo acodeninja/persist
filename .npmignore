@@ -8,6 +8,5 @@ ava.config.js
 commitlint.config.js
 release.config.js
 eslint.config.js
-Makefile
 mise.toml
 .deepsource.toml

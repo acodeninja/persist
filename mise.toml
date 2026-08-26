@@ -1,2 +1,35 @@
 [tools]
 node = "22.13.1"
+
+[tasks.init]
+description = "Initialise dependencies"
+run = "npm install"
+
+[tasks.lint]
+description = "Codebase style checks"
+run = "npm run lint"
+
+[tasks."lint:fix"]
+description = "Codebase style fix"
+run = "npm run lint -- --fix"
+
+[tasks.test]
+description = "Run the test suite"
+run = "npm test"
+
+[tasks."test:watch"]
+description = "Run the test suite in watch mode"
+run = "npm run test:watch"
+
+[tasks."test:coverage"]
+description = "Run the test suite with coverage"
+run = "npm run test:coverage"
+
+[tasks."commit:pre"]
+description = "Pre-commit checks (lint + coverage)"
+depends = ["lint", "test:coverage"]
+
+[tasks."commit:message"]
+description = "Lint the commit message in the given file (used by the commit-msg hook)"
+usage = 'arg "<file>" help="Path to the commit message file (e.g. .git/COMMIT_EDITMSG)"'
+run = 'npx --no-install commitlint --edit "{{ usage.file }}"'

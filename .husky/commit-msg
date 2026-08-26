@@ -1,1 +1,1 @@
-make commit/message MESSAGE="$1"
+mise run commit:message "$1"

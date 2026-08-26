@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
-      - run: make init
-      - run: make lint
+      - run: mise run init
+      - run: mise run lint
 
   test-with-coverage:
     name: 🧪 test
@@ -26,8 +26,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: jdx/mise-action@v2
-      - run: make init
-      - run: make test/coverage
+      - run: mise run init
+      - run: mise run test:coverage
       - run: curl https://deepsource.io/cli | sh
       - name: deepsource report
         env:
