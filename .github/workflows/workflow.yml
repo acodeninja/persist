@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
-      - run: make init
-      - run: make lint
+      - uses: jdx/mise-action@v2
+      - run: mise run init
+      - run: mise run lint
 
   test-with-coverage:
     name: 🧪 test
@@ -25,9 +25,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
-      - run: make init
-      - run: make test/coverage
+      - uses: jdx/mise-action@v2
+      - run: mise run init
+      - run: mise run test:coverage
       - run: curl https://deepsource.io/cli | sh
       - name: deepsource report
         env:
@@ -51,7 +51,7 @@ jobs:
         if: github.ref == 'refs/heads/next'
         with:
           fetch-depth: 0
-      - uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
+      - uses: jdx/mise-action@v2
         if: github.ref == 'refs/heads/next'
       - name: list commits
         run: |
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
+      - uses: jdx/mise-action@v2
       - run: npm clean-install
       - run: npx semantic-release
         env:
