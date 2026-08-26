@@ -15,6 +15,7 @@ class S3StorageEngine extends StorageEngine {
      * @param {string} [configuration.bucket] - Hostname and protocol of the HTTP service to use (ie: https://example.com).
      * @param {string?} [configuration.prefix] - The prefix on the host to perform operations against.
      * @param {S3Client} [configuration.client] - The http client that implements fetch.
+     * @param {string?} [configuration.cacheControl] - Cache-Control header stamped on written objects. Defaults to 'no-cache'.
      */
     constructor(configuration) {
         super(configuration);
@@ -59,6 +60,7 @@ class S3StorageEngine extends StorageEngine {
             Body: JSON.stringify(model),
             Bucket: this.configuration.bucket,
             ContentType: 'application/json',
+            CacheControl: this.configuration.cacheControl ?? 'no-cache',
         }));
     }
 
@@ -120,6 +122,7 @@ class S3StorageEngine extends StorageEngine {
             Bucket: this.configuration.bucket,
             Body: JSON.stringify(index),
             ContentType: 'application/json',
+            CacheControl: this.configuration.cacheControl ?? 'no-cache',
         }));
     }
 
@@ -160,6 +163,7 @@ class S3StorageEngine extends StorageEngine {
             Bucket: this.configuration.bucket,
             Body: JSON.stringify(index),
             ContentType: 'application/json',
+            CacheControl: this.configuration.cacheControl ?? 'no-cache',
         }));
     }
 
