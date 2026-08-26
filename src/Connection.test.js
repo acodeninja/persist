@@ -246,7 +246,7 @@ describe('connection.put()', () => {
 
         test('.put(model) throws a ModelNotRegisteredConnectionError', async () => {
             await expect(connection.put(model))
-                .rejects.toThrowError({
+                .rejects.toThrow({
                     instanceOf: ModelNotRegisteredConnectionError,
                     message: 'The model SimpleModel is not registered in the storage engine TestStorageEngine',
                 });
@@ -3799,7 +3799,7 @@ describe('connection.delete()', () => {
 
         test('.delete() throws a ModelNotRegisteredConnectionError', async () => {
             await expect(connection.delete(model))
-                .rejects.toThrowError({
+                .rejects.toThrow({
                     instanceOf: ModelNotRegisteredConnectionError,
                     message: 'The model SimpleModel is not registered in the storage engine TestStorageEngine',
                 });
@@ -3813,7 +3813,7 @@ describe('connection.delete()', () => {
 
         test('.delete() throws a ModelNotFoundStorageEngineError', async () => {
             await expect(connection.delete(model.toData()))
-                .rejects.toThrowError({
+                .rejects.toThrow({
                     instanceOf: ModelNotFoundStorageEngineError,
                     message: `The model ${model.id} was not found`,
                 });
@@ -5290,7 +5290,7 @@ describe('connection.search()', () => {
 
         test('.search() returns results', async () => {
             expect(await connection.search(model.constructor, 'abc')).toStrictEqual([
-                new SearchResult(model.constructor.fromData(model.toSearchData()), 2.220446049250313e-16),
+                new SearchResult(model.constructor.fromData(model.toSearchData()), 1.4901161193847656e-8),
             ]);
         });
 

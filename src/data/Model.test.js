@@ -166,7 +166,7 @@ describe('model.validate()', () => {
             model.string = false;
 
             test('throws a validation error', () => {
-                expect(() => model.validate()).toThrowError(ValidationError);
+                expect(() => model.validate()).toThrow(ValidationError);
             });
         });
     });
