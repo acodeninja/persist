@@ -6287,8 +6287,8 @@ describe('connection.put() write order', () => {
     // an id whose model is not stored yet.
     const engine = TestStorageEngineFactory();
     const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
-    let releasePutModel;
-    let put;
+    let releasePutModel = null;
+    let put = null;
 
     beforeAll(async () => {
         engine.putModel.mockImplementation(() => new Promise(resolve => {
@@ -6330,8 +6330,8 @@ describe('connection.delete() write order', () => {
     const model = SimpleModelWithSearchIndexFactory();
     const engine = TestStorageEngineFactory([model]);
     const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
-    let releasePutIndex;
-    let remove;
+    let releasePutIndex = null;
+    let remove = null;
 
     beforeAll(async () => {
         engine.putIndex.mockImplementation(() => new Promise(resolve => {

@@ -69,7 +69,7 @@ describe('CreateTransactionalStorageEngine', () => {
         }
 
         putIndex(_modelConstructor, _index) {
-            return Promise.reject(new Error('putIndex must be queued, not called'));
+            return Promise.reject(new Error(`${this.constructor.name} should never be asked to putIndex`));
         }
     }
 
