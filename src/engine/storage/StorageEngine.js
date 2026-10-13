@@ -160,34 +160,35 @@ export class Operation {
     }
 }
 
+const QUEUED_OPERATIONS = ['putModel', 'deleteModel', 'putIndex', 'putSearchIndex'];
+
 /**
+ * Wrap a storage engine so that writes queue as operations and reads pass through.
  *
- * @param {Array<Operation>} transactions
+ * @param {Array<Operation>} operations
  * @param {StorageEngine} engine
  * @return {StorageEngine}
  */
 export function CreateTransactionalStorageEngine(operations, engine) {
-    const transactionalEngine = Object.create(engine);
+    return new Proxy(engine, {
+        get(target, property) {
+            if (QUEUED_OPERATIONS.includes(property))
+                return (...args) => {
+                    operations.push(new Operation(property, ...args));
+                    return Promise.resolve();
+                };
 
-    transactionalEngine.putModel = (...args) => {
-        operations.push(new Operation('putModel', ...args));
-        return Promise.resolve();
-    };
+            const value = Reflect.get(target, property, target);
 
-    transactionalEngine.deleteModel = (...args) => {
-        operations.push(new Operation('deleteModel', ...args));
-        return Promise.resolve();
-    };
-
-    transactionalEngine.putIndex = (...args) => {
-        operations.push(new Operation('putIndex', ...args));
-        return Promise.resolve();
-    };
-
-    transactionalEngine.putSearchIndex = (...args) => {
-        operations.push(new Operation('putSearchIndex', ...args));
-        return Promise.resolve();
-    };
-
-    return transactionalEngine;
+            // Methods are bound to the engine rather than to the wrapper. An
+            // engine holding its state in private class members cannot run its
+            // own methods with anything else as the receiver, and every read
+            // made through the transaction threw "Receiver must be an instance
+            // of". The class itself is left alone, because binding it renames it
+            // to "bound <Engine>" and the engine's errors quote that name.
+            return typeof value === 'function' && property !== 'constructor'
+                ? value.bind(target)
+                : value;
+        },
+    });
 }
