@@ -42,88 +42,41 @@ jobs:
             --key javascript \
             --value-file "$(realpath ./coverage/lcov.info)"
 
-  create-or-update-release-pr:
-    name: 🔀 create release pr
-    if: github.event_name == 'push'
+  release-pr:
+    name: 🔀 release pr
+    # Keeps a standing next to main pull request, because approving it is what
+    # promotes. The bot has to be the author: GitHub refuses to let anyone
+    # approve their own pull request, so one opened by hand could never satisfy
+    # the gate it exists for.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/next'
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
+    # Replaces the workflow permissions rather than adding to them, so the
+    # id-token publish-release needs is deliberately absent here.
     permissions:
-      contents: write
-      issues: write
+      contents: read
       pull-requests: write
+    concurrency:
+      group: release-pr
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
-        if: github.ref == 'refs/heads/next'
         with:
           fetch-depth: 0
       - uses: jdx/mise-action@v4
-        if: github.ref == 'refs/heads/next'
-      - name: list commits
-        run: |
-          echo 'commits<<EOF' >> $GITHUB_OUTPUT
-          echo "$(git log --format="%s****" origin/main...origin/next)" >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-        id: list
-        if: github.ref == 'refs/heads/next'
-      - run: npm i --no-save conventional-commits-parser lodash
-        if: github.ref == 'refs/heads/next'
-      - uses: actions/github-script@v9
-        if: github.ref == 'refs/heads/next'
-        env:
-          COMMITS: ${{ steps.list.outputs.commits }}
-        with:
-          script: |
-            const {CommitParser} = await import('${{ github.workspace }}/node_modules/conventional-commits-parser/dist/index.js');
-            const _ = require('lodash');
-            const parser = new CommitParser({});
-            const commits = JSON.parse(JSON.stringify(Object.fromEntries(Object.entries(
-              _.groupBy(
-                (process.env.COMMITS ?? []).split('****').filter(Boolean).map(parser.parse.bind(parser)),
-                ({footer}) => !footer?.includes('BREAKING CHANGE') ? 'normal' : 'breaking',
-              ),
-            ).map(([type, commits]) => [type, _.groupBy(commits, ({type}) => type)]))));
-            const body = _.template(`
-            <% if (commits.breaking) { %>## Breaking Changes
-            <% for (const [type, cs] of Object.entries(commits.breaking)) { %>
-            ### <%= type.toUpperCase() %>
-            <% for (const c of cs) { %>
-            - <% if (c.scope) { %>(<%= c.scope %>) <% } %><%= c.subject %><% } %><% } %><% } %>
-            <% if (commits.normal) { %>## Changes
-            <% for (const [type, cs] of Object.entries(commits.normal)) { %>
-            ### <%= type.toUpperCase() %>
-            <% for (const c of cs) { %>
-            - <% if (c.scope) { %>(<%= c.scope %>) <% } %><%= c.subject %><% } %><% } %>
-            <% } %>
-            `)({commits});
-            
-            console.log('body');
-            console.log(body);
-            
-            try {
-              await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: 'next',
-                base: 'main',
-                title: 'chore: release',
-                body,
-              });
-            } catch (e) {
-              console.log('error', e);
-              const {data: [{number: pull_number}]} = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: 'next',
-                base: 'main',
-              });
-              await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number,
-                title: 'chore: release',
-                body,
-              });
-            }
+      - run: |
+          git fetch origin
+          if ! git merge-base --is-ancestor origin/main origin/next; then
+            echo '::warning::main has commits of its own, so the promotion will not fast-forward'
+          fi
+          node scripts/release-notes.mjs > pr_body.md
+          number="$(gh pr list --base main --head next --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --body-file pr_body.md
+          else
+            gh pr create --base main --head next --title 'release next to production' --body-file pr_body.md
+          fi
 
   publish-release:
     name: 📋 publish release
