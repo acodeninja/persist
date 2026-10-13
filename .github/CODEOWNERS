@@ -1,0 +1,7 @@
+# Requests the maintainer's review on every pull request, including the standing
+# release pull request whose approval is what promotes next to main.
+#
+# Read from a pull request's base branch, so it has no effect on the release
+# pull request until main carries it, which is after the first promotion. Until
+# then the promote workflow gates on the reviewer being the repository owner.
+* @acodeninja
