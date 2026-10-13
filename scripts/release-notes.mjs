@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 // Writes the body of the standing next to main release pull request.
 //
 // A fast-forward promotion leaves no merge commit to describe the release, and
@@ -40,6 +38,12 @@ const commits = subjects
 
 const named = SECTIONS.flatMap(({types}) => types ?? []);
 
+/**
+ * Commits belonging to a section: those of its types, or those of no named type.
+ *
+ * @param {Array<String>?} types
+ * @return {Array<{subject: String, author: String, type: String?}>}
+ */
 const matching = (types) =>
     commits.filter(({type}) => (types ? types.includes(type) : !named.includes(type)));
 
