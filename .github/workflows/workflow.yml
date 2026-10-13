@@ -140,6 +140,12 @@ jobs:
           fetch-depth: 0
       - uses: jdx/mise-action@v4
       - run: npm clean-install
+      # semantic-release says so too, but a held release still goes green, and a
+      # green release job is indistinguishable from a quiet month.
+      - run: |
+          if grep -q 'dryRun: true' release.config.js; then
+            echo '::warning::releases are held in dry run; nothing will be published'
+          fi
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
