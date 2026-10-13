@@ -21,9 +21,15 @@ const SECTIONS = [
     {heading: 'Everything else', types: null},
 ];
 
-const git = (...args) => execFileSync('git', args, {encoding: 'utf8'});
+const subjects = execFileSync(
+    'git',
+    ['log', RANGE, '--no-merges', '--pretty=format:%s%x09%an'],
+    {encoding: 'utf8'},
+);
 
-const commits = git('log', RANGE, '--no-merges', '--pretty=format:%s%x09%an')
+const changedFiles = execFileSync('git', ['diff', '--stat', RANGE], {encoding: 'utf8'});
+
+const commits = subjects
     .split('\n')
     .filter(Boolean)
     .map((line) => {
@@ -55,6 +61,6 @@ for (const {heading, types} of SECTIONS) {
 }
 
 lines.push('', '<details><summary>Changed files</summary>', '', '```');
-lines.push(git('diff', '--stat', RANGE).trimEnd(), '```', '</details>');
+lines.push(changedFiles.trimEnd(), '```', '</details>');
 
 process.stdout.write(`${lines.join('\n')}\n`);
