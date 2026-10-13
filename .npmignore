@@ -2,6 +2,7 @@
 test/
 scripts/
 current-work.md
+CLAUDE.md
 .github/
 .husky/
 coverage/
