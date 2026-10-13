@@ -1,11 +1,6 @@
 // Writes the body of the standing next to main release pull request.
 //
-// A fast-forward promotion leaves no merge commit to describe the release, and
-// the version is computed by semantic-release rather than carried in the tree,
-// so the commit range is the only account of what is about to be published.
-// Grouping it by conventional type is enough to approve against.
-//
-// The range is read with git rather than passed in, because a commit subject
+// The range is read here rather than passed in, because a commit subject
 // containing a backtick or a $() would otherwise run as part of whatever shell
 // assembled the arguments.
 
@@ -39,7 +34,7 @@ const commits = subjects
 const named = SECTIONS.flatMap(({types}) => types ?? []);
 
 /**
- * Commits belonging to a section: those of its types, or those of no named type.
+ * Commits of these types, or of no named type when types is null.
  *
  * @param {Array<String>?} types
  * @return {Array<{subject: String, author: String, type: String?}>}
