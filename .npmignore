@@ -1,5 +1,7 @@
 *.test.js
 test/
+scripts/
+current-work.md
 .github/
 .husky/
 coverage/
