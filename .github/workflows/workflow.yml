@@ -8,6 +8,9 @@ on:
       - main
       - next
   pull_request:
+  # The promotion fast-forwards main with the repository token, which raises no
+  # events, so the production run has to be asked for by name.
+  workflow_dispatch:
 
 jobs:
   lint:
