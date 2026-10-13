@@ -44,8 +44,6 @@ jobs:
 
   create-or-update-release-pr:
     name: 🔀 create release pr
-    # Pushes only. The steps below are each guarded on next rather than the job,
-    # because publish-release needs this job and has to stay reachable on main.
     if: github.event_name == 'push'
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
@@ -129,8 +127,10 @@ jobs:
 
   publish-release:
     name: 📋 publish release
+    # Gated on the ref alone: a pull request's ref is refs/pull/<n>/merge, which
+    # matches neither branch, and a dispatched run on main matches main.
     if: contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
-    needs: [ create-or-update-release-pr ]
+    needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
