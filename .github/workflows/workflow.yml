@@ -15,6 +15,7 @@ jobs:
   lint:
     name: 🧹 lint
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v4
@@ -24,6 +25,7 @@ jobs:
   test-with-coverage:
     name: 🧪 test
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
         with:
@@ -43,6 +45,7 @@ jobs:
 
   release-pr:
     name: 🔀 release pr
+    timeout-minutes: 2
     # The bot has to author it: nobody can approve their own pull request, and
     # approving is what promotes.
     if: github.event_name == 'push' && github.ref == 'refs/heads/next'
@@ -75,6 +78,7 @@ jobs:
 
   publish-release:
     name: 📋 publish release
+    timeout-minutes: 10
     if: contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
