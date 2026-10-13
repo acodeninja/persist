@@ -8,8 +8,7 @@ on:
       - main
       - next
   pull_request:
-  # The promotion fast-forwards main with the repository token, which raises no
-  # events, so the production run has to be asked for by name.
+  # Invoked by name after a promotion fast-forwards main.
   workflow_dispatch:
 
 jobs:
@@ -44,15 +43,11 @@ jobs:
 
   release-pr:
     name: 🔀 release pr
-    # Keeps a standing next to main pull request, because approving it is what
-    # promotes. The bot has to be the author: GitHub refuses to let anyone
-    # approve their own pull request, so one opened by hand could never satisfy
-    # the gate it exists for.
+    # The bot has to author it: nobody can approve their own pull request, and
+    # approving is what promotes.
     if: github.event_name == 'push' && github.ref == 'refs/heads/next'
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
-    # Replaces the workflow permissions rather than adding to them, so the
-    # id-token publish-release needs is deliberately absent here.
     permissions:
       contents: read
       pull-requests: write
@@ -80,8 +75,6 @@ jobs:
 
   publish-release:
     name: 📋 publish release
-    # Gated on the ref alone: a pull request's ref is refs/pull/<n>/merge, which
-    # matches neither branch, and a dispatched run on main matches main.
     if: contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
@@ -96,8 +89,7 @@ jobs:
           fetch-depth: 0
       - uses: jdx/mise-action@v4
       - run: npm clean-install
-      # semantic-release says so too, but a held release still goes green, and a
-      # green release job is indistinguishable from a quiet month.
+      # A held release still goes green, so say so loudly.
       - run: |
           if grep -q 'dryRun: true' release.config.js; then
             echo '::warning::releases are held in dry run; nothing will be published'
