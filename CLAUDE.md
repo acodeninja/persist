@@ -46,6 +46,16 @@ add commits. Rebase-and-merge duplicated five commits onto `main` in September
 on separate strands. Approving is the whole interaction; the fast-forward is the
 only way `main` is allowed to move.
 
+Nothing enforces that. Restricting who may update `main` needs the Actions app as
+a ruleset bypass actor, which GitHub only allows on organisation-owned
+repositories. What exists instead is detection: the `release-pr` job fails on the
+next push to `next` if `main` has stopped being an ancestor, and the promotion
+refuses rather than merging. Recovery is a force-push of `main` back onto `next`,
+which means disabling the `main-integrity` ruleset for the duration.
+
+Rulesets: `keep-next` holds `next` linear and undeletable, `main-integrity` blocks
+any rewrite of `main` with no bypass, and `no-delete-default-branches` covers both.
+
 semantic-release never commits back — there is no `@semantic-release/git` — so
 `package.json` stays at `version: 0.0.1` and the git tags plus npm are the only
 record of what shipped. `scripts/release-notes.mjs` has to keep its `.mjs`

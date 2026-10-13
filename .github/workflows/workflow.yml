@@ -66,7 +66,8 @@ jobs:
       - run: |
           git fetch origin
           if ! git merge-base --is-ancestor origin/main origin/next; then
-            echo '::warning::main has commits of its own, so the promotion will not fast-forward'
+            echo '::error::main has commits of its own, so the promotion cannot fast-forward'
+            exit 1
           fi
           node scripts/release-notes.mjs > pr_body.md
           number="$(gh pr list --base main --head next --state open --json number --jq '.[0].number // empty')"
