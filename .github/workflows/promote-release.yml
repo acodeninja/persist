@@ -1,0 +1,71 @@
+name: 🎖️ promote
+
+run-name: >-
+  🎖️ @${{ github.event.review.user.login }} approving the release of
+  ${{ github.event.pull_request.head.sha }}
+
+# Advances main to next by fast-forward, so the two branches stay identical and
+# every published commit keeps the SHA it was tested under. None of GitHub's
+# merge buttons can do that: rebase-and-merge rewrites every SHA, which is how
+# the branches forked in September 2026, a merge commit adds one, and there is
+# no fast-forward button. So the push happens here.
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+# contents to push main, actions to dispatch the release run afterwards.
+permissions:
+  contents: write
+  actions: write
+  pull-requests: read
+
+concurrency:
+  group: promote-release
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: 🎖️ promote
+    if: >-
+      github.event.review.state == 'approved'
+      && github.event.pull_request.base.ref == 'main'
+      && github.event.pull_request.head.ref == 'next'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NUMBER: ${{ github.event.pull_request.number }}
+      REVIEWED: ${{ github.event.review.commit_id }}
+      ASSOCIATION: ${{ github.event.review.author_association }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # reviewDecision only reaches APPROVED where a review is required, so
+      # until main's ruleset requires one the reviewer's ownership stands in for
+      # it. Delegating approval to anyone else means requiring the review.
+      - id: gate
+        run: |
+          decision="$(gh pr view "$NUMBER" --json reviewDecision --jq '.reviewDecision // "NONE"')"
+          echo "reviewDecision=$decision authorAssociation=$ASSOCIATION"
+          case "$decision:$ASSOCIATION" in
+            APPROVED:*|NONE:OWNER) echo 'approved=true' >> "$GITHUB_OUTPUT" ;;
+          esac
+      - if: steps.gate.outputs.approved == 'true'
+        run: |
+          git fetch origin main next
+          # An approval names the commit it looked at. Promoting anything later
+          # would ship commits nobody reviewed.
+          if [ "$REVIEWED" != "$(git rev-parse origin/next)" ]; then
+            echo "::error::next moved since the approval, so $REVIEWED is not its tip"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor origin/main origin/next; then
+            echo '::error::main is not an ancestor of next, so this is not a fast-forward'
+            exit 1
+          fi
+          git push origin origin/next:refs/heads/main
+      # A push made with the repository token raises no events, so the release
+      # run has to be asked for by name.
+      - if: steps.gate.outputs.approved == 'true'
+        run: gh workflow run workflow.yml --ref main
