@@ -6277,3 +6277,46 @@ describe('connection.transaction()', () => {
         });
     });
 });
+
+describe('connection.put() write order', () => {
+    // Held open mid-write, because being called first is not the same as having
+    // finished: a reader querying an index between the two writes must not find
+    // an id whose model is not stored yet.
+    const engine = TestStorageEngineFactory();
+    const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
+    let releasePutModel;
+    let put;
+
+    beforeAll(async () => {
+        engine.putModel.mockImplementation(() => new Promise(resolve => {
+            releasePutModel = resolve;
+        }));
+
+        put = connection.put(SimpleModelWithSearchIndexFactory());
+
+        await new Promise(resolve => setImmediate(resolve));
+    });
+
+    test('.putIndex() is not called while .putModel() is in flight', () => {
+        expect(engine.putIndex).not.toHaveBeenCalled();
+    });
+
+    test('.putSearchIndex() is not called while .putModel() is in flight', () => {
+        expect(engine.putSearchIndex).not.toHaveBeenCalled();
+    });
+
+    describe('once the model is written', () => {
+        beforeAll(async () => {
+            releasePutModel();
+            await put;
+        });
+
+        test('.putIndex() is called', () => {
+            expect(engine.putIndex).toHaveBeenCalled();
+        });
+
+        test('.putSearchIndex() is called', () => {
+            expect(engine.putSearchIndex).toHaveBeenCalled();
+        });
+    });
+});

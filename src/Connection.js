@@ -290,8 +290,12 @@ export default class Connection {
 
         await processModel(model);
 
+        // Models before the indexes that list them. Written the other way round,
+        // a reader that queries an index between the two writes finds an id whose
+        // model is not there yet, and a get on it fails.
+        await Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData())));
+
         await Promise.all([
-            Promise.all(modelsToPut.map(m => this.#storage.putModel(m.toData()))),
             Promise.all(Object.entries(modelsToReindex).map(async ([constructorName, models]) => {
                 const modelConstructor = this.#models.get(constructorName);
                 const index = await this.#storage.getIndex(modelConstructor);
