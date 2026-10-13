@@ -21,7 +21,10 @@ export default {
             },
         ],
         '@semantic-release/release-notes-generator',
-        '@semantic-release/github',
+        // npm first: publish steps run in order, so a registry that rejects the
+        // publish stops the run before a GitHub release announces the version.
+        // The git tag is created by semantic-release itself, ahead of both.
         '@semantic-release/npm',
+        '@semantic-release/github',
     ],
 };
