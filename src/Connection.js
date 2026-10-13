@@ -450,9 +450,11 @@ export default class Connection {
             state.updateIndex(indexName, index);
         }
 
+        // Indexes before the models they stop listing. Deleted first, an index
+        // left pointing at a model that is gone breaks every read of it, where a
+        // model no index lists is merely unreachable.
         await Promise.all([
             Promise.all([...modelsToUpdate].map(id => this.#storage.putModel(state.modelCache.get(id).toData()))),
-            Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id))),
             Promise.all(state
                 .getTaintedIndexes()
                 .entries()
@@ -468,6 +470,8 @@ export default class Connection {
                 ),
             ),
         ]);
+
+        await Promise.all([...modelsToDelete].map(id => this.#storage.deleteModel(id)));
     }
 
     /**

@@ -6165,7 +6165,7 @@ describe('connection.transaction()', () => {
             });
         });
 
-        describe('and the second write operation in the transaction fails', () => {
+        describe('and the delete operation in the transaction fails', () => {
             const model = LinkedModelWithSearchIndexFactory();
             const engine = TestStorageEngineFactory([model]);
             const connection = new Connection(engine, [LinkedModelWithSearchIndex, SimpleModelWithSearchIndex]);
@@ -6266,12 +6266,15 @@ describe('connection.transaction()', () => {
                     expect(engine.deleteModel).not.toHaveBeenCalledWith(model.linked.id);
                 });
 
-                test('.putIndex() is not called', () => {
-                    expect(engine.putIndex).not.toHaveBeenCalled();
+                // The index writes come before the delete, so unlike the failing
+                // operation itself they do land, and the rollback has to put each
+                // one back as it was.
+                test('.putIndex() is called once to write and once to roll back', () => {
+                    expect(engine.putIndex).toHaveBeenCalledTimes(2);
                 });
 
-                test('.putSearchIndex() is not called', () => {
-                    expect(engine.putSearchIndex).not.toHaveBeenCalled();
+                test('.putSearchIndex() is called once to write and once to roll back', () => {
+                    expect(engine.putSearchIndex).toHaveBeenCalledTimes(2);
                 });
             });
         });
@@ -6317,6 +6320,41 @@ describe('connection.put() write order', () => {
 
         test('.putSearchIndex() is called', () => {
             expect(engine.putSearchIndex).toHaveBeenCalled();
+        });
+    });
+});
+
+describe('connection.delete() write order', () => {
+    // Held open mid-write for the same reason as put, in reverse: an index must
+    // never still list a model whose body has already been deleted.
+    const model = SimpleModelWithSearchIndexFactory();
+    const engine = TestStorageEngineFactory([model]);
+    const connection = new Connection(engine, [SimpleModelWithSearchIndex]);
+    let releasePutIndex;
+    let remove;
+
+    beforeAll(async () => {
+        engine.putIndex.mockImplementation(() => new Promise(resolve => {
+            releasePutIndex = resolve;
+        }));
+
+        remove = connection.delete(model);
+
+        await new Promise(resolve => setImmediate(resolve));
+    });
+
+    test('.deleteModel() is not called while .putIndex() is in flight', () => {
+        expect(engine.deleteModel).not.toHaveBeenCalled();
+    });
+
+    describe('once the indexes are written', () => {
+        beforeAll(async () => {
+            releasePutIndex();
+            await remove;
+        });
+
+        test('.deleteModel() is called with the model id', () => {
+            expect(engine.deleteModel).toHaveBeenCalledWith(model.id);
         });
     });
 });
