@@ -1,7 +1,7 @@
 name: 🎖️ promote
 
 run-name: >-
-  🎖️ @${{ github.event.review.user.login }} approving the release of
+  🎖️ @${{ github.event.review.user.login }} reviewing
   ${{ github.event.pull_request.head.sha }}
 
 # The push happens here because no GitHub merge button can fast-forward:
@@ -39,14 +39,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      # reviewDecision stays null until a review is required, so ownership
-      # stands in for it. Delegating approval means requiring the review.
+      # Only the owner's approval promotes. Delegating means a code-owner rule,
+      # which needs an organisation.
       - id: gate
         run: |
           decision="$(gh pr view "$NUMBER" --json reviewDecision --jq '.reviewDecision // "NONE"')"
           echo "reviewDecision=$decision authorAssociation=$ASSOCIATION"
           case "$decision:$ASSOCIATION" in
-            APPROVED:*|NONE:OWNER) echo 'approved=true' >> "$GITHUB_OUTPUT" ;;
+            APPROVED:OWNER|NONE:OWNER) echo 'approved=true' >> "$GITHUB_OUTPUT" ;;
           esac
       - if: steps.gate.outputs.approved == 'true'
         run: |
