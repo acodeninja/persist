@@ -81,7 +81,11 @@ jobs:
   publish-release:
     name: 📋 publish release
     timeout-minutes: 10
-    if: contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
+    # Only the promotion's own dispatch may publish: a hand-run one on main
+    # would release without an approval.
+    if: >-
+      contains(fromJSON('["refs/heads/main", "refs/heads/next"]'), github.ref)
+      && (github.event_name != 'workflow_dispatch' || github.actor == 'github-actions[bot]')
     needs: [ lint, test-with-coverage ]
     runs-on: ubuntu-latest
     permissions:
