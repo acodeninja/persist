@@ -2,9 +2,6 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 export default {
-    // Remove to resume publishing. Held while the repaired branches and the
-    // new promotion flow are proven.
-    dryRun: true,
     branches: [
         'main',
         {name: 'next', prerelease: true},

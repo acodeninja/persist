@@ -95,11 +95,6 @@ jobs:
           fetch-depth: 0
       - uses: jdx/mise-action@v4
       - run: npm clean-install
-      # A held release still goes green, so say so loudly.
-      - run: |
-          if grep -q 'dryRun: true' release.config.js; then
-            echo '::warning::releases are held in dry run; nothing will be published'
-          fi
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -77,6 +77,10 @@ record of what shipped. `scripts/release-notes.mjs` has to keep its `.mjs`
 extension: as `.js` it would fall under `collectCoverageFrom` with no test and
 fail the 100% gate.
 
+To hold every release without touching the pipeline, set `dryRun: true` in
+`release.config.js`. Publishing, tagging and the GitHub release are all skipped
+while it is there, and the branches can be rewritten freely.
+
 ## Architecture
 
 The dependency flow is: **Persist** (facade) → **Connection** (orchestration) → **StorageEngine** (persistence) + **Schema** (validation) + **FindIndex**/**SearchIndex** (querying), all operating over **Model** instances whose fields are **Property** types.
