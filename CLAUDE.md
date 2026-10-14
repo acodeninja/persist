@@ -46,12 +46,25 @@ add commits. Rebase-and-merge duplicated five commits onto `main` in September
 on separate strands. Approving is the whole interaction; the fast-forward is the
 only way `main` is allowed to move.
 
-Nothing enforces that. Restricting who may update `main` needs the Actions app as
-a ruleset bypass actor, which GitHub only allows on organisation-owned
-repositories. What exists instead is detection: the `release-pr` job fails on the
-next push to `next` if `main` has stopped being an ancestor, and the promotion
-refuses rather than merging. Recovery is a force-push of `main` back onto `next`,
-which means disabling the `main-integrity` ruleset for the duration.
+**No ruleset restricts which actor may update `main`.** That needs the Actions app
+as a bypass actor, which GitHub only allows on organisation-owned repositories, so
+a merge button cannot be blocked here. `main-integrity` blocks rewrites of `main`,
+not updates to it, and `promote-release.yml` checks that the approval names
+`next`'s current tip and that `main` is an ancestor of it before pushing.
+
+What catches a merge button is therefore detection: the `release-pr` job fails on
+the next push to `next` once `main` has stopped being an ancestor.
+
+Recovering from that means putting `main` back onto the reviewed `next` commit,
+with `main-integrity` disabled for the duration:
+
+```sh
+git push --force origin <reviewed next sha>:refs/heads/main
+```
+
+Never repair it the other way round. Updating `next` from `main` adopts whatever
+the merge button wrote, which is the rewritten or merged commits rather than the
+ones that were tested and released from.
 
 Rulesets: `keep-next` holds `next` linear and undeletable, `main-integrity` blocks
 any rewrite of `main` with no bypass, and `no-delete-default-branches` covers both.
