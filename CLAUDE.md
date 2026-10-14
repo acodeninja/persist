@@ -49,8 +49,10 @@ only way `main` is allowed to move.
 **No ruleset restricts which actor may update `main`.** That needs the Actions app
 as a bypass actor, which GitHub only allows on organisation-owned repositories, so
 a merge button cannot be blocked here. `main-integrity` blocks rewrites of `main`,
-not updates to it, and `promote-release.yml` checks that the approval names
-`next`'s current tip and that `main` is an ancestor of it before pushing.
+not updates to it, and `promote-release.yml` checks that the approval came from
+the owner, names `next`'s current tip, and leaves `main` an ancestor of it before
+pushing. Only the owner's approval promotes, because `reviewDecision` alone would
+let any approving reviewer publish and this repository has review bots.
 
 What catches a merge button is therefore detection: the `release-pr` job fails on
 the next push to `next` once `main` has stopped being an ancestor.
