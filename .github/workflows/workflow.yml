@@ -49,7 +49,7 @@ jobs:
     # The bot has to author it: nobody can approve their own pull request, and
     # approving is what promotes.
     if: github.event_name == 'push' && github.ref == 'refs/heads/next'
-    needs: [ lint, test-with-coverage ]
+    needs: [ publish-release ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,7 +64,7 @@ jobs:
           fetch-depth: 0
       - uses: jdx/mise-action@v4
       - run: |
-          git fetch origin
+          git fetch --tags origin
           if ! git merge-base --is-ancestor origin/main origin/next; then
             echo '::error::main has commits of its own, so the promotion cannot fast-forward'
             exit 1

@@ -31,9 +31,9 @@ ESLint style is enforced, not just advisory: single quotes, semicolons required,
 published branch and only ever moves by fast-forward, so a published commit keeps
 the SHA its tests ran under.
 
-- Push to `next` → the `release-pr` job regenerates the body of the standing
-  `promote <release candidate>` pull request from `scripts/release-notes.mjs`, and
-  semantic-release publishes a prerelease to the npm `next` tag.
+- Push to `next` → semantic-release publishes a prerelease to the npm `next` tag,
+  then `release-pr` names the standing `promote <release candidate>` pull request
+  after that tag and regenerates its body from `scripts/release-notes.mjs`.
 - Approving that pull request → `.github/workflows/promote-release.yml`
   fast-forwards `main` to `next`, then dispatches `workflow.yml` on `main`,
   because a push made with `GITHUB_TOKEN` raises no events.
