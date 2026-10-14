@@ -32,7 +32,7 @@ published branch and only ever moves by fast-forward, so a published commit keep
 the SHA its tests ran under.
 
 - Push to `next` → the `release-pr` job regenerates the body of the standing
-  `release next to production` pull request from `scripts/release-notes.mjs`, and
+  `promote <release candidate>` pull request from `scripts/release-notes.mjs`, and
   semantic-release publishes a prerelease to the npm `next` tag.
 - Approving that pull request → `.github/workflows/promote-release.yml`
   fast-forwards `main` to `next`, then dispatches `workflow.yml` on `main`,

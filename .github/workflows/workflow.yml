@@ -70,11 +70,12 @@ jobs:
             exit 1
           fi
           node scripts/release-notes.mjs > pr_body.md
+          title="promote $(git describe --tags --abbrev=0 --match 'v*-next.*' origin/next 2>/dev/null || echo next)"
           number="$(gh pr list --base main --head next --state open --json number --jq '.[0].number // empty')"
           if [ -n "$number" ]; then
-            gh pr edit "$number" --body-file pr_body.md
+            gh pr edit "$number" --title "$title" --body-file pr_body.md
           else
-            gh pr create --base main --head next --title 'release next to production' --body-file pr_body.md
+            gh pr create --base main --head next --title "$title" --body-file pr_body.md
           fi
 
   publish-release:
