@@ -79,7 +79,8 @@ fail the 100% gate.
 
 To hold every release without touching the pipeline, set `dryRun: true` in
 `release.config.js`. Publishing, tagging and the GitHub release are all skipped
-while it is there, and the branches can be rewritten freely.
+while it is there. It has no bearing on the rulesets, so rewriting `main` still
+means disabling `main-integrity` first.
 
 ## Architecture
 
